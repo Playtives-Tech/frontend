@@ -8,7 +8,6 @@ import '@/styles/globals.css';
 
 const sans = DM_Sans({ variable: '--font-sans', subsets: ['latin'] });
 
-
 export const metadata: Metadata = {
   title: { default: 'Playtives', template: '%s | Playtives' },
   description: 'A thoughtful place for play and connection.',

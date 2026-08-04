@@ -49,7 +49,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   }
   return (
     <div className="app-background min-h-dvh">
-      <aside className="app-surface fixed inset-y-0 left-0 z-20 hidden w-80 flex-col border-r px-5 py-6 lg:flex">
+      <aside className="app-surface fixed inset-y-0 left-0 z-20 hidden w-72 flex-col border-r px-5 py-6 lg:flex">
         <Link href="/" className="flex items-center gap-3 px-2 font-heading text-xl font-semibold">
           Playtives
         </Link>

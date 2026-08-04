@@ -49,9 +49,7 @@ function ActiveOwnershipCard({
           {ownership.cycle}
         </p>
         <div className="mt-4 flex items-center justify-between gap-4 text-sm">
-          <span className="text-muted-foreground">
-            Completes {ownership.expectedCompletion}
-          </span>
+          <span className="text-muted-foreground">Completes {ownership.expectedCompletion}</span>
           <span className="font-semibold text-brand">{ownership.progress}% complete</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
