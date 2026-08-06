@@ -42,7 +42,7 @@ export function login(
   password: string,
 ): Promise<{
   accessToken: string;
-  user: { id: string; name: string; email: string; emailVerified: true };
+  user: { id: string; name: string; email: string; emailVerified: true; roles: string[] };
 }> {
   return api('/v1/auth/login', {
     method: 'POST',

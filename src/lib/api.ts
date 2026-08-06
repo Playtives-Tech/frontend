@@ -1,4 +1,5 @@
 import { env } from './env';
+import { getAccessToken } from './session';
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -9,11 +10,13 @@ export class ApiError extends Error {
   }
 }
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getAccessToken();
   const response = await fetch(new URL(path, env.NEXT_PUBLIC_API_URL), {
     ...init,
     credentials: 'include',
     headers: {
       Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
       ...init?.headers,
     },

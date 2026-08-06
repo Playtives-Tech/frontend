@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { formatNaira } from '@/components/ownership/formatters';
 import { useProfileStore } from '@/stores/use-profile-store';
+import { useEffect, useState } from 'react';
+import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 
 const iconByType = {
   Deposit: Plus,
@@ -14,8 +16,15 @@ const iconByType = {
 } as const;
 
 export function WalletDashboard(): React.JSX.Element {
-  const walletBalance = useProfileStore((state) => state.walletBalance);
-  const accrualsBalance = useProfileStore((state) => state.accrualsBalance);
+  const [remoteWallet, setRemoteWallet] = useState<WalletSummary | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  useEffect(() => {
+    void getWallet()
+      .then(setRemoteWallet)
+      .catch(() => setWalletError('Wallet information could not be loaded.'));
+  }, []);
+  const walletBalance = remoteWallet ? remoteWallet.deposit.availableKobo / 100 : 0;
+  const accrualsBalance = remoteWallet ? remoteWallet.earnings.availableKobo / 100 : 0;
   const balance = walletBalance + accrualsBalance;
   const accounts = useProfileStore((state) => state.accounts);
   const allActivity = useProfileStore((state) => state.activity);
@@ -29,19 +38,29 @@ export function WalletDashboard(): React.JSX.Element {
         <h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">My Wallet</h1>
       </header>
 
+      {walletError && (
+        <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">
+          {walletError}
+        </p>
+      )}
+
       <section className="mt-8 rounded-3xl bg-gradient-to-br from-brand to-emerald-950 p-6 text-brand-foreground sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
           Total available balance
         </p>
         <p className="mt-3 font-heading text-4xl font-semibold">{formatNaira(balance)}</p>
-        
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 border-t border-brand-foreground/20 pt-6">
+
+        <div className="mt-6 flex flex-col gap-4 border-t border-brand-foreground/20 pt-6 sm:flex-row">
           <div className="flex-1">
-            <p className="text-xs uppercase tracking-wider text-brand-foreground/70 font-semibold">Deposited Funds</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-foreground/70">
+              Deposited Funds
+            </p>
             <p className="mt-1 font-heading text-xl font-medium">{formatNaira(walletBalance)}</p>
           </div>
           <div className="flex-1">
-            <p className="text-xs uppercase tracking-wider text-brand-foreground/70 font-semibold">Investment Returns</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-foreground/70">
+              Investment Returns
+            </p>
             <p className="mt-1 font-heading text-xl font-medium">{formatNaira(accrualsBalance)}</p>
           </div>
         </div>
