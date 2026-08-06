@@ -2,11 +2,16 @@
 
 import { ArrowRight, CheckCircle2, ChevronRight, Landmark } from 'lucide-react';
 import Link from 'next/link';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
 import { BackButton } from '@/components/ui/back-button';
 import { notify } from '@/lib/notify';
 import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store';
+import {
+  createWithdrawalRequest,
+  getWallet,
+  type WalletSummary,
+} from '@/lib/services/wallet-service';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -17,11 +22,14 @@ export default function WithdrawPage(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
 
-  const walletBalance = useProfileStore((state) => state.walletBalance);
-  const earningsBalance = useProfileStore((state) => state.earningsBalance);
-  const balance = walletBalance + earningsBalance;
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const accounts = useProfileStore((state) => state.accounts);
-  const addWithdrawal = useProfileStore((state) => state.addWithdrawal);
+  useEffect(() => {
+    void getWallet()
+      .then(setWallet)
+      .catch(() => undefined);
+  }, []);
 
   const parsedAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
   const fee = 50; // Fixed fee for example
@@ -49,21 +57,23 @@ export default function WithdrawPage(): React.JSX.Element {
     if (!selectedAccount) return;
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Mock random error (10% chance) just for robustness or hardcode success
-    const success = true;
-
-    setIsSubmitting(false);
-
-    if (success) {
-      addWithdrawal(selectedAccount, totalDeduction);
+    try {
+      await createWithdrawalRequest({
+        amountMinorUnits: totalDeduction * 100,
+        bankName: selectedAccount.bank,
+        accountNumber: selectedAccount.number,
+        accountName: selectedAccount.name,
+      });
+      const updatedWallet = await getWallet();
+      setWallet(updatedWallet);
       setResultStatus('success');
       setStep('result');
-    } else {
+    } catch (error: unknown) {
+      notify.error(error instanceof Error ? error.message : 'Withdrawal request failed.');
       setResultStatus('error');
       setStep('result');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,7 +134,7 @@ export default function WithdrawPage(): React.JSX.Element {
                   </span>
                   <span className="min-w-0 flex-1">
                     <strong className="block">
-                      {acc.bank} · {acc.number}
+                      {acc.bank} · •••• {acc.number.slice(-4)}
                     </strong>
                     <small className="mt-1 block text-muted-foreground">{acc.name}</small>
                   </span>
@@ -191,7 +201,7 @@ export default function WithdrawPage(): React.JSX.Element {
               <dd className="text-right font-semibold">
                 {selectedAccount?.bank}
                 <br />
-                {selectedAccount?.number}
+                •••• {selectedAccount?.number.slice(-4)}
               </dd>
             </div>
             <div className="flex justify-between py-4">

@@ -1,34 +1,34 @@
 'use client';
 
-import { ArrowDownLeft, ArrowUpRight, ChevronRight, Plus, Package } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, Package } from 'lucide-react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { formatNaira } from '@/components/ownership/formatters';
 import { useProfileStore } from '@/stores/use-profile-store';
 import { useEffect, useState } from 'react';
-import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
-
-const iconByType = {
-  Deposit: Plus,
-  Withdrawal: ArrowUpRight,
-  Distribution: ArrowDownLeft,
-  'Ownership contribution': ArrowUpRight,
-} as const;
+import {
+  getActivityLogs,
+  getWallet,
+  type ActivityLog,
+  type WalletSummary,
+} from '@/lib/services/wallet-service';
 
 export function WalletDashboard(): React.JSX.Element {
   const [remoteWallet, setRemoteWallet] = useState<WalletSummary | null>(null);
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [walletError, setWalletError] = useState<string | null>(null);
   useEffect(() => {
     void getWallet()
       .then(setRemoteWallet)
       .catch(() => setWalletError('Wallet information could not be loaded.'));
+    void getActivityLogs()
+      .then((logs) => setActivity(logs.slice(0, 3)))
+      .catch(() => undefined);
   }, []);
   const walletBalance = remoteWallet ? remoteWallet.deposit.availableBalanceMinorUnits / 100 : 0;
   const earningsBalance = remoteWallet ? remoteWallet.earnings.availableBalanceMinorUnits / 100 : 0;
   const balance = walletBalance + earningsBalance;
   const accounts = useProfileStore((state) => state.accounts);
-  const allActivity = useProfileStore((state) => state.activity);
-  const activity = allActivity.slice(0, 3);
   const account = accounts[0];
 
   return (
@@ -102,26 +102,28 @@ export function WalletDashboard(): React.JSX.Element {
 
         <div className="mt-4 rounded-2xl border bg-background p-5">
           {activity.map((item, index) => {
-            const Icon = iconByType[item.type];
+            const amount =
+              typeof item.metadata?.amountMinorUnits === 'number'
+                ? item.metadata.amountMinorUnits / 100
+                : null;
             return (
               <div
-                key={item.id}
+                key={item._id}
                 className={`flex items-center gap-4 rounded-xl py-4 transition ${index > 0 ? 'border-t' : ''}`}
               >
-                <span className="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand">
-                  <Icon className="size-5" />
-                </span>
                 <span className="min-w-0 flex-1">
-                  <strong className="block">{item.type}</strong>
-                  <small className="mt-1 block text-muted-foreground">{item.detail}</small>
+                  <strong className="block">{item.action.replaceAll('_', ' ')}</strong>
+                  <small className="mt-1 block text-muted-foreground">
+                    {new Date(item.createdAt).toLocaleString('en-NG')}
+                  </small>
                 </span>
-                <strong className={item.amount > 0 ? 'text-brand' : ''}>
-                  {item.amount > 0 ? '+' : '−'}
-                  {formatNaira(Math.abs(item.amount))}
-                </strong>
+                {amount !== null ? <strong>{formatNaira(amount)}</strong> : null}
               </div>
             );
           })}
+          {activity.length === 0 ? (
+            <p className="py-4 text-sm text-muted-foreground">No wallet activity yet.</p>
+          ) : null}
         </div>
       </section>
 
@@ -136,7 +138,9 @@ export function WalletDashboard(): React.JSX.Element {
           </span>
           <span className="min-w-0 flex-1">
             <strong className="block">
-              {account ? `${account.bank} · ${account.number}` : 'Add a bank account'}
+              {account
+                ? `${account.bank} · •••• ${account.number.slice(-4)}`
+                : 'Add a bank account'}
             </strong>
             <small className="mt-1 block text-muted-foreground">
               {account ? account.name : 'Set a verified withdrawal destination'}

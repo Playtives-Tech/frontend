@@ -37,6 +37,11 @@ export default function ActivityPage(): React.JSX.Element {
             <p className="mt-1 text-sm text-muted-foreground">
               {log.subjectType} · {new Date(log.createdAt).toLocaleString()}
             </p>
+            {typeof log.metadata?.amountMinorUnits === 'number' ? (
+              <p className="mt-2 font-semibold text-brand">
+                ₦{(log.metadata.amountMinorUnits / 100).toLocaleString('en-NG')}
+              </p>
+            ) : null}
           </article>
         ))}
         {!error && logs.length === 0 ? (

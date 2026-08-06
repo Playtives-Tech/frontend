@@ -10,7 +10,7 @@ export async function verifyBankAccount(bank: string, number: string): Promise<L
   return {
     id: `${bank.toLowerCase()}-${number}`,
     bank,
-    number: number.slice(-4),
+    number,
     name: number.endsWith('76') ? 'Gabriel Ola' : 'Playtives Member',
   };
 }

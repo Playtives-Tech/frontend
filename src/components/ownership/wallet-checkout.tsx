@@ -1,7 +1,8 @@
 import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import type { Opportunity } from '@/lib/opportunities';
-import { useProfileStore } from '@/stores/use-profile-store';
+import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { formatNaira } from './formatters';
 
 type WalletCheckoutProps = Readonly<{
@@ -15,9 +16,13 @@ export function WalletCheckout({
   quantity,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
-  const storeWallet = useProfileStore((state) => state.walletBalance);
-  const storeEarnings = useProfileStore((state) => state.earningsBalance);
-  const walletBalance = storeWallet + storeEarnings;
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  useEffect(() => {
+    void getWallet()
+      .then(setWallet)
+      .catch(() => undefined);
+  }, []);
+  const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = opportunity.positionPrice * quantity;
   const hasFunds = walletBalance >= total;
   return (

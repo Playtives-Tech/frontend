@@ -10,25 +10,30 @@ import {
   UserRound,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import type { CurrentUser } from '@/stores/use-auth-store';
 import { useProfileStore } from '@/stores/use-profile-store';
+import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 
 // ... rest of file unchanged ...
 
 type ProfileDashboardProps = Readonly<{ user: CurrentUser; onSignOut: () => void }>;
 
 export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): React.JSX.Element {
-  const walletBalance = useProfileStore((state) => state.walletBalance);
-  const earningsBalance = useProfileStore((state) => state.earningsBalance);
-  const balance = walletBalance + earningsBalance;
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const verification = useProfileStore((state) => state.verification);
   const resetProfile = useProfileStore((state) => state.resetProfile);
   const [dialog, setDialog] = useState<
     'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | null
   >(null);
+  useEffect(() => {
+    void getWallet()
+      .then(setWallet)
+      .catch(() => undefined);
+  }, []);
   const verifiedCount = Object.values(verification).filter(
     (status) => status === 'verified',
   ).length;
