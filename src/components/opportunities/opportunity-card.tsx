@@ -42,7 +42,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JS
           {opportunity.description}
         </p>
 
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-4 text-sm">
+        <div className="mt-5 grid grid-cols-2 gap-y-4 gap-x-2 border-t pt-4 text-sm">
           <div>
             <p className="text-muted-foreground">Entry</p>
             <p className="mt-1 font-semibold">{opportunity.minimum}</p>
@@ -51,6 +51,28 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JS
           <div>
             <p className="text-muted-foreground">Duration</p>
             <p className="mt-1 font-semibold">{opportunity.duration}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Availability</p>
+            <p className="mt-1 font-semibold">{opportunity.positionsAvailable} of {opportunity.positionsTotal}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Return Schedule</p>
+            <p className="mt-1 font-semibold">{opportunity.returnSchedule}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Ownership</p>
+            <p className="mt-1 font-semibold">{opportunity.ownershipModel}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Operator</p>
+            <p className="mt-1 truncate font-semibold" title={opportunity.operator}>
+              {opportunity.operator}
+            </p>
           </div>
         </div>
 

@@ -14,7 +14,9 @@ const iconByType = {
 } as const;
 
 export function WalletDashboard(): React.JSX.Element {
-  const balance = useProfileStore((state) => state.balance);
+  const walletBalance = useProfileStore((state) => state.walletBalance);
+  const accrualsBalance = useProfileStore((state) => state.accrualsBalance);
+  const balance = walletBalance + accrualsBalance;
   const accounts = useProfileStore((state) => state.accounts);
   const allActivity = useProfileStore((state) => state.activity);
   const activity = allActivity.slice(0, 3);
@@ -29,12 +31,20 @@ export function WalletDashboard(): React.JSX.Element {
 
       <section className="mt-8 rounded-3xl bg-gradient-to-br from-brand to-emerald-950 p-6 text-brand-foreground sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
-          Available balance
+          Total available balance
         </p>
         <p className="mt-3 font-heading text-4xl font-semibold">{formatNaira(balance)}</p>
-        <p className="mt-2 text-brand-foreground/75">
-          Available for verified ownership and withdrawal requests.
-        </p>
+        
+        <div className="mt-6 flex flex-col sm:flex-row gap-4 border-t border-brand-foreground/20 pt-6">
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-wider text-brand-foreground/70 font-semibold">Deposited Funds</p>
+            <p className="mt-1 font-heading text-xl font-medium">{formatNaira(walletBalance)}</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-wider text-brand-foreground/70 font-semibold">Investment Returns</p>
+            <p className="mt-1 font-heading text-xl font-medium">{formatNaira(accrualsBalance)}</p>
+          </div>
+        </div>
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <Link

@@ -8,13 +8,15 @@ type WalletCheckoutProps = Readonly<{
   quantity: number;
   onBack: () => void;
 }>;
-const walletBalance = 100_000;
 
 export function WalletCheckout({
   opportunity,
   quantity,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
+  const storeWallet = useProfileStore((state) => state.walletBalance);
+  const storeAccruals = useProfileStore((state) => state.accrualsBalance);
+  const walletBalance = storeWallet + storeAccruals;
   const total = opportunity.positionPrice * quantity;
   const hasFunds = walletBalance >= total;
   return (

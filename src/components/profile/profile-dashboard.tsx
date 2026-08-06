@@ -21,7 +21,9 @@ import { useProfileStore } from '@/stores/use-profile-store';
 type ProfileDashboardProps = Readonly<{ user: CurrentUser; onSignOut: () => void }>;
 
 export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): React.JSX.Element {
-  const balance = useProfileStore((state) => state.balance);
+  const walletBalance = useProfileStore((state) => state.walletBalance);
+  const accrualsBalance = useProfileStore((state) => state.accrualsBalance);
+  const balance = walletBalance + accrualsBalance;
   const verification = useProfileStore((state) => state.verification);
   const resetProfile = useProfileStore((state) => state.resetProfile);
   const [dialog, setDialog] = useState<
