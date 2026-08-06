@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { DM_Sans } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { AppProviders } from '@/components/providers/app-providers';
@@ -17,6 +17,12 @@ export const metadata: Metadata = {
     description: 'A thoughtful place for play and connection.',
   },
   twitter: { card: 'summary_large_image' },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
