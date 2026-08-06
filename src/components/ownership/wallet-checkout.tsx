@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import type { Opportunity } from '@/lib/opportunities';
+import { useProfileStore } from '@/stores/use-profile-store';
 import { formatNaira } from './formatters';
 
 type WalletCheckoutProps = Readonly<{
