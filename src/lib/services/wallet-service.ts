@@ -4,9 +4,15 @@ export type WalletSummary = Readonly<{
   id: string;
   currency: 'NGN';
   status: 'active' | 'locked';
-  deposit: Readonly<{ availableKobo: number; pendingKobo: number }>;
-  earnings: Readonly<{ availableKobo: number; lifetimeEarnedKobo: number }>;
-  totalAvailableKobo: number;
+  deposit: Readonly<{
+    availableBalanceMinorUnits: number;
+    pendingBalanceMinorUnits: number;
+  }>;
+  earnings: Readonly<{
+    availableBalanceMinorUnits: number;
+    lifetimeEarningsMinorUnits: number;
+  }>;
+  totalAvailableBalanceMinorUnits: number;
 }>;
 
 export function getWallet(): Promise<WalletSummary> {

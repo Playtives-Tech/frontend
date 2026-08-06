@@ -23,8 +23,8 @@ export function WalletDashboard(): React.JSX.Element {
       .then(setRemoteWallet)
       .catch(() => setWalletError('Wallet information could not be loaded.'));
   }, []);
-  const walletBalance = remoteWallet ? remoteWallet.deposit.availableKobo / 100 : 0;
-  const earningsBalance = remoteWallet ? remoteWallet.earnings.availableKobo / 100 : 0;
+  const walletBalance = remoteWallet ? remoteWallet.deposit.availableBalanceMinorUnits / 100 : 0;
+  const earningsBalance = remoteWallet ? remoteWallet.earnings.availableBalanceMinorUnits / 100 : 0;
   const balance = walletBalance + earningsBalance;
   const accounts = useProfileStore((state) => state.accounts);
   const allActivity = useProfileStore((state) => state.activity);
