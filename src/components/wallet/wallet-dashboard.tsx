@@ -24,8 +24,8 @@ export function WalletDashboard(): React.JSX.Element {
       .catch(() => setWalletError('Wallet information could not be loaded.'));
   }, []);
   const walletBalance = remoteWallet ? remoteWallet.deposit.availableKobo / 100 : 0;
-  const accrualsBalance = remoteWallet ? remoteWallet.earnings.availableKobo / 100 : 0;
-  const balance = walletBalance + accrualsBalance;
+  const earningsBalance = remoteWallet ? remoteWallet.earnings.availableKobo / 100 : 0;
+  const balance = walletBalance + earningsBalance;
   const accounts = useProfileStore((state) => state.accounts);
   const allActivity = useProfileStore((state) => state.activity);
   const activity = allActivity.slice(0, 3);
@@ -61,7 +61,7 @@ export function WalletDashboard(): React.JSX.Element {
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-foreground/70">
               Investment Returns
             </p>
-            <p className="mt-1 font-heading text-xl font-medium">{formatNaira(accrualsBalance)}</p>
+            <p className="mt-1 font-heading text-xl font-medium">{formatNaira(earningsBalance)}</p>
           </div>
         </div>
 

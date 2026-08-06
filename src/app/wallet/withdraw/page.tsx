@@ -18,8 +18,8 @@ export default function WithdrawPage(): React.JSX.Element {
   const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
 
   const walletBalance = useProfileStore((state) => state.walletBalance);
-  const accrualsBalance = useProfileStore((state) => state.accrualsBalance);
-  const balance = walletBalance + accrualsBalance;
+  const earningsBalance = useProfileStore((state) => state.earningsBalance);
+  const balance = walletBalance + earningsBalance;
   const accounts = useProfileStore((state) => state.accounts);
   const addWithdrawal = useProfileStore((state) => state.addWithdrawal);
 

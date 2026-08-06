@@ -16,8 +16,8 @@ export function WalletCheckout({
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
   const storeWallet = useProfileStore((state) => state.walletBalance);
-  const storeAccruals = useProfileStore((state) => state.accrualsBalance);
-  const walletBalance = storeWallet + storeAccruals;
+  const storeEarnings = useProfileStore((state) => state.earningsBalance);
+  const walletBalance = storeWallet + storeEarnings;
   const total = opportunity.positionPrice * quantity;
   const hasFunds = walletBalance >= total;
   return (

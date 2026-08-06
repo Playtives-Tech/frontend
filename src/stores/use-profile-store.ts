@@ -24,7 +24,7 @@ export type WalletActivity = Readonly<{
 
 type ProfileState = Readonly<{
   walletBalance: number;
-  accrualsBalance: number;
+  earningsBalance: number;
   accounts: LinkedAccount[];
   verification: Readonly<{
     phone: VerificationStatus;
@@ -44,7 +44,7 @@ type ProfileActions = Readonly<{
 
 const initialState: ProfileState = {
   walletBalance: 2_000_000,
-  accrualsBalance: 8_000_000,
+  earningsBalance: 8_000_000,
   accounts: [{ id: 'gtbank-0176', bank: 'GTBank', number: '0176', name: 'Gabriel Ola' }],
   verification: { phone: 'not-verified', nin: 'not-verified', bvn: 'not-verified' },
   activity: [
@@ -89,34 +89,34 @@ export const useProfileStore = create<ProfileState & ProfileActions>()(
         set((state) => ({ verification: { ...state.verification, [type]: 'verified' } })),
       addWithdrawal: (account, amount) =>
         set((state) => {
-          let newAccruals = state.accrualsBalance;
+          let newEarnings = state.earningsBalance;
           let newWallet = state.walletBalance;
-          
-          if (newAccruals >= amount) {
-            newAccruals -= amount;
+
+          if (newEarnings >= amount) {
+            newEarnings -= amount;
           } else {
-            const remainder = amount - newAccruals;
-            newAccruals = 0;
+            const remainder = amount - newEarnings;
+            newEarnings = 0;
             newWallet -= remainder;
           }
 
           return {
             walletBalance: newWallet,
-            accrualsBalance: newAccruals,
-          activity: [
-            {
-              id: crypto.randomUUID(),
-              type: 'Withdrawal',
-              detail: `${account.bank} · ${account.number}`,
-              amount: -amount,
-              status: 'Processing',
-              reference: `PLT-WDL-${Date.now().toString().slice(-6)}`,
-              createdAt: new Date().toISOString(),
-            },
-            ...state.activity,
-          ],
-        };
-      }),
+            earningsBalance: newEarnings,
+            activity: [
+              {
+                id: crypto.randomUUID(),
+                type: 'Withdrawal',
+                detail: `${account.bank} · ${account.number}`,
+                amount: -amount,
+                status: 'Processing',
+                reference: `PLT-WDL-${Date.now().toString().slice(-6)}`,
+                createdAt: new Date().toISOString(),
+              },
+              ...state.activity,
+            ],
+          };
+        }),
       resetProfile: () => set(initialState),
     }),
     { name: 'playtives-profile', skipHydration: true },
