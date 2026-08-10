@@ -36,6 +36,7 @@ export function OpportunityOverview({
         <div className="relative aspect-[16/7] min-h-64 bg-muted">
           <Image
             src={opportunity.image}
+            unoptimized
             alt={opportunity.alt}
             fill
             priority
@@ -111,6 +112,14 @@ export function OpportunityOverview({
               <p className="mt-5 leading-8 text-muted-foreground">
                 Operator: {opportunity.operator}
               </p>
+              {opportunity.agreement && (
+                <section className="mt-10 rounded-2xl border bg-surface p-5">
+                  <h2 className="font-heading text-2xl font-semibold">Opportunity agreement</h2>
+                  <p className="mt-4 whitespace-pre-wrap leading-8 text-muted-foreground">
+                    {opportunity.agreement}
+                  </p>
+                </section>
+              )}
               <h2 className="mt-10 font-heading text-2xl font-semibold">What you receive</h2>
               <p className="mt-4 leading-8 text-muted-foreground">
                 A defined ownership position, signed ownership record, milestone updates, reviewed
@@ -147,6 +156,29 @@ export function OpportunityOverview({
                   <dt className="text-muted-foreground">Target ROI</dt>
                   <dd className="mt-1 font-semibold text-brand">Up to {opportunity.returnRate}</dd>
                 </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    {opportunity.projectedMonthlyProfit == null
+                      ? 'Projected profit'
+                      : 'Projected monthly profit'}
+                  </dt>
+                  <dd className="mt-1 font-semibold text-brand">
+                    {formatNaira(opportunity.projectedMonthlyProfit ?? opportunity.projectedProfit)}
+                  </dd>
+                </div>
+                {opportunity.rolloverNextPrincipal != null && (
+                  <div>
+                    <dt className="text-muted-foreground">Next rollover principal</dt>
+                    <dd className="mt-1 font-semibold">
+                      {formatNaira(opportunity.rolloverNextPrincipal)}
+                    </dd>
+                    {opportunity.rolloverCompoundsReturns && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Profit is added before the next ROI is calculated.
+                      </p>
+                    )}
+                  </div>
+                )}
               </dl>
             </aside>
           </div>

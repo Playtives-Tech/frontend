@@ -14,6 +14,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JS
       <div className="relative aspect-[16/9] overflow-hidden bg-muted">
         <Image
           src={opportunity.image}
+          unoptimized
           alt={opportunity.alt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
@@ -42,7 +43,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JS
           {opportunity.description}
         </p>
 
-        <div className="mt-5 grid grid-cols-2 gap-y-4 gap-x-2 border-t pt-4 text-sm">
+        <div className="mt-5 grid grid-cols-2 gap-x-2 gap-y-4 border-t pt-4 text-sm">
           <div>
             <p className="text-muted-foreground">Entry</p>
             <p className="mt-1 font-semibold">{opportunity.minimum}</p>
@@ -55,7 +56,9 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JS
 
           <div>
             <p className="text-muted-foreground">Availability</p>
-            <p className="mt-1 font-semibold">{opportunity.positionsAvailable} of {opportunity.positionsTotal}</p>
+            <p className="mt-1 font-semibold">
+              {opportunity.positionsAvailable} of {opportunity.positionsTotal}
+            </p>
           </div>
 
           <div>

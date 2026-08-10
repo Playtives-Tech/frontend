@@ -1,14 +1,25 @@
-import { notFound } from 'next/navigation';
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { OwnershipFlow } from '@/components/ownership/ownership-flow';
-import { opportunities } from '@/lib/opportunities';
-
-type OpportunityDetailPageProps = Readonly<{ params: Promise<{ slug: string }> }>;
-
-export default async function OpportunityDetailPage({
-  params,
-}: OpportunityDetailPageProps): Promise<React.JSX.Element> {
-  const { slug } = await params;
-  const opportunity = opportunities.find((item) => item.slug === slug);
-  if (!opportunity) notFound();
+import { getOpportunity, type Opportunity } from '@/lib/opportunities';
+export default function OpportunityDetailPage(): React.JSX.Element {
+  const { slug } = useParams<{ slug: string }>();
+  const [opportunity, setOpportunity] = useState<Opportunity>();
+  const [error, setError] = useState('');
+  useEffect(() => {
+    getOpportunity(slug)
+      .then(setOpportunity)
+      .catch((value: unknown) =>
+        setError(value instanceof Error ? value.message : 'Opportunity not found'),
+      );
+  }, [slug]);
+  if (error) return <div className="text-destructive mx-auto max-w-5xl p-10 text-sm">{error}</div>;
+  if (!opportunity)
+    return (
+      <div className="mx-auto max-w-5xl p-10 text-sm text-muted-foreground">
+        Loading opportunity…
+      </div>
+    );
   return <OwnershipFlow opportunity={opportunity} />;
 }

@@ -1,17 +1,38 @@
-export const opportunityCategories = [
-  'All',
-  'Agriculture',
-  'Real estate',
-  'Infrastructure',
-  'Manufacturing',
-] as const;
+import { api } from './api';
 
-export type OpportunityCategory = (typeof opportunityCategories)[number];
-
-export type Opportunity = Readonly<{
+type OpportunityRecord = {
+  _id: string;
   slug: string;
   title: string;
-  category: Exclude<OpportunityCategory, 'All'>;
+  category: string;
+  summary: string;
+  about?: string;
+  agreement?: string;
+  pricePerUnitMinorUnits: number;
+  minimumUnits: number;
+  totalUnits: number;
+  availableUnits: number;
+  durationMonths: number | null;
+  projectedReturnRatePercent: number;
+  projectedProfitMinorUnits: number;
+  projectedMonthlyProfitMinorUnits: number | null;
+  returnSchedule: 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
+  ownershipModel: 'CO_OWNERSHIP' | 'FULL_OWNERSHIP';
+  rolloverAllowed: boolean;
+  rolloverCompoundsReturns: boolean;
+  rolloverNextPrincipalMinorUnits: number | null;
+  rolloverNextProjectedProfitMinorUnits: number | null;
+  location?: string;
+  operator?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+};
+
+export type Opportunity = Readonly<{
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
   description: string;
   returnRate: string;
   minimum: string;
@@ -23,110 +44,77 @@ export type Opportunity = Readonly<{
   positionsTotal: number;
   maxPositionsPerMember: number;
   ownershipModel: 'Co-ownership' | 'Full ownership';
-  returnSchedule: 'Fixed monthly' | 'At maturity';
+  returnSchedule: 'Fixed monthly' | 'Yearly' | 'At maturity';
   rollover: boolean;
+  rolloverCompoundsReturns: boolean;
   operator: string;
   about: string;
+  agreement: string;
   image: string;
   alt: string;
+  projectedProfit: number;
+  projectedMonthlyProfit: number | null;
+  rolloverNextPrincipal: number | null;
+  rolloverNextProjectedProfit: number | null;
 }>;
 
-export const opportunities: readonly Opportunity[] = [
-  {
-    slug: 'palm-oil-supply-chain',
-    title: 'Palm oil supply chain',
-    category: 'Agriculture',
-    description: 'Co-own a verified palm oil supply cycle serving commercial manufacturers.',
-    returnRate: '18.4%',
-    minimum: '₦250,000',
-    duration: '6 months',
-    location: 'Lagos, Nigeria',
-    availability: '2 positions available',
-    positionPrice: 7_500_000,
-    positionsAvailable: 2,
-    positionsTotal: 12,
-    maxPositionsPerMember: 2,
-    ownershipModel: 'Co-ownership',
-    returnSchedule: 'Fixed monthly',
-    rollover: true,
-    operator: 'Idumi Commodities Limited',
-    about:
-      'This opportunity funds the purchase, quality verification, transport, and delivery of premium palm oil to verified commercial buyers in Nigeria.',
-    image:
-      'https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Fresh palm fruit bunches ready for processing',
-  },
-  {
-    slug: 'urban-logistics-network',
-    title: 'Urban logistics network',
-    category: 'Infrastructure',
-    description: 'Support a growing urban warehousing and last-mile distribution network.',
-    returnRate: '16.8%',
-    minimum: '₦500,000',
-    duration: '12 months',
-    location: 'Abuja, Nigeria',
-    availability: '8 positions available',
-    positionPrice: 500_000,
-    positionsAvailable: 8,
-    positionsTotal: 24,
-    maxPositionsPerMember: 4,
-    ownershipModel: 'Co-ownership',
-    returnSchedule: 'At maturity',
-    rollover: false,
-    operator: 'Transit Works Limited',
-    about:
-      'This opportunity supports distribution infrastructure with contracted operators and a clear commercial delivery timeline.',
-    image:
-      'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Warehouse shelving for an urban logistics operation',
-  },
-  {
-    slug: 'student-living-spaces',
-    title: 'Student living spaces',
-    category: 'Real estate',
-    description: 'Participate in well-managed accommodation close to higher education campuses.',
-    returnRate: '15.2%',
-    minimum: '₦300,000',
-    duration: '18 months',
-    location: 'Ibadan, Nigeria',
-    availability: '5 positions available',
-    positionPrice: 300_000,
-    positionsAvailable: 5,
-    positionsTotal: 18,
-    maxPositionsPerMember: 3,
-    ownershipModel: 'Co-ownership',
-    returnSchedule: 'Fixed monthly',
-    rollover: true,
-    operator: 'Campus Living Partners',
-    about:
-      'This opportunity supports professionally managed housing that serves students close to established university communities.',
-    image:
-      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Students studying together in a modern learning space',
-  },
-  {
-    slug: 'food-processing-hub',
-    title: 'Food processing hub',
-    category: 'Manufacturing',
-    description:
-      'Back essential food processing capacity for a growing regional distribution base.',
-    returnRate: '17.1%',
-    minimum: '₦400,000',
-    duration: '9 months',
-    location: 'Ogun, Nigeria',
-    availability: '4 positions available',
-    positionPrice: 400_000,
-    positionsAvailable: 4,
-    positionsTotal: 16,
-    maxPositionsPerMember: 2,
-    ownershipModel: 'Co-ownership',
-    returnSchedule: 'Fixed monthly',
-    rollover: false,
-    operator: 'Harvest Processing Company',
-    about:
-      'This opportunity backs processing capacity for an established network of regional food distributors.',
-    image:
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Food preparation in a modern commercial kitchen',
-  },
-] as const;
+const naira = (minor: number) =>
+  new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
+  }).format(minor / 100);
+function mapOpportunity(item: OpportunityRecord): Opportunity {
+  const positionPrice = item.pricePerUnitMinorUnits / 100;
+  const schedule =
+    item.returnSchedule === 'MONTHLY'
+      ? 'Fixed monthly'
+      : item.returnSchedule === 'YEARLY'
+        ? 'Yearly'
+        : 'At maturity';
+  return {
+    id: item._id,
+    slug: item.slug,
+    title: item.title,
+    category: item.category,
+    description: item.summary,
+    returnRate: `${item.projectedReturnRatePercent}%`,
+    minimum: naira(item.pricePerUnitMinorUnits * item.minimumUnits),
+    duration: item.durationMonths ? `${item.durationMonths} months` : 'Not specified',
+    location: item.location || 'Not specified',
+    availability: `${item.availableUnits} positions available`,
+    positionPrice,
+    positionsAvailable: item.availableUnits,
+    positionsTotal: item.totalUnits,
+    maxPositionsPerMember: item.totalUnits,
+    ownershipModel: item.ownershipModel === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership',
+    returnSchedule: schedule,
+    rollover: item.rolloverAllowed,
+    rolloverCompoundsReturns: item.rolloverCompoundsReturns,
+    operator: item.operator || 'Not specified',
+    about: item.about || '',
+    agreement: item.agreement || '',
+    image: item.imageUrl || '',
+    alt: item.imageAlt || item.title,
+    projectedProfit: item.projectedProfitMinorUnits / 100,
+    projectedMonthlyProfit:
+      item.projectedMonthlyProfitMinorUnits == null
+        ? null
+        : item.projectedMonthlyProfitMinorUnits / 100,
+    rolloverNextPrincipal:
+      item.rolloverNextPrincipalMinorUnits == null
+        ? null
+        : item.rolloverNextPrincipalMinorUnits / 100,
+    rolloverNextProjectedProfit:
+      item.rolloverNextProjectedProfitMinorUnits == null
+        ? null
+        : item.rolloverNextProjectedProfitMinorUnits / 100,
+  };
+}
+
+export async function getOpportunities(): Promise<Opportunity[]> {
+  return (await api<OpportunityRecord[]>('/v1/opportunities')).map(mapOpportunity);
+}
+export async function getOpportunity(slug: string): Promise<Opportunity> {
+  return mapOpportunity(await api<OpportunityRecord>(`/v1/opportunities/${slug}`));
+}

@@ -47,6 +47,7 @@ export function OwnershipPositionDetail({
         <div className="relative aspect-[16/7] min-h-56 bg-muted">
           <Image
             src={opportunity.image}
+            unoptimized
             alt={opportunity.alt}
             fill
             priority

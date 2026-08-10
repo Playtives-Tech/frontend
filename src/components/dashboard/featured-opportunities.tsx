@@ -1,9 +1,18 @@
+'use client';
+
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { OpportunityCard } from '@/components/opportunities/opportunity-card';
-import { opportunities } from '@/lib/opportunities';
+import { useEffect, useState } from 'react';
+import { getOpportunities, type Opportunity } from '@/lib/opportunities';
 
 export function FeaturedOpportunities(): React.JSX.Element {
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  useEffect(() => {
+    getOpportunities()
+      .then(setOpportunities)
+      .catch(() => setOpportunities([]));
+  }, []);
   return (
     <section className="mt-12">
       <div className="flex items-center justify-between gap-5">

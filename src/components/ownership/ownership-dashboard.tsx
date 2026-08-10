@@ -3,8 +3,8 @@
 import { ArrowRight, ChevronRight, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
-import { opportunities } from '@/lib/opportunities';
+import { useEffect, useState } from 'react';
+import { getOpportunities, type Opportunity } from '@/lib/opportunities';
 import { ownedOpportunities, ownershipTotal, type OwnedOpportunity } from '@/lib/ownership';
 import { cn } from '@/lib/utils';
 import { formatNaira } from './formatters';
@@ -17,16 +17,10 @@ const tabs = [
   { value: 'activity', label: 'Activity' },
 ] as const satisfies readonly Readonly<{ value: OwnershipTab; label: string }>[];
 
-function getOpportunity(slug: string) {
-  const opportunity = opportunities.find((item) => item.slug === slug);
-  if (!opportunity) throw new Error(`Opportunity not found: ${slug}`);
-  return opportunity;
-}
-
 function ActiveOwnershipCard({
   ownership,
-}: Readonly<{ ownership: OwnedOpportunity }>): React.JSX.Element {
-  const opportunity = getOpportunity(ownership.opportunitySlug);
+  opportunity,
+}: Readonly<{ ownership: OwnedOpportunity; opportunity: Opportunity }>): React.JSX.Element {
   return (
     <Link
       href={`/ownership/${ownership.id}`}
@@ -35,6 +29,7 @@ function ActiveOwnershipCard({
       <div className="relative aspect-square overflow-hidden rounded-xl bg-muted sm:aspect-square">
         <Image
           src={opportunity.image}
+          unoptimized
           alt={opportunity.alt}
           fill
           sizes="160px"
@@ -74,8 +69,8 @@ function ActiveOwnershipCard({
 
 function CompletedOwnershipCard({
   ownership,
-}: Readonly<{ ownership: OwnedOpportunity }>): React.JSX.Element {
-  const opportunity = getOpportunity(ownership.opportunitySlug);
+  opportunity,
+}: Readonly<{ ownership: OwnedOpportunity; opportunity: Opportunity }>): React.JSX.Element {
   return (
     <Link
       href={`/ownership/${ownership.id}`}
@@ -84,6 +79,7 @@ function CompletedOwnershipCard({
       <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         <Image
           src={opportunity.image}
+          unoptimized
           alt={opportunity.alt}
           fill
           sizes="88px"
@@ -156,6 +152,12 @@ function ActivityFeed(): React.JSX.Element {
 
 export function OwnershipDashboard(): React.JSX.Element {
   const [tab, setTab] = useState<OwnershipTab>('active');
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  useEffect(() => {
+    getOpportunities()
+      .then(setOpportunities)
+      .catch(() => setOpportunities([]));
+  }, []);
   const active = ownedOpportunities.filter((item) => item.status === 'active');
   const completed = ownedOpportunities.filter((item) => item.status === 'completed');
   return (
@@ -197,16 +199,34 @@ export function OwnershipDashboard(): React.JSX.Element {
       <section className="mt-6">
         {tab === 'active' && (
           <div className="grid gap-4">
-            {active.map((ownership) => (
-              <ActiveOwnershipCard key={ownership.id} ownership={ownership} />
-            ))}
+            {active.map((ownership) => {
+              const opportunity = opportunities.find(
+                (item) => item.slug === ownership.opportunitySlug,
+              );
+              return opportunity ? (
+                <ActiveOwnershipCard
+                  key={ownership.id}
+                  ownership={ownership}
+                  opportunity={opportunity}
+                />
+              ) : null;
+            })}
           </div>
         )}
         {tab === 'completed' && (
           <div className="grid gap-4">
-            {completed.map((ownership) => (
-              <CompletedOwnershipCard key={ownership.id} ownership={ownership} />
-            ))}
+            {completed.map((ownership) => {
+              const opportunity = opportunities.find(
+                (item) => item.slug === ownership.opportunitySlug,
+              );
+              return opportunity ? (
+                <CompletedOwnershipCard
+                  key={ownership.id}
+                  ownership={ownership}
+                  opportunity={opportunity}
+                />
+              ) : null;
+            })}
           </div>
         )}
         {tab === 'activity' && <ActivityFeed />}

@@ -1,18 +1,29 @@
 'use client';
 
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import {
-  opportunities,
-  opportunityCategories,
-  type OpportunityCategory,
-} from '@/lib/opportunities';
+import { getOpportunities, type Opportunity } from '@/lib/opportunities';
 import { OpportunityCard } from './opportunity-card';
 
 export function OpportunityCatalogue(): React.JSX.Element {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<OpportunityCategory>('All');
+  const [category, setCategory] = useState('All');
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    getOpportunities()
+      .then(setOpportunities)
+      .catch((value: unknown) =>
+        setError(value instanceof Error ? value.message : 'Unable to load opportunities'),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+  const opportunityCategories = useMemo(
+    () => ['All', ...new Set(opportunities.map((item) => item.category))],
+    [opportunities],
+  );
   const visibleOpportunities = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return opportunities.filter(
@@ -23,7 +34,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
             .toLowerCase()
             .includes(normalizedQuery)),
     );
-  }, [category, query]);
+  }, [category, opportunities, query]);
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header className="max-w-2xl">
@@ -78,7 +89,11 @@ export function OpportunityCatalogue(): React.JSX.Element {
         <p className="text-sm text-muted-foreground">{visibleOpportunities.length} opportunities</p>
       </div>
 
-      {visibleOpportunities.length > 0 ? (
+      {loading ? (
+        <p className="mt-8 text-sm text-muted-foreground">Loading opportunities…</p>
+      ) : error ? (
+        <p className="text-destructive mt-8 text-sm">{error}</p>
+      ) : visibleOpportunities.length > 0 ? (
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visibleOpportunities.map((opportunity) => (
             <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
