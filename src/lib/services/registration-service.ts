@@ -1,4 +1,5 @@
 import { api } from '@/lib/api';
+import type { WalletSummary } from './wallet-service';
 
 export type RegistrationInput = Readonly<{
   name: string;
@@ -43,6 +44,7 @@ export function login(
 ): Promise<{
   accessToken: string;
   user: { id: string; name: string; email: string; emailVerified: true; roles: string[] };
+  wallet: WalletSummary;
 }> {
   return api('/v1/auth/login', {
     method: 'POST',
