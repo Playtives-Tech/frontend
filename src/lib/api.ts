@@ -1,5 +1,5 @@
 import { env } from './env';
-import { getAccessToken } from './session';
+import { expireSession, getAccessToken } from './session';
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -30,6 +30,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
           ? body.message.join('. ')
           : String(body.message)
         : 'Request failed. Please try again.';
+    if (response.status === 401 && token) expireSession();
     throw new ApiError(response.status, message);
   }
   return response.json() as Promise<T>;

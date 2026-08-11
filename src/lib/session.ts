@@ -11,3 +11,23 @@ export function setAccessToken(token: string): void {
 export function clearAccessToken(): void {
   sessionStorage.removeItem(TOKEN_KEY);
 }
+
+export function expireSession(): void {
+  if (typeof window === 'undefined') return;
+  clearAccessToken();
+  localStorage.removeItem('playtives-auth');
+  const destination = '/profile?mode=sign-in';
+  if (`${window.location.pathname}${window.location.search}` !== destination)
+    window.location.replace(destination);
+}
+
+export function isAccessTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) as {
+      exp?: number;
+    };
+    return typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}

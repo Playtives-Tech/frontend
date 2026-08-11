@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowRight, CheckCircle2, Mail, UserRound } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { AccountModeToggle, type AccountMode } from '@/components/auth/account-mode-toggle';
 import { ProfileDashboard } from '@/components/profile/profile-dashboard';
 import { notify } from '@/lib/notify';
@@ -21,6 +21,10 @@ export default function ProfilePage(): React.JSX.Element {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('mode') === 'sign-in') setMode('sign-in');
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();

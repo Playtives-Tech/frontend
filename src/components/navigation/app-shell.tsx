@@ -4,11 +4,13 @@ import { Bell, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 import { notify } from '@/lib/notify';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { navigationItems } from './navigation';
+import { expireSession, getAccessToken, isAccessTokenExpired } from '@/lib/session';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
 
@@ -43,6 +45,16 @@ function NavigationLink({
 export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const signOut = useAuthStore((state) => state.signOut);
+  useEffect(() => {
+    if (!user) return;
+    const validateSession = (): void => {
+      const token = getAccessToken();
+      if (!token || isAccessTokenExpired(token)) expireSession();
+    };
+    validateSession();
+    const timer = window.setInterval(validateSession, 30_000);
+    return () => window.clearInterval(timer);
+  }, [user]);
   function handleSignOut(): void {
     signOut();
     notify.info('You have signed out', { description: 'Sign in again when you are ready.' });

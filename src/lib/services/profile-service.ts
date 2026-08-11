@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import type { LinkedAccount } from '@/stores/use-profile-store';
 
 const pause = (milliseconds = 850): Promise<void> =>
@@ -44,8 +45,12 @@ export async function requestWithdrawal(amount: number): Promise<void> {
   if (amount <= 0) throw new Error('Enter a valid withdrawal amount.');
 }
 
-export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  await pause();
-  if (currentPassword.length < 6 || newPassword.length < 8)
-    throw new Error('Use a current password and a new password with at least 8 characters.');
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  return api<{ message: string }>('/v1/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
 }

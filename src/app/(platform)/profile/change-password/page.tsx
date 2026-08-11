@@ -4,8 +4,14 @@ import { ArrowRight, KeyRound } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { notify } from '@/lib/notify';
+import { ApiError } from '@/lib/api';
+import { changePassword } from '@/lib/services/profile-service';
+import { useAuthStore } from '@/stores/use-auth-store';
+import { useRouter } from 'next/navigation';
 
 export default function ChangePasswordPage(): React.JSX.Element {
+  const router = useRouter();
+  const signOut = useAuthStore((state) => state.signOut);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,22 +25,30 @@ export default function ChangePasswordPage(): React.JSX.Element {
       return;
     }
 
-    if (newPassword.length < 8) {
-      notify.error('Password must be at least 8 characters');
+    if (
+      newPassword.length < 8 ||
+      !/[a-z]/.test(newPassword) ||
+      !/[A-Z]/.test(newPassword) ||
+      !/\d/.test(newPassword)
+    ) {
+      notify.error(
+        'Password must be at least 8 characters and include upper and lowercase letters and a number',
+      );
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    notify.success('Password updated successfully');
-
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    try {
+      const response = await changePassword(currentPassword, newPassword);
+      signOut();
+      notify.success(response.message);
+      router.replace('/profile?mode=sign-in');
+    } catch (error: unknown) {
+      notify.error(error instanceof ApiError ? error.message : 'Could not update your password');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
