@@ -72,6 +72,14 @@ export function WalletCheckout({
             <dt className="font-semibold">Positions</dt>
             <dd className="font-semibold">{quantity}</dd>
           </div>
+          <div className="flex items-center justify-between gap-4 py-4">
+            <dt className="font-semibold">Projected ROI</dt>
+            <dd className="font-semibold text-brand">{opportunity.projectedReturnRatePercent}%</dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-4">
+            <dt className="font-semibold">Projected return</dt>
+            <dd className="font-semibold">{formatNaira((opportunity.projectedProfitMinorUnits / 100) * quantity)}</dd>
+          </div>
           <div className="flex items-center justify-between gap-4 pt-4">
             <dt className="font-semibold">Total contribution</dt>
             <dd className="text-xl font-semibold">{formatNaira(total)}</dd>
