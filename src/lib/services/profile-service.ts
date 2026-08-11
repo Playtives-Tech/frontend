@@ -14,6 +14,24 @@ export function listBankAccounts(): Promise<LinkedAccount[]> {
   return api<LinkedAccount[]>('/v1/bank-accounts', { cache: 'no-store' });
 }
 
+export type ResolvedBankAccount = Readonly<{
+  bankCode: string;
+  bankName: string;
+  accountName: string;
+  accountNumberLast4: string;
+  nameMatches: boolean;
+}>;
+
+export function resolveBankAccount(
+  bankCode: string,
+  accountNumber: string,
+): Promise<ResolvedBankAccount> {
+  return api<ResolvedBankAccount>('/v1/bank-accounts/resolve', {
+    method: 'POST',
+    body: JSON.stringify({ bankCode, accountNumber }),
+  });
+}
+
 export function linkBankAccount(bankCode: string, accountNumber: string): Promise<LinkedAccount> {
   return api<LinkedAccount>('/v1/bank-accounts', {
     method: 'POST',

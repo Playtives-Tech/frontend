@@ -11,6 +11,8 @@ import {
   listNigerianBanks,
   type NigerianBank,
   removeBankAccount,
+  resolveBankAccount,
+  type ResolvedBankAccount,
 } from '@/lib/services/profile-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store';
@@ -23,7 +25,9 @@ export default function BankAccountPage(): React.JSX.Element {
   const [bankCode, setBankCode] = useState('');
   const [number, setNumber] = useState('');
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedBankAccount | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,20 +43,35 @@ export default function BankAccountPage(): React.JSX.Element {
       .finally(() => setLoading(false));
   }, [setAccounts]);
 
-  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function verify(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setError(null);
-    setSubmitting(true);
+    setResolved(null);
+    setResolving(true);
+    try {
+      setResolved(await resolveBankAccount(bankCode, number));
+    } catch (reason: unknown) {
+      setError(reason instanceof ApiError ? reason.message : 'Could not verify this account.');
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  async function link(): Promise<void> {
+    if (!resolved?.nameMatches) return;
+    setError(null);
+    setLinking(true);
     try {
       const account = await linkBankAccount(bankCode, number);
       setAccounts([account, ...accounts]);
       setNumber('');
       setBankCode('');
+      setResolved(null);
       notify.success('Bank account verified and linked');
     } catch (reason: unknown) {
-      setError(reason instanceof ApiError ? reason.message : 'Could not verify this account.');
+      setError(reason instanceof ApiError ? reason.message : 'Could not link this account.');
     } finally {
-      setSubmitting(false);
+      setLinking(false);
     }
   }
 
@@ -92,14 +111,18 @@ export default function BankAccountPage(): React.JSX.Element {
 
       <section className="mt-7 rounded-2xl border bg-background p-6">
         <h2 className="font-heading text-xl font-semibold">Add an account</h2>
-        <form onSubmit={submit} className="mt-5 grid gap-5">
+        <form onSubmit={verify} className="mt-5 grid gap-5">
           <label className="grid gap-2 text-sm font-semibold">
             Bank
             <select
               required
               value={bankCode}
-              onChange={(event) => setBankCode(event.target.value)}
-              disabled={loading || submitting}
+              onChange={(event) => {
+                setBankCode(event.target.value);
+                setResolved(null);
+                setError(null);
+              }}
+              disabled={loading || resolving || linking}
               className="h-12 rounded-xl border bg-background px-4"
             >
               <option value="">Select your bank</option>
@@ -115,27 +138,74 @@ export default function BankAccountPage(): React.JSX.Element {
             <input
               required
               value={number}
-              onChange={(event) => setNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
+              onChange={(event) => {
+                setNumber(event.target.value.replace(/\D/g, '').slice(0, 10));
+                setResolved(null);
+                setError(null);
+              }}
               inputMode="numeric"
               pattern="\d{10}"
-              disabled={submitting}
+              disabled={resolving || linking}
               className="h-12 rounded-xl border bg-background px-4"
               placeholder="10-digit account number"
             />
           </label>
           <button
             type="submit"
-            disabled={submitting || loading || !bankCode || number.length !== 10}
+            disabled={resolving || linking || loading || !bankCode || number.length !== 10}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
           >
-            {submitting ? (
+            {resolving ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <CheckCircle2 className="size-4" />
             )}
-            {submitting ? 'Verifying account…' : 'Verify and link account'}
+            {resolving ? 'Verifying account…' : 'Verify account'}
           </button>
         </form>
+
+        {resolved ? (
+          <div
+            className={`mt-5 rounded-2xl border p-5 ${
+              resolved.nameMatches
+                ? 'border-emerald-500/30 bg-emerald-500/10'
+                : 'border-red-500/30 bg-red-500/10'
+            }`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Account name returned by the bank
+            </p>
+            <p className="mt-2 text-lg font-semibold">{resolved.accountName}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {resolved.bankName} · •••• {resolved.accountNumberLast4}
+            </p>
+            {resolved.nameMatches ? (
+              <>
+                <p className="mt-4 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  This account name matches your Playtives profile. Confirm below to link it.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void link()}
+                  disabled={linking}
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
+                >
+                  {linking ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="size-4" />
+                  )}
+                  {linking ? 'Linking account…' : 'Link this account'}
+                </button>
+              </>
+            ) : (
+              <p className="mt-4 text-sm font-medium text-red-700 dark:text-red-300">
+                This name does not match your registered name, {user?.name}. You cannot link this
+                account.
+              </p>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-8">
