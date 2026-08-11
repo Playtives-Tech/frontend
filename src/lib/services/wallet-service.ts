@@ -66,9 +66,7 @@ export type WithdrawalRequestRecord = Readonly<{
 
 export function createWithdrawalRequest(input: {
   amountMinorUnits: number;
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
+  linkedBankAccountId: string;
 }): Promise<WithdrawalRequestRecord> {
   return api<WithdrawalRequestRecord>('/v1/wallet/withdrawals', {
     method: 'POST',

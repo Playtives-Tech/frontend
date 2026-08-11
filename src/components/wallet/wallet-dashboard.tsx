@@ -12,11 +12,14 @@ import {
   type ActivityLog,
   type WalletSummary,
 } from '@/lib/services/wallet-service';
+import { listBankAccounts } from '@/lib/services/profile-service';
 
 export function WalletDashboard(): React.JSX.Element {
   const [remoteWallet, setRemoteWallet] = useState<WalletSummary | null>(null);
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const accounts = useProfileStore((state) => state.accounts);
+  const setAccounts = useProfileStore((state) => state.setAccounts);
   useEffect(() => {
     void getWallet()
       .then(setRemoteWallet)
@@ -24,11 +27,13 @@ export function WalletDashboard(): React.JSX.Element {
     void getActivityLogs()
       .then((logs) => setActivity(logs.slice(0, 3)))
       .catch(() => undefined);
-  }, []);
+    void listBankAccounts()
+      .then(setAccounts)
+      .catch(() => undefined);
+  }, [setAccounts]);
   const walletBalance = remoteWallet ? remoteWallet.deposit.availableBalanceMinorUnits / 100 : 0;
   const earningsBalance = remoteWallet ? remoteWallet.earnings.availableBalanceMinorUnits / 100 : 0;
   const balance = walletBalance + earningsBalance;
-  const accounts = useProfileStore((state) => state.accounts);
   const account = accounts[0];
 
   return (
@@ -138,9 +143,7 @@ export function WalletDashboard(): React.JSX.Element {
           </span>
           <span className="min-w-0 flex-1">
             <strong className="block">
-              {account
-                ? `${account.bank} · •••• ${account.number.slice(-4)}`
-                : 'Add a bank account'}
+              {account ? `${account.bank} · •••• ${account.last4}` : 'Add a bank account'}
             </strong>
             <small className="mt-1 block text-muted-foreground">
               {account ? account.name : 'Set a verified withdrawal destination'}

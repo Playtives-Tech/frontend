@@ -12,6 +12,7 @@ import {
   getWallet,
   type WalletSummary,
 } from '@/lib/services/wallet-service';
+import { listBankAccounts } from '@/lib/services/profile-service';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -25,11 +26,15 @@ export default function WithdrawPage(): React.JSX.Element {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const accounts = useProfileStore((state) => state.accounts);
+  const setAccounts = useProfileStore((state) => state.setAccounts);
   useEffect(() => {
     void getWallet()
       .then(setWallet)
       .catch(() => undefined);
-  }, []);
+    void listBankAccounts()
+      .then(setAccounts)
+      .catch(() => undefined);
+  }, [setAccounts]);
 
   const parsedAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
   const fee = 50; // Fixed fee for example
@@ -60,9 +65,7 @@ export default function WithdrawPage(): React.JSX.Element {
     try {
       await createWithdrawalRequest({
         amountMinorUnits: totalDeduction * 100,
-        bankName: selectedAccount.bank,
-        accountNumber: selectedAccount.number,
-        accountName: selectedAccount.name,
+        linkedBankAccountId: selectedAccount.id,
       });
       const updatedWallet = await getWallet();
       setWallet(updatedWallet);
@@ -134,7 +137,7 @@ export default function WithdrawPage(): React.JSX.Element {
                   </span>
                   <span className="min-w-0 flex-1">
                     <strong className="block">
-                      {acc.bank} · •••• {acc.number.slice(-4)}
+                      {acc.bank} · •••• {acc.last4}
                     </strong>
                     <small className="mt-1 block text-muted-foreground">{acc.name}</small>
                   </span>
@@ -201,7 +204,7 @@ export default function WithdrawPage(): React.JSX.Element {
               <dd className="text-right font-semibold">
                 {selectedAccount?.bank}
                 <br />
-                •••• {selectedAccount?.number.slice(-4)}
+                •••• {selectedAccount?.last4}
               </dd>
             </div>
             <div className="flex justify-between py-4">

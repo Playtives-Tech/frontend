@@ -7,9 +7,11 @@ export type VerificationStatus = 'not-verified' | 'verified';
 
 export type LinkedAccount = Readonly<{
   id: string;
+  bankCode: string;
   bank: string;
-  number: string;
+  last4: string;
   name: string;
+  verifiedAt: string;
 }>;
 
 type ProfileState = Readonly<{
@@ -23,13 +25,14 @@ type ProfileState = Readonly<{
 
 type ProfileActions = Readonly<{
   addAccount: (account: LinkedAccount) => void;
+  setAccounts: (accounts: LinkedAccount[]) => void;
   removeAccount: (id: string) => void;
   setVerification: (type: 'phone' | 'nin' | 'bvn') => void;
   resetProfile: () => void;
 }>;
 
 const initialState: ProfileState = {
-  accounts: [{ id: 'gtbank-0176', bank: 'GTBank', number: '0123450176', name: 'Gabriel Ola' }],
+  accounts: [],
   verification: { phone: 'not-verified', nin: 'not-verified', bvn: 'not-verified' },
 };
 
@@ -38,6 +41,7 @@ export const useProfileStore = create<ProfileState & ProfileActions>()(
     (set) => ({
       ...initialState,
       addAccount: (account) => set((state) => ({ accounts: [...state.accounts, account] })),
+      setAccounts: (accounts) => set({ accounts }),
       removeAccount: (id) =>
         set((state) => ({ accounts: state.accounts.filter((account) => account.id !== id) })),
       setVerification: (type) =>

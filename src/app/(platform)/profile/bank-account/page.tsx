@@ -1,60 +1,186 @@
 'use client';
-import Link from 'next/link';
-import { useState } from 'react';
+
+import { CheckCircle2, Landmark, Loader2, Trash2 } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
+import { BackButton } from '@/components/ui/back-button';
+import { ApiError } from '@/lib/api';
 import { notify } from '@/lib/notify';
+import {
+  linkBankAccount,
+  listBankAccounts,
+  listNigerianBanks,
+  type NigerianBank,
+  removeBankAccount,
+} from '@/lib/services/profile-service';
+import { useAuthStore } from '@/stores/use-auth-store';
+import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store';
+
 export default function BankAccountPage(): React.JSX.Element {
+  const user = useAuthStore((state) => state.user);
+  const accounts = useProfileStore((state) => state.accounts);
+  const setAccounts = useProfileStore((state) => state.setAccounts);
+  const [banks, setBanks] = useState<NigerianBank[]>([]);
+  const [bankCode, setBankCode] = useState('');
   const [number, setNumber] = useState('');
-  const [linked, setLinked] = useState(false);
-  const verified = number.length === 10;
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void Promise.all([listNigerianBanks(), listBankAccounts()])
+      .then(([bankList, linkedAccounts]) => {
+        setBanks(bankList);
+        setAccounts(linkedAccounts);
+      })
+      .catch((reason: unknown) =>
+        setError(reason instanceof ApiError ? reason.message : 'Could not load bank accounts.'),
+      )
+      .finally(() => setLoading(false));
+  }, [setAccounts]);
+
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const account = await linkBankAccount(bankCode, number);
+      setAccounts([account, ...accounts]);
+      setNumber('');
+      setBankCode('');
+      notify.success('Bank account verified and linked');
+    } catch (reason: unknown) {
+      setError(reason instanceof ApiError ? reason.message : 'Could not verify this account.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function remove(account: LinkedAccount): Promise<void> {
+    setRemovingId(account.id);
+    setError(null);
+    try {
+      const response = await removeBankAccount(account.id);
+      setAccounts(accounts.filter((item) => item.id !== account.id));
+      notify.info(response.message);
+    } catch (reason: unknown) {
+      setError(reason instanceof ApiError ? reason.message : 'Could not remove this account.');
+    } finally {
+      setRemovingId(null);
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8">
-      <Link href="/profile" className="rounded-lg border px-3 py-2 text-sm font-semibold">
-        ← Back to profile
-      </Link>
-      <h1 className="mt-8 font-heading text-3xl font-semibold">Linked bank account</h1>
+    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
+      <BackButton label="Profile" />
+      <h1 className="mt-8 font-heading text-3xl font-semibold">Linked bank accounts</h1>
       <p className="mt-3 text-muted-foreground">
-        Add an account only after its holder name has been verified.
+        Add verified Nigerian accounts for withdrawals and payouts.
       </p>
+
+      <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+        <strong>Account ownership requirement:</strong> The bank account must be registered in the
+        same name as your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>
+        . Accounts with a different holder name will not be linked.
+      </div>
+
+      {error ? (
+        <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+          {error}
+        </p>
+      ) : null}
+
       <section className="mt-7 rounded-2xl border bg-background p-6">
-        <label className="grid gap-2 text-sm font-semibold">
-          Account number
-          <input
-            value={number}
-            onChange={(event) => setNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
-            inputMode="numeric"
-            className="h-12 rounded-xl border bg-background px-4"
-            placeholder="10-digit account number"
-          />
-        </label>
-        {verified && (
-          <div className="mt-5 rounded-xl bg-brand/5 p-4">
-            <p className="text-sm text-muted-foreground">Verified account name</p>
-            <p className="mt-1 font-semibold">Gabriel Ola</p>
-          </div>
-        )}
-        <button
-          type="button"
-          disabled={!verified}
-          onClick={() => {
-            setLinked(true);
-            notify.success('Bank account linked');
-          }}
-          className="mt-5 h-11 w-full rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
-        >
-          Add verified account
-        </button>
-        {linked && (
+        <h2 className="font-heading text-xl font-semibold">Add an account</h2>
+        <form onSubmit={submit} className="mt-5 grid gap-5">
+          <label className="grid gap-2 text-sm font-semibold">
+            Bank
+            <select
+              required
+              value={bankCode}
+              onChange={(event) => setBankCode(event.target.value)}
+              disabled={loading || submitting}
+              className="h-12 rounded-xl border bg-background px-4"
+            >
+              <option value="">Select your bank</option>
+              {banks.map((bank) => (
+                <option key={bank.id} value={bank.code}>
+                  {bank.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-semibold">
+            Account number
+            <input
+              required
+              value={number}
+              onChange={(event) => setNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
+              inputMode="numeric"
+              pattern="\d{10}"
+              disabled={submitting}
+              className="h-12 rounded-xl border bg-background px-4"
+              placeholder="10-digit account number"
+            />
+          </label>
           <button
-            type="button"
-            onClick={() => {
-              setLinked(false);
-              notify.info('Bank account removed');
-            }}
-            className="mt-4 w-full rounded-xl border py-3 text-sm font-semibold text-red-600"
+            type="submit"
+            disabled={submitting || loading || !bankCode || number.length !== 10}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
           >
-            Remove linked account
+            {submitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="size-4" />
+            )}
+            {submitting ? 'Verifying account…' : 'Verify and link account'}
           </button>
-        )}
+        </form>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-heading text-xl font-semibold">Your accounts</h2>
+        <div className="mt-4 grid gap-3">
+          {loading ? (
+            <p className="rounded-2xl border p-5 text-sm text-muted-foreground">
+              Loading accounts…
+            </p>
+          ) : accounts.length === 0 ? (
+            <p className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+              You have not linked a bank account yet.
+            </p>
+          ) : (
+            accounts.map((account) => (
+              <article
+                key={account.id}
+                className="flex items-center gap-4 rounded-2xl border bg-background p-5"
+              >
+                <span className="grid size-12 place-items-center rounded-xl bg-brand/10 text-brand">
+                  <Landmark className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <strong className="block">
+                    {account.bank} · •••• {account.last4}
+                  </strong>
+                  <p className="mt-1 truncate text-sm text-muted-foreground">{account.name}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={removingId === account.id}
+                  onClick={() => void remove(account)}
+                  aria-label={`Remove ${account.bank} account ending ${account.last4}`}
+                  className="grid size-10 place-items-center rounded-xl text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:hover:bg-red-950/20"
+                >
+                  {removingId === account.id ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
+                </button>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </div>
   );

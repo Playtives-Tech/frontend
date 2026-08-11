@@ -4,16 +4,27 @@ import type { LinkedAccount } from '@/stores/use-profile-store';
 const pause = (milliseconds = 850): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-export async function verifyBankAccount(bank: string, number: string): Promise<LinkedAccount> {
-  await pause();
-  if (!/^\d{10}$/.test(number) || number.endsWith('0000'))
-    throw new Error('We could not verify this account. Check the details and try again.');
-  return {
-    id: `${bank.toLowerCase()}-${number}`,
-    bank,
-    number,
-    name: number.endsWith('76') ? 'Gabriel Ola' : 'Playtives Member',
-  };
+export type NigerianBank = Readonly<{ id: number; name: string; code: string }>;
+
+export function listNigerianBanks(): Promise<NigerianBank[]> {
+  return api<NigerianBank[]>('/v1/bank-accounts/banks', { cache: 'no-store' });
+}
+
+export function listBankAccounts(): Promise<LinkedAccount[]> {
+  return api<LinkedAccount[]>('/v1/bank-accounts', { cache: 'no-store' });
+}
+
+export function linkBankAccount(bankCode: string, accountNumber: string): Promise<LinkedAccount> {
+  return api<LinkedAccount>('/v1/bank-accounts', {
+    method: 'POST',
+    body: JSON.stringify({ bankCode, accountNumber }),
+  });
+}
+
+export function removeBankAccount(id: string): Promise<{ message: string }> {
+  return api<{ message: string }>(`/v1/bank-accounts/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function sendPhoneCode(phone: string): Promise<void> {
