@@ -50,7 +50,14 @@ export default function ProfilePage(): React.JSX.Element {
     setIsSubmitting(true);
     try {
       const response = await login(email.trim(), password);
-      signIn({ name: response.user.name, email: response.user.email }, response.accessToken);
+      signIn(
+        {
+          name: response.user.name,
+          email: response.user.email,
+          kycStatus: response.user.kycStatus,
+        },
+        response.accessToken,
+      );
       notify.success(`Welcome back, ${response.user.name.split(' ')[0]}`, {
         description: 'Your profile is ready.',
       });

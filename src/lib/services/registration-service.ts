@@ -43,11 +43,28 @@ export function login(
   password: string,
 ): Promise<{
   accessToken: string;
-  user: { id: string; name: string; email: string; emailVerified: true; roles: string[] };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    emailVerified: true;
+    roles: string[];
+    kycStatus: 'pending' | 'verified' | 'rejected';
+  };
   wallet: WalletSummary;
 }> {
   return api('/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
+}
+
+export function getCurrentUser(): Promise<{
+  id: string;
+  name: string;
+  email: string;
+  kycStatus: 'pending' | 'verified' | 'rejected';
+  kycVerifiedAt: string | null;
+}> {
+  return api('/v1/auth/me', { cache: 'no-store' });
 }

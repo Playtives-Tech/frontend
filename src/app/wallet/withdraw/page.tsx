@@ -10,9 +10,12 @@ import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store'
 import {
   createWithdrawalRequest,
   getWallet,
+  getWithdrawalRequests,
+  type WithdrawalRequestRecord,
   type WalletSummary,
 } from '@/lib/services/wallet-service';
 import { listBankAccounts } from '@/lib/services/profile-service';
+import { getCurrentUser } from '@/lib/services/registration-service';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -22,6 +25,9 @@ export default function WithdrawPage(): React.JSX.Element {
   const [amountStr, setAmountStr] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
+  const [kycStatus, setKycStatus] = useState<'pending' | 'verified' | 'rejected'>('pending');
+  const [history, setHistory] = useState<WithdrawalRequestRecord[]>([]);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
@@ -34,6 +40,12 @@ export default function WithdrawPage(): React.JSX.Element {
     void listBankAccounts()
       .then(setAccounts)
       .catch(() => undefined);
+    void getCurrentUser()
+      .then((current) => setKycStatus(current.kycStatus))
+      .catch(() => undefined);
+    void getWithdrawalRequests()
+      .then(setHistory)
+      .catch(() => undefined);
   }, [setAccounts]);
 
   const parsedAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
@@ -41,6 +53,10 @@ export default function WithdrawPage(): React.JSX.Element {
   const totalDeduction = parsedAmount + fee;
 
   const handleAccountSelect = (account: LinkedAccount) => {
+    if (kycStatus !== 'verified') {
+      notify.error('Complete KYC verification before requesting a withdrawal.');
+      return;
+    }
     setSelectedAccount(account);
     setStep('enter-amount');
   };
@@ -63,13 +79,15 @@ export default function WithdrawPage(): React.JSX.Element {
     setIsSubmitting(true);
 
     try {
-      await createWithdrawalRequest({
-        amountMinorUnits: totalDeduction * 100,
-        linkedBankAccountId: selectedAccount.id,
-      });
+      const request = await createWithdrawalRequest(
+        { amountMinorUnits: totalDeduction * 100, linkedBankAccountId: selectedAccount.id },
+        idempotencyKey,
+      );
       const updatedWallet = await getWallet();
       setWallet(updatedWallet);
       setResultStatus('success');
+      setHistory((current) => [request, ...current.filter((item) => item._id !== request._id)]);
+      setIdempotencyKey(crypto.randomUUID());
       setStep('result');
     } catch (error: unknown) {
       notify.error(error instanceof Error ? error.message : 'Withdrawal request failed.');
@@ -106,6 +124,16 @@ export default function WithdrawPage(): React.JSX.Element {
           Transfer money from your wallet to your bank account.
         </p>
       </header>
+
+      {kycStatus !== 'verified' ? (
+        <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-5 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+          <strong>KYC required.</strong> Your identity verification must be approved before you can
+          withdraw funds.{' '}
+          <Link href="/profile/verification" className="font-semibold underline">
+            Review KYC
+          </Link>
+        </div>
+      ) : null}
 
       {step === 'select-account' && (
         <section className="mt-8">
@@ -233,8 +261,8 @@ export default function WithdrawPage(): React.JSX.Element {
               </span>
               <h2 className="mt-5 font-heading text-2xl font-semibold">Withdrawal processing</h2>
               <p className="mt-2 text-muted-foreground">
-                Your request to withdraw {formatNaira(parsedAmount)} is being processed and will
-                arrive shortly.
+                Your request to withdraw {formatNaira(parsedAmount)} has been submitted for
+                administrator approval. Your balance is reserved until a decision is made.
               </p>
               <Link
                 href="/wallet"
@@ -259,6 +287,38 @@ export default function WithdrawPage(): React.JSX.Element {
           )}
         </section>
       )}
+
+      <section className="mt-10">
+        <h2 className="font-heading text-xl font-semibold">Withdrawal history</h2>
+        <div className="mt-4 grid gap-3">
+          {history.map((request) => (
+            <article key={request._id} className="rounded-2xl border bg-background p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <strong>{formatNaira(request.amountMinorUnits / 100)}</strong>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {request.bankName} · {request.accountName}
+                  </p>
+                </div>
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase">
+                  {request.status}
+                </span>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {new Date(request.createdAt).toLocaleString('en-NG')}
+              </p>
+              {request.reviewNote ? (
+                <p className="mt-3 text-sm">Admin note: {request.reviewNote}</p>
+              ) : null}
+            </article>
+          ))}
+          {history.length === 0 ? (
+            <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+              No withdrawal requests yet.
+            </p>
+          ) : null}
+        </div>
+      </section>
     </div>
   );
 }

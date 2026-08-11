@@ -4,11 +4,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { clearAccessToken, setAccessToken } from '@/lib/session';
 
-export type KycStatus = 'unverified' | 'in-review' | 'verified';
+export type KycStatus = 'pending' | 'verified' | 'rejected';
 export type CurrentUser = Readonly<{ name: string; email: string; kycStatus: KycStatus }>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{
-  signIn: (user: Omit<CurrentUser, 'kycStatus'>, accessToken: string) => void;
+  signIn: (user: CurrentUser, accessToken: string) => void;
   signOut: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
 }>;
@@ -20,7 +20,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       hasHydrated: false,
       signIn: (user, accessToken) => {
         setAccessToken(accessToken);
-        set({ user: { ...user, kycStatus: 'unverified' } });
+        set({ user });
       },
       signOut: () => {
         clearAccessToken();

@@ -60,16 +60,29 @@ export function getDepositRequests(): Promise<DepositRequestRecord[]> {
 export type WithdrawalRequestRecord = Readonly<{
   _id: string;
   amountMinorUnits: number;
-  status: 'pending' | 'completed' | 'rejected';
+  status: 'pending' | 'processing' | 'completed' | 'rejected';
   createdAt: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  paymentReference?: string | null;
+  reviewNote?: string | null;
 }>;
 
-export function createWithdrawalRequest(input: {
-  amountMinorUnits: number;
-  linkedBankAccountId: string;
-}): Promise<WithdrawalRequestRecord> {
+export function createWithdrawalRequest(
+  input: {
+    amountMinorUnits: number;
+    linkedBankAccountId: string;
+  },
+  idempotencyKey: string,
+): Promise<WithdrawalRequestRecord> {
   return api<WithdrawalRequestRecord>('/v1/wallet/withdrawals', {
     method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify(input),
   });
+}
+
+export function getWithdrawalRequests(): Promise<WithdrawalRequestRecord[]> {
+  return api<WithdrawalRequestRecord[]>('/v1/wallet/withdrawals', { cache: 'no-store' });
 }
