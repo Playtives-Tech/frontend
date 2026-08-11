@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { OpportunityOverview } from '@/components/ownership/opportunity-overview';
+import { OwnershipFlow } from '@/components/ownership/ownership-flow';
 import {
   getOpportunity,
   subscribeToOpportunityChanges,
@@ -41,5 +41,5 @@ export default function OpportunityDetailPage(): React.JSX.Element {
         Loading opportunity…
       </div>
     );
-  return <OpportunityOverview opportunity={opportunity} />;
+  return <OwnershipFlow opportunity={opportunity} />;
 }

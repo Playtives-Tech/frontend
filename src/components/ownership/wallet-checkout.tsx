@@ -1,7 +1,9 @@
 import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import type { Opportunity } from '@/lib/opportunities';
+import { acquireOpportunity } from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { formatNaira } from './formatters';
 
@@ -17,6 +19,10 @@ export function WalletCheckout({
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const idempotencyKey = useRef(crypto.randomUUID());
+  const router = useRouter();
   useEffect(() => {
     void getWallet()
       .then(setWallet)
@@ -25,6 +31,18 @@ export function WalletCheckout({
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = walletBalance >= total;
+  const confirm = async () => {
+    setSubmitting(true);
+    setError('');
+    try {
+      const ownership = await acquireOpportunity(opportunity, quantity, idempotencyKey.current);
+      router.replace(`/ownership/${ownership._id}`);
+      router.refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : 'The acquisition could not be completed');
+      setSubmitting(false);
+    }
+  };
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
       <button
@@ -89,17 +107,15 @@ export function WalletCheckout({
           )}
         </div>
       </section>
-      <p className="mt-6 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-        Wallet payments are confirmed server-side. In production, the final ownership record must
-        only be created after an authoritative wallet debit transaction.
-      </p>
+      {error && <p className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error}</p>}
       <div className="sticky bottom-0 z-10 -mx-5 mt-8 border-t bg-background/95 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <button
           type="button"
-          disabled={!hasFunds}
+          disabled={!hasFunds || submitting}
+          onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          Confirm {formatNaira(total)} <ArrowRight className="size-5" />
+          {submitting ? 'Securing positions…' : `Confirm ${formatNaira(total)}`} <ArrowRight className="size-5" />
         </button>
       </div>
     </div>

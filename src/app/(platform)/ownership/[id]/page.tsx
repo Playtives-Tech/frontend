@@ -1,17 +1,16 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { OwnershipPositionDetail } from '@/components/ownership/ownership-position-detail';
-import { getOpportunity } from '@/lib/opportunities';
-import { getOwnedOpportunity } from '@/lib/ownership';
+import { getOwnership, type Ownership } from '@/lib/services/ownership-service';
 
-type OwnershipDetailPageProps = Readonly<{ params: Promise<{ id: string }> }>;
-
-export default async function OwnershipDetailPage({
-  params,
-}: OwnershipDetailPageProps): Promise<React.JSX.Element> {
-  const { id } = await params;
-  const ownership = getOwnedOpportunity(id);
-  if (!ownership) notFound();
-  const opportunity = await getOpportunity(ownership.opportunitySlug).catch(() => null);
-  if (!opportunity) notFound();
-  return <OwnershipPositionDetail ownership={ownership} opportunity={opportunity} />;
+export default function OwnershipDetailPage(): React.JSX.Element {
+  const { id } = useParams<{ id: string }>();
+  const [ownership, setOwnership] = useState<Ownership>();
+  const [error, setError] = useState('');
+  useEffect(() => { void getOwnership(id).then(setOwnership).catch((value: unknown) => setError(value instanceof Error ? value.message : 'Ownership not found')); }, [id]);
+  if (error) return <div className="mx-auto max-w-5xl p-10 text-sm text-destructive">{error}</div>;
+  if (!ownership) return <div className="mx-auto max-w-5xl p-10 text-sm text-muted-foreground">Loading ownership…</div>;
+  return <OwnershipPositionDetail ownership={ownership} />;
 }

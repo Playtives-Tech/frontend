@@ -8,13 +8,11 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Opportunity } from '@/lib/opportunities';
-import type { OwnedOpportunity } from '@/lib/ownership';
+import type { Ownership } from '@/lib/services/ownership-service';
 import { formatNaira } from './formatters';
 
 type OwnershipPositionDetailProps = Readonly<{
-  ownership: OwnedOpportunity;
-  opportunity: Opportunity;
+  ownership: Ownership;
 }>;
 
 function DetailMetric({
@@ -31,9 +29,9 @@ function DetailMetric({
 
 export function OwnershipPositionDetail({
   ownership,
-  opportunity,
 }: OwnershipPositionDetailProps): React.JSX.Element {
-  const completed = ownership.status === 'completed';
+  const opportunity = ownership.opportunityId;
+  const completed = ownership.status === 'COMPLETED';
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10">
       <Link
@@ -65,15 +63,14 @@ export function OwnershipPositionDetail({
             {opportunity.title}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {ownership.cycle} · {ownership.positions}{' '}
-            {ownership.positions === 1 ? 'position' : 'positions'}
+            {ownership.units} {ownership.units === 1 ? 'position' : 'positions'}
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <DetailMetric label="Your contribution" value={formatNaira(ownership.contribution)} />
-            <DetailMetric label="Target ROI" value={ownership.roi} />
+            <DetailMetric label="Your contribution" value={formatNaira(ownership.amountMinorUnits / 100)} />
+            <DetailMetric label="Target ROI" value={`${ownership.projectedReturnRatePercent}%`} />
             <DetailMetric
               label={completed ? 'Completion' : 'Expected completion'}
-              value={ownership.expectedCompletion}
+              value={opportunity.principalReleaseDate ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG') : `${opportunity.durationMonths ?? 0} months`}
             />
             <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
           </div>
@@ -81,12 +78,12 @@ export function OwnershipPositionDetail({
             <>
               <div className="mt-7 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Cycle progress</span>
-                <span className="font-semibold text-brand">{ownership.progress}% complete</span>
+                <span className="font-semibold text-brand">{ownership.progressPercent}% complete</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-brand"
-                  style={{ width: `${ownership.progress}%` }}
+                  style={{ width: `${ownership.progressPercent}%` }}
                 />
               </div>
               <section className="mt-10">
@@ -106,9 +103,8 @@ export function OwnershipPositionDetail({
             <section className="mt-10 rounded-2xl bg-surface p-5 sm:p-6">
               <h2 className="font-heading text-xl font-semibold">Funds are in your wallet</h2>
               <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
-                The completed cycle return of {formatNaira(ownership.distribution)} has been
-                credited to your wallet. You can view your balance or explore a new opportunity to
-                reinvest.
+                This ownership cycle has been marked completed. Distribution records and credited
+                earnings are reflected in your wallet activity.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link

@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, MapPin, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarClock, MapPin, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -10,8 +10,10 @@ import {
 
 export function OpportunityOverview({
   opportunity,
+  onContinue,
 }: {
   opportunity: Opportunity;
+  onContinue?: () => void;
 }): React.JSX.Element {
   const filled = Math.max(0, opportunity.totalUnits - opportunity.availableUnits);
   const progress =
@@ -136,6 +138,19 @@ export function OpportunityOverview({
               </dl>
             </aside>
           </div>
+          {onContinue && (
+            <button
+              type="button"
+              disabled={opportunity.availableUnits < opportunity.minimumUnits}
+              onClick={onContinue}
+              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {opportunity.availableUnits < opportunity.minimumUnits
+                ? 'Currently unavailable'
+                : 'Choose your positions'}
+              <ArrowRight className="size-5" />
+            </button>
+          )}
         </div>
       </article>
     </div>
