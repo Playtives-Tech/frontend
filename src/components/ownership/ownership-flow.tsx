@@ -30,5 +30,5 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         onBack={() => setStep('positions')}
       />
     );
-  return <OpportunityOverview opportunity={opportunity} onContinue={() => setStep('positions')} />;
+  return <OpportunityOverview opportunity={opportunity} />;
 }

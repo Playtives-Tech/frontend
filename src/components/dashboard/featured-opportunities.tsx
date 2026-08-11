@@ -4,14 +4,26 @@ import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { OpportunityCard } from '@/components/opportunities/opportunity-card';
 import { useEffect, useState } from 'react';
-import { getOpportunities, type Opportunity } from '@/lib/opportunities';
+import {
+  getOpportunities,
+  subscribeToOpportunityChanges,
+  type Opportunity,
+} from '@/lib/opportunities';
 
 export function FeaturedOpportunities(): React.JSX.Element {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   useEffect(() => {
-    getOpportunities()
-      .then(setOpportunities)
-      .catch(() => setOpportunities([]));
+    const load = () =>
+      getOpportunities()
+        .then(setOpportunities)
+        .catch(() => setOpportunities([]));
+    void load();
+    const unsubscribe = subscribeToOpportunityChanges(() => void load());
+    const poll = window.setInterval(() => void load(), 15_000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
   }, []);
   return (
     <section className="mt-12">

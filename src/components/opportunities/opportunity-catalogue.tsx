@@ -3,7 +3,11 @@
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { getOpportunities, type Opportunity } from '@/lib/opportunities';
+import {
+  getOpportunities,
+  subscribeToOpportunityChanges,
+  type Opportunity,
+} from '@/lib/opportunities';
 import { OpportunityCard } from './opportunity-card';
 
 export function OpportunityCatalogue(): React.JSX.Element {
@@ -13,12 +17,20 @@ export function OpportunityCatalogue(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
-    getOpportunities()
-      .then(setOpportunities)
-      .catch((value: unknown) =>
-        setError(value instanceof Error ? value.message : 'Unable to load opportunities'),
-      )
-      .finally(() => setLoading(false));
+    const load = () =>
+      getOpportunities()
+        .then(setOpportunities)
+        .catch((value: unknown) =>
+          setError(value instanceof Error ? value.message : 'Unable to load opportunities'),
+        )
+        .finally(() => setLoading(false));
+    void load();
+    const unsubscribe = subscribeToOpportunityChanges(() => void load());
+    const poll = window.setInterval(() => void load(), 15_000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
   }, []);
   const opportunityCategories = useMemo(
     () => ['All', ...new Set(opportunities.map((item) => item.category))],
@@ -30,7 +42,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       (opportunity) =>
         (category === 'All' || opportunity.category === category) &&
         (!normalizedQuery ||
-          `${opportunity.title} ${opportunity.description} ${opportunity.location}`
+          `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
@@ -43,7 +55,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </h1>
 
         <p className="mt-3 text-muted-foreground">
-          Explore opportunities selected for their potential and clear ownership story.
+          Browse the currently published opportunities and their latest availability.
         </p>
       </header>
 

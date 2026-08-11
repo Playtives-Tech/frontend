@@ -1,13 +1,18 @@
 import { api } from './api';
+import { env } from './env';
 
-type OpportunityRecord = {
+export type OpportunityStatus = 'PUBLISHED';
+export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
+export type OwnershipModel = 'CO_OWNERSHIP' | 'FULL_OWNERSHIP';
+
+export type Opportunity = Readonly<{
   _id: string;
   slug: string;
   title: string;
   category: string;
   summary: string;
-  about?: string;
-  agreement?: string;
+  about: string;
+  agreement: string;
   pricePerUnitMinorUnits: number;
   minimumUnits: number;
   totalUnits: number;
@@ -16,105 +21,69 @@ type OpportunityRecord = {
   projectedReturnRatePercent: number;
   projectedProfitMinorUnits: number;
   projectedMonthlyProfitMinorUnits: number | null;
-  returnSchedule: 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
-  ownershipModel: 'CO_OWNERSHIP' | 'FULL_OWNERSHIP';
+  returnSchedule: ReturnSchedule;
+  ownershipModel: OwnershipModel;
   rolloverAllowed: boolean;
   rolloverCompoundsReturns: boolean;
   rolloverNextPrincipalMinorUnits: number | null;
   rolloverNextProjectedProfitMinorUnits: number | null;
-  location?: string;
-  operator?: string;
-  imageUrl?: string;
-  imageAlt?: string;
-};
-
-export type Opportunity = Readonly<{
-  id: string;
-  slug: string;
-  title: string;
-  category: string;
-  description: string;
-  returnRate: string;
-  minimum: string;
-  duration: string;
   location: string;
-  availability: string;
-  positionPrice: number;
-  positionsAvailable: number;
-  positionsTotal: number;
-  maxPositionsPerMember: number;
-  ownershipModel: 'Co-ownership' | 'Full ownership';
-  returnSchedule: 'Fixed monthly' | 'Yearly' | 'At maturity';
-  rollover: boolean;
-  rolloverCompoundsReturns: boolean;
   operator: string;
-  about: string;
-  agreement: string;
-  image: string;
-  alt: string;
-  projectedProfit: number;
-  projectedMonthlyProfit: number | null;
-  rolloverNextPrincipal: number | null;
-  rolloverNextProjectedProfit: number | null;
+  principalReleaseDate: string | null;
+  imageUrl: string;
+  imageWidth: number;
+  imageHeight: number;
+  imageAlt: string;
+  status: OpportunityStatus;
+  publishedAt: string;
+  revision: number;
+  createdAt: string;
+  updatedAt: string;
 }>;
 
-const naira = (minor: number) =>
-  new Intl.NumberFormat('en-NG', {
+export type OpportunityChange = Readonly<{
+  type: 'UPSERTED' | 'DELETED';
+  id: string;
+  slug: string;
+  revision: number;
+}>;
+
+export function getOpportunities(): Promise<Opportunity[]> {
+  return api<Opportunity[]>('/v1/opportunities', { cache: 'no-store' });
+}
+
+export function getOpportunity(slug: string): Promise<Opportunity> {
+  return api<Opportunity>(`/v1/opportunities/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+}
+
+export function subscribeToOpportunityChanges(
+  onChange: (event: OpportunityChange) => void,
+): () => void {
+  const source = new EventSource(new URL('/v1/opportunities/events', env.NEXT_PUBLIC_API_URL));
+  source.addEventListener('opportunity', (event) => {
+    try {
+      onChange(JSON.parse(event.data) as OpportunityChange);
+    } catch {
+      // Ignore malformed events and keep the last verified API state.
+    }
+  });
+  return () => source.close();
+}
+
+export function formatOpportunityMoney(minorUnits: number): string {
+  return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency: 'NGN',
     maximumFractionDigits: 0,
-  }).format(minor / 100);
-function mapOpportunity(item: OpportunityRecord): Opportunity {
-  const positionPrice = item.pricePerUnitMinorUnits / 100;
-  const schedule =
-    item.returnSchedule === 'MONTHLY'
-      ? 'Fixed monthly'
-      : item.returnSchedule === 'YEARLY'
-        ? 'Yearly'
-        : 'At maturity';
-  return {
-    id: item._id,
-    slug: item.slug,
-    title: item.title,
-    category: item.category,
-    description: item.summary,
-    returnRate: `${item.projectedReturnRatePercent}%`,
-    minimum: naira(item.pricePerUnitMinorUnits * item.minimumUnits),
-    duration: item.durationMonths ? `${item.durationMonths} months` : 'Not specified',
-    location: item.location || 'Not specified',
-    availability: `${item.availableUnits} positions available`,
-    positionPrice,
-    positionsAvailable: item.availableUnits,
-    positionsTotal: item.totalUnits,
-    maxPositionsPerMember: item.totalUnits,
-    ownershipModel: item.ownershipModel === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership',
-    returnSchedule: schedule,
-    rollover: item.rolloverAllowed,
-    rolloverCompoundsReturns: item.rolloverCompoundsReturns,
-    operator: item.operator || 'Not specified',
-    about: item.about || '',
-    agreement: item.agreement || '',
-    image: item.imageUrl || '',
-    alt: item.imageAlt || item.title,
-    projectedProfit: item.projectedProfitMinorUnits / 100,
-    projectedMonthlyProfit:
-      item.projectedMonthlyProfitMinorUnits == null
-        ? null
-        : item.projectedMonthlyProfitMinorUnits / 100,
-    rolloverNextPrincipal:
-      item.rolloverNextPrincipalMinorUnits == null
-        ? null
-        : item.rolloverNextPrincipalMinorUnits / 100,
-    rolloverNextProjectedProfit:
-      item.rolloverNextProjectedProfitMinorUnits == null
-        ? null
-        : item.rolloverNextProjectedProfitMinorUnits / 100,
-  };
+  }).format(minorUnits / 100);
 }
 
-export async function getOpportunities(): Promise<Opportunity[]> {
-  return (await api<OpportunityRecord[]>('/v1/opportunities')).map(mapOpportunity);
+export function formatReturnSchedule(schedule: ReturnSchedule): string {
+  if (schedule === 'MONTHLY') return 'Monthly';
+  if (schedule === 'YEARLY') return 'Yearly';
+  return 'At maturity';
 }
-export async function getOpportunity(slug: string): Promise<Opportunity> {
-  return mapOpportunity(await api<OpportunityRecord>(`/v1/opportunities/${slug}`));
+
+export function formatOwnershipModel(model: OwnershipModel): string {
+  return model === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership';
 }

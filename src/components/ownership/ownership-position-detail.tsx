@@ -46,9 +46,9 @@ export function OwnershipPositionDetail({
       <section className="mt-6 overflow-hidden rounded-3xl border bg-background">
         <div className="relative aspect-[16/7] min-h-56 bg-muted">
           <Image
-            src={opportunity.image}
+            src={opportunity.imageUrl}
             unoptimized
-            alt={opportunity.alt}
+            alt={opportunity.imageAlt}
             fill
             priority
             sizes="(min-width: 1024px) 960px, 100vw"

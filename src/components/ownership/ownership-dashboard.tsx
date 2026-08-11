@@ -28,9 +28,9 @@ function ActiveOwnershipCard({
     >
       <div className="relative aspect-square overflow-hidden rounded-xl bg-muted sm:aspect-square">
         <Image
-          src={opportunity.image}
+          src={opportunity.imageUrl}
           unoptimized
-          alt={opportunity.alt}
+          alt={opportunity.imageAlt}
           fill
           sizes="160px"
           className="object-cover transition duration-500 group-hover:scale-105"
@@ -78,9 +78,9 @@ function CompletedOwnershipCard({
     >
       <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         <Image
-          src={opportunity.image}
+          src={opportunity.imageUrl}
           unoptimized
-          alt={opportunity.alt}
+          alt={opportunity.imageAlt}
           fill
           sizes="88px"
           className="object-cover transition duration-500 group-hover:scale-105"

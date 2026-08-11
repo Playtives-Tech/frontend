@@ -23,7 +23,7 @@ export function WalletCheckout({
       .catch(() => undefined);
   }, []);
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
-  const total = opportunity.positionPrice * quantity;
+  const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = walletBalance >= total;
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">

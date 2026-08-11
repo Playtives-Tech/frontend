@@ -17,9 +17,10 @@ export function PositionSelector({
   onContinue,
   onBack,
 }: PositionSelectorProps): React.JSX.Element {
-  const maximum = Math.min(opportunity.positionsAvailable, opportunity.maxPositionsPerMember);
-  const total = opportunity.positionPrice * quantity;
-  const filledPositions = opportunity.positionsTotal - opportunity.positionsAvailable;
+  const maximum = opportunity.availableUnits;
+  const positionPrice = opportunity.pricePerUnitMinorUnits / 100;
+  const total = positionPrice * quantity;
+  const filledPositions = opportunity.totalUnits - opportunity.availableUnits;
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
       <button
@@ -43,15 +44,19 @@ export function PositionSelector({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Price per position</p>
-            <p className="mt-2 text-xl font-semibold">{formatNaira(opportunity.positionPrice)}</p>
+            <p className="mt-2 text-xl font-semibold">{formatNaira(positionPrice)}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Available now</p>
-            <p className="mt-2 text-xl font-semibold">{opportunity.positionsAvailable}</p>
+            <p className="mt-2 text-xl font-semibold">{opportunity.availableUnits}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Duration</p>
-            <p className="mt-2 text-xl font-semibold">{opportunity.duration}</p>
+            <p className="mt-2 text-xl font-semibold">
+              {opportunity.durationMonths
+                ? `${opportunity.durationMonths} months`
+                : 'Not specified'}
+            </p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Maximum per member</p>
@@ -60,14 +65,16 @@ export function PositionSelector({
         </div>
         <div className="mt-6 flex items-center justify-between gap-4 text-sm">
           <span className="text-muted-foreground">
-            {filledPositions} of {opportunity.positionsTotal} already selected
+            {filledPositions} of {opportunity.totalUnits} already selected
           </span>
-          <span className="font-semibold text-brand">{opportunity.positionsAvailable} left</span>
+          <span className="font-semibold text-brand">{opportunity.availableUnits} left</span>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-brand"
-            style={{ width: `${(filledPositions / opportunity.positionsTotal) * 100}%` }}
+            style={{
+              width: `${opportunity.totalUnits > 0 ? (filledPositions / opportunity.totalUnits) * 100 : 0}%`,
+            }}
           />
         </div>
       </section>
