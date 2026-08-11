@@ -49,7 +49,7 @@ export function WalletCheckout({
         type="button"
         onClick={onBack}
         className="inline-flex size-11 items-center justify-center rounded-xl border bg-background text-muted-foreground transition hover:bg-muted"
-        aria-label="Back to position selection"
+        aria-label="Back to unit selection"
       >
         <ArrowLeft className="size-5" />
       </button>
@@ -69,7 +69,7 @@ export function WalletCheckout({
             <dd className="font-semibold">{opportunity.ownershipModel}</dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-4">
-            <dt className="font-semibold">Positions</dt>
+            <dt className="font-semibold">Units</dt>
             <dd className="font-semibold">{quantity}</dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-4">
@@ -78,7 +78,9 @@ export function WalletCheckout({
           </div>
           <div className="flex items-center justify-between gap-4 py-4">
             <dt className="font-semibold">Projected return</dt>
-            <dd className="font-semibold">{formatNaira((opportunity.projectedProfitMinorUnits / 100) * quantity)}</dd>
+            <dd className="font-semibold">
+              {formatNaira((opportunity.projectedProfitMinorUnits / 100) * quantity)}
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-4 pt-4">
             <dt className="font-semibold">Total contribution</dt>
@@ -115,7 +117,11 @@ export function WalletCheckout({
           )}
         </div>
       </section>
-      {error && <p className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="border-destructive/30 bg-destructive/5 text-destructive mt-6 rounded-xl border p-4 text-sm">
+          {error}
+        </p>
+      )}
       <div className="sticky bottom-0 z-10 -mx-5 mt-8 border-t bg-background/95 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <button
           type="button"
@@ -123,7 +129,8 @@ export function WalletCheckout({
           onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {submitting ? 'Securing positions…' : `Confirm ${formatNaira(total)}`} <ArrowRight className="size-5" />
+          {submitting ? 'Securing units…' : `Confirm ${formatNaira(total)}`}{' '}
+          <ArrowRight className="size-5" />
         </button>
       </div>
     </div>

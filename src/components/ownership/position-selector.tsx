@@ -32,18 +32,18 @@ export function PositionSelector({
         <ArrowLeft className="size-5" />
       </button>
       <p className="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-        Select positions
+        Select units
       </p>
       <h1 className="mt-2 font-heading text-4xl font-semibold tracking-tight">
-        Choose your ownership positions
+        Choose your ownership units
       </h1>
       <p className="mt-4 text-lg leading-8 text-muted-foreground">
-        Select the number of positions you would like to co-own in {opportunity.title}.
+        Select the number of units you would like to co-own in {opportunity.title}.
       </p>
       <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-surface p-4">
-            <p className="text-sm text-muted-foreground">Price per position</p>
+            <p className="text-sm text-muted-foreground">Price per unit</p>
             <p className="mt-2 text-xl font-semibold">{formatNaira(positionPrice)}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
@@ -81,7 +81,7 @@ export function PositionSelector({
       <section className="mt-5 rounded-2xl border bg-background p-5 sm:p-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Number of positions</p>
+            <p className="text-sm text-muted-foreground">Number of units</p>
             <div className="mt-3 flex items-center gap-4">
               <button
                 type="button"

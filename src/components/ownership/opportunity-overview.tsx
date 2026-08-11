@@ -147,7 +147,7 @@ export function OpportunityOverview({
             >
               {opportunity.availableUnits < opportunity.minimumUnits
                 ? 'Currently unavailable'
-                : 'Choose your positions'}
+                : 'Choose your units'}
               <ArrowRight className="size-5" />
             </button>
           )}

@@ -22,6 +22,24 @@ export type Ownership = Readonly<{
   revision: number;
   createdAt: string;
   updatedAt: string;
+  investmentCapitalMinorUnits: number;
+  totalAccruedReturnMinorUnits: number;
+  cyclesAccrued: number;
+  nextAccrualAt: string | null;
+  maturityAt: string | null;
+}>;
+
+export type MemberMaturityPayout = Readonly<{
+  _id: string;
+  ownershipId: string;
+  opportunityId: Readonly<{ _id: string; title: string; slug: string; imageUrl: string }>;
+  principalMinorUnits: number;
+  returnMinorUnits: number;
+  totalPayoutMinorUnits: number;
+  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED';
+  reviewNote: string;
+  createdAt: string;
+  reviewedAt: string | null;
 }>;
 
 export function acquireOpportunity(
@@ -45,4 +63,8 @@ export function getOwnerships(): Promise<Ownership[]> {
 
 export function getOwnership(id: string): Promise<Ownership> {
   return api<Ownership>(`/v1/ownership/${encodeURIComponent(id)}`, { cache: 'no-store' });
+}
+
+export function getMaturityPayouts(): Promise<MemberMaturityPayout[]> {
+  return api<MemberMaturityPayout[]>('/v1/ownership/payouts', { cache: 'no-store' });
 }

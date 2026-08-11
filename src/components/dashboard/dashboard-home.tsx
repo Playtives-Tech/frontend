@@ -35,7 +35,7 @@ export function DashboardHome(): React.JSX.Element {
           href={ownershipDestination}
           icon={BadgeCheck}
           title="My ownership"
-          description="Track positions, distributions, and updates."
+          description="Track units, distributions, and updates."
         />
       </div>
 

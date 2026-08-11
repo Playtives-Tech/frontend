@@ -8,11 +8,12 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Ownership } from '@/lib/services/ownership-service';
+import type { MemberMaturityPayout, Ownership } from '@/lib/services/ownership-service';
 import { formatNaira } from './formatters';
 
 type OwnershipPositionDetailProps = Readonly<{
   ownership: Ownership;
+  payout?: MemberMaturityPayout;
 }>;
 
 function DetailMetric({
@@ -29,6 +30,7 @@ function DetailMetric({
 
 export function OwnershipPositionDetail({
   ownership,
+  payout,
 }: OwnershipPositionDetailProps): React.JSX.Element {
   const opportunity = ownership.opportunityId;
   const completed = ownership.status === 'COMPLETED';
@@ -63,14 +65,21 @@ export function OwnershipPositionDetail({
             {opportunity.title}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {ownership.units} {ownership.units === 1 ? 'position' : 'positions'}
+            {ownership.units} {ownership.units === 1 ? 'unit' : 'units'}
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <DetailMetric label="Your contribution" value={formatNaira(ownership.amountMinorUnits / 100)} />
+            <DetailMetric
+              label="Your contribution"
+              value={formatNaira(ownership.amountMinorUnits / 100)}
+            />
             <DetailMetric label="Target ROI" value={`${ownership.projectedReturnRatePercent}%`} />
             <DetailMetric
               label={completed ? 'Completion' : 'Expected completion'}
-              value={opportunity.principalReleaseDate ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG') : `${opportunity.durationMonths ?? 0} months`}
+              value={
+                opportunity.principalReleaseDate
+                  ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG')
+                  : `${opportunity.durationMonths ?? 0} months`
+              }
             />
             <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
           </div>
@@ -78,7 +87,9 @@ export function OwnershipPositionDetail({
             <>
               <div className="mt-7 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Cycle progress</span>
-                <span className="font-semibold text-brand">{ownership.progressPercent}% complete</span>
+                <span className="font-semibold text-brand">
+                  {ownership.progressPercent}% complete
+                </span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                 <div
@@ -87,9 +98,9 @@ export function OwnershipPositionDetail({
                 />
               </div>
               <section className="mt-10">
-                <h2 className="font-heading text-xl font-semibold">Position information</h2>
+                <h2 className="font-heading text-xl font-semibold">Unit information</h2>
                 <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">
-                  Your ownership position is active. Operator updates, reviewed evidence, and
+                  Your ownership units are active. Operator updates, reviewed evidence, and
                   distribution records will appear here as the cycle progresses.
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -101,10 +112,20 @@ export function OwnershipPositionDetail({
           )}
           {completed && (
             <section className="mt-10 rounded-2xl bg-surface p-5 sm:p-6">
-              <h2 className="font-heading text-xl font-semibold">Funds are in your wallet</h2>
+              <h2 className="font-heading text-xl font-semibold">
+                {payout?.status === 'APPROVED'
+                  ? 'Payout credited to your wallet'
+                  : payout?.status === 'REJECTED'
+                    ? 'Payout requires attention'
+                    : 'Payout awaiting admin approval'}
+              </h2>
               <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
-                This ownership cycle has been marked completed. Distribution records and credited
-                earnings are reflected in your wallet activity.
+                {payout?.status === 'APPROVED'
+                  ? `${formatNaira(payout.totalPayoutMinorUnits / 100)} has been credited to your earnings balance.`
+                  : payout?.status === 'REJECTED'
+                    ? payout.reviewNote ||
+                      'The payout was not approved. Contact support for a review.'
+                    : `This cycle is complete. ${payout ? formatNaira(payout.totalPayoutMinorUnits / 100) : 'The maturity payout'} will only be credited after admin approval.`}
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link
@@ -125,11 +146,11 @@ export function OwnershipPositionDetail({
             </section>
           )}
           <section className="mt-10 border-t pt-7">
-            <h2 className="font-heading text-xl font-semibold">Position timeline</h2>
+            <h2 className="font-heading text-xl font-semibold">Ownership timeline</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarDays className="size-4 text-brand" />
-                Position created
+                Units acquired
               </p>
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="size-4 text-brand" />
