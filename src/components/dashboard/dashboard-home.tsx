@@ -80,12 +80,6 @@ export function DashboardHome(): React.JSX.Element {
         <div className="mt-4 space-y-3">
           <VerificationCard status={verificationStatus} />
           <ActionCard
-            href={ownershipDestination}
-            icon={BadgeCheck}
-            title="My ownership"
-            description="Track your units, distributions, and operator updates."
-          />
-          <ActionCard
             href={walletDestination}
             icon={WalletCards}
             title="Wallet"

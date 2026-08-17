@@ -20,7 +20,11 @@ function NavigationLink({
   label,
   icon: Icon,
   compact = false,
-}: (typeof navigationItems)[number] & { compact?: boolean }): React.JSX.Element {
+  inverse = false,
+}: (typeof navigationItems)[number] & {
+  compact?: boolean;
+  inverse?: boolean;
+}): React.JSX.Element {
   const pathname = usePathname();
   const active = href === '/' ? pathname === href : pathname.startsWith(href);
   return (
@@ -29,11 +33,15 @@ function NavigationLink({
       className={cn(
         'group flex items-center gap-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
         compact ? 'flex-col gap-1 px-2 py-2 text-[11px]' : 'h-11 px-3 text-sm',
-        active
-          ? compact
-            ? 'text-brand'
-            : 'bg-brand/10 text-brand'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        inverse
+          ? active
+            ? 'bg-white/12 text-white'
+            : 'text-white/70 hover:bg-white/10 hover:text-white'
+          : active
+            ? compact
+              ? 'text-brand'
+              : 'bg-brand/10 text-brand'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
       aria-current={active ? 'page' : undefined}
     >
@@ -62,23 +70,19 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   }
   return (
     <div className="app-background min-h-dvh">
-      <aside className="app-surface fixed inset-y-0 left-0 z-20 hidden w-[25vw] flex-col border-r px-5 py-6 lg:flex">
-        <Link href="/" className="flex items-center gap-3 px-2 text-xl font-bold text-brand">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-[20vw] flex-col border-r border-emerald-950/30 bg-gradient-to-b from-emerald-800 via-emerald-900 to-emerald-950 px-6 py-8 text-white lg:flex">
+        <Link href="/" className="flex items-center gap-3 px-2 font-heading text-4xl font-bold">
           Playtives
         </Link>
 
-        <p className="px-2 pt-10 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Explore
-        </p>
-
-        <nav className="mt-3 grid gap-1">
+        <nav className="mt-12 grid gap-4">
           {navigationItems.map((item) => (
-            <NavigationLink key={item.href} {...item} />
+            <NavigationLink key={item.href} {...item} inverse />
           ))}
         </nav>
       </aside>
 
-      <header className="app-surface sticky top-0 z-10 flex h-14 items-center justify-between border-b px-5 backdrop-blur lg:ml-[25vw] lg:mr-[30vw] lg:px-8">
+      <header className="app-surface sticky top-0 z-10 flex h-14 items-center justify-between border-b px-5 backdrop-blur lg:ml-[20vw] lg:mr-[30vw] lg:px-8">
         <div className="flex items-center gap-3 lg:hidden">
           <span className="font-bold text-brand">Playtives</span>
         </div>
@@ -118,7 +122,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </div>
       </header>
 
-      <main className="pb-24 lg:ml-[25vw] lg:mr-[30vw] lg:pb-8">{children}</main>
+      <main className="pb-24 lg:ml-[20vw] lg:mr-[30vw] lg:pb-8">{children}</main>
 
       <RecentActivityRail userKey={user?.email ?? null} />
 

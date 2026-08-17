@@ -30,11 +30,6 @@
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }
-  h1,
-  h2,
-  h3 {
-    @apply font-heading;
-  }
 }
 
 @layer utilities {

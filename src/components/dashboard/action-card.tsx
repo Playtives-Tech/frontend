@@ -25,7 +25,7 @@ export function ActionCard({
       </span>
 
       <span className="min-w-0 flex-1">
-        <h2 className="font-heading text-lg font-semibold">{title}</h2>
+        <h2 className="font-sans text-lg font-bold tracking-normal">{title}</h2>
 
         <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
       </span>

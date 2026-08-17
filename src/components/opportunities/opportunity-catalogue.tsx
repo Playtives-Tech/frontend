@@ -108,11 +108,9 @@ export function OpportunityCatalogue(): React.JSX.Element {
       ) : error ? (
         <p className="text-destructive mt-8 text-sm">{error}</p>
       ) : visibleOpportunities.length > 0 ? (
-        <div className="-mx-4 mt-5 flex snap-x gap-4 overflow-x-auto px-4 pb-4 sm:-mx-8 sm:px-8">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibleOpportunities.map((opportunity) => (
-            <div key={opportunity.slug} className="snap-start">
-              <OpportunityCard opportunity={opportunity} />
-            </div>
+            <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
           ))}
         </div>
       ) : (
