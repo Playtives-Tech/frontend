@@ -120,7 +120,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
 
       <main className="pb-24 lg:ml-[25vw] lg:mr-[30vw] lg:pb-8">{children}</main>
 
-      <RecentActivityRail signedIn={Boolean(user)} />
+      <RecentActivityRail userKey={user?.email ?? null} />
 
       <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
         {navigationItems.map((item) => (
@@ -131,24 +131,35 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   );
 }
 
-function RecentActivityRail({ signedIn }: { signedIn: boolean }): React.JSX.Element {
+function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.Element {
   const [activity, setActivity] = useState<ActivityLog[]>([]);
 
   useEffect(() => {
-    if (!signedIn) {
-      setActivity([]);
+    let cancelled = false;
+    setActivity([]);
+
+    if (!userKey) {
       return;
     }
 
     const load = () =>
       getActivityLogs()
-        .then((logs) => setActivity(logs.slice(0, 6)))
-        .catch(() => setActivity([]));
+        .then((logs) => {
+          if (!cancelled) setActivity(logs.slice(0, 6));
+        })
+        .catch(() => {
+          if (!cancelled) setActivity([]);
+        });
 
     void load();
     const timer = window.setInterval(() => void load(), 30_000);
-    return () => window.clearInterval(timer);
-  }, [signedIn]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [userKey]);
+
+  const signedIn = Boolean(userKey);
 
   return (
     <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-[30vw] border-l px-6 py-6 lg:block">
