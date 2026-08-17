@@ -18,9 +18,9 @@ export function PositionSelector({
   onBack,
 }: PositionSelectorProps): React.JSX.Element {
   const maximum = opportunity.availableUnits;
-  const positionPrice = opportunity.pricePerUnitMinorUnits / 100;
-  const total = positionPrice * quantity;
-  const filledPositions = opportunity.totalUnits - opportunity.availableUnits;
+  const unitPrice = opportunity.pricePerUnitMinorUnits / 100;
+  const total = unitPrice * quantity;
+  const filledUnits = opportunity.totalUnits - opportunity.availableUnits;
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
       <button
@@ -35,16 +35,16 @@ export function PositionSelector({
         Select units
       </p>
       <h1 className="mt-2 font-heading text-4xl font-semibold tracking-tight">
-        Choose your ownership units
+        How many units would you like to take?
       </h1>
       <p className="mt-4 text-lg leading-8 text-muted-foreground">
-        Select the number of units you would like to co-own in {opportunity.title}.
+        Choose your units in {opportunity.title}. We will calculate the contribution and projected profit automatically.
       </p>
       <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Price per unit</p>
-            <p className="mt-2 text-xl font-semibold">{formatNaira(positionPrice)}</p>
+            <p className="mt-2 text-xl font-semibold">{formatNaira(unitPrice)}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Available now</p>
@@ -65,7 +65,7 @@ export function PositionSelector({
         </div>
         <div className="mt-6 flex items-center justify-between gap-4 text-sm">
           <span className="text-muted-foreground">
-            {filledPositions} of {opportunity.totalUnits} already selected
+            {filledUnits} of {opportunity.totalUnits} units filled
           </span>
           <span className="font-semibold text-brand">{opportunity.availableUnits} left</span>
         </div>
@@ -73,7 +73,7 @@ export function PositionSelector({
           <div
             className="h-full rounded-full bg-brand"
             style={{
-              width: `${opportunity.totalUnits > 0 ? (filledPositions / opportunity.totalUnits) * 100 : 0}%`,
+              width: `${opportunity.totalUnits > 0 ? (filledUnits / opportunity.totalUnits) * 100 : 0}%`,
             }}
           />
         </div>

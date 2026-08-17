@@ -21,20 +21,19 @@ export function VerificationCard({ status }: VerificationCardProps): React.JSX.E
   const action = isGuest ? 'Create account' : isVerified ? 'View profile' : 'Start KYC';
 
   return (
-    <section className="z-10 flex min-h-52 flex-col justify-between rounded-2xl border border-brand/20 bg-white/5 p-5">
-      <div>
-        <span className="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand">
-          <User className="size-5" />
-        </span>
+    <section className="mt-4 flex items-center gap-3 rounded-2xl border border-brand/10 bg-brand/5 px-4 py-3">
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-brand">
+        <User className="size-4" />
+      </span>
 
-        <h2 className="mt-5 font-heading text-xl font-semibold">{title}</h2>
-
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-      </div>
+      <span className="min-w-0 flex-1">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{description}</p>
+      </span>
 
       <Link
         href="/profile/verification"
-        className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"
+        className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
       >
         {action}
 

@@ -21,7 +21,6 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
-        geist: ['var(--font-geist)', 'system-ui', 'sans-serif'],
       },
       spacing: { 18: '4.5rem', 22: '5.5rem', 30: '7.5rem' },
       borderRadius: { xl: '0.875rem', '2xl': '1.25rem' },

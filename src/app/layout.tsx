@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import { DM_Sans } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { AppProviders } from '@/components/providers/app-providers';
 import { AppShell } from '@/components/navigation/app-shell';
 
 import '@/styles/globals.css';
 
-const sans = DM_Sans({ variable: '--font-sans', subsets: ['latin'] });
+const sans = Inter({ variable: '--font-sans', subsets: ['latin'] });
+const heading = Playfair_Display({ variable: '--font-heading', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: { default: 'Playtives', template: '%s | Playtives' },
@@ -30,7 +31,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${sans.variable} font-sans`}>
+      <body className={`${sans.variable} ${heading.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppProviders>
             <AppShell>{children}</AppShell>

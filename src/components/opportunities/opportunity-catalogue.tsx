@@ -48,18 +48,18 @@ export function OpportunityCatalogue(): React.JSX.Element {
     );
   }, [category, opportunities, query]);
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+    <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
-        <h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-2 font-heading text-[28px] font-semibold leading-[34px] tracking-tight sm:text-[32px] sm:leading-10">
           Discover opportunities
         </h1>
 
-        <p className="mt-3 text-muted-foreground">
+        <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
           Browse the currently published opportunities and their latest availability.
         </p>
       </header>
 
-      <div className="mt-8 rounded-2xl border bg-background p-3 sm:p-4">
+      <div className="mt-6 rounded-2xl border border-border/70 bg-background p-3 shadow-sm sm:p-4">
         <label className="flex h-12 items-center gap-3 rounded-xl bg-surface px-4 text-muted-foreground focus-within:ring-2 focus-within:ring-brand/30">
           <Search className="size-5" />
 
@@ -96,8 +96,10 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
-        <h2 className="font-heading text-2xl font-semibold">Available now</h2>
+      <div className="mt-7 flex items-center justify-between gap-4">
+        <h2 className="font-heading text-[22px] font-semibold leading-7 sm:text-2xl sm:leading-[30px]">
+          Available now
+        </h2>
         <p className="text-sm text-muted-foreground">{visibleOpportunities.length} opportunities</p>
       </div>
 
@@ -106,9 +108,11 @@ export function OpportunityCatalogue(): React.JSX.Element {
       ) : error ? (
         <p className="text-destructive mt-8 text-sm">{error}</p>
       ) : visibleOpportunities.length > 0 ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="-mx-4 mt-5 flex snap-x gap-4 overflow-x-auto px-4 pb-4 sm:-mx-8 sm:px-8">
           {visibleOpportunities.map((opportunity) => (
-            <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
+            <div key={opportunity.slug} className="snap-start">
+              <OpportunityCard opportunity={opportunity} />
+            </div>
           ))}
         </div>
       ) : (

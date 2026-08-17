@@ -26,24 +26,28 @@ export function FeaturedOpportunities(): React.JSX.Element {
     };
   }, []);
   return (
-    <section className="mt-12">
+    <section className="mt-10 overflow-hidden">
       <div className="flex items-center justify-between gap-5">
         <div>
-          <h2 className="mt-2 font-heading text-2xl font-semibold">Featured opportunities</h2>
+          <h2 className="font-sans text-xl font-bold tracking-normal">
+            Palm oil opportunities
+          </h2>
         </div>
 
         <Link
           href="/discover"
           className="hidden items-center gap-2 text-sm font-semibold text-brand hover:underline sm:inline-flex"
         >
-          Explore all
+          View all
           <ArrowRight className="size-4" />
         </Link>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
-        {opportunities.slice(0, 3).map((opportunity) => (
-          <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
+      <div className="mt-4 flex snap-x gap-3 overflow-x-auto overscroll-x-contain pb-4">
+        {opportunities.slice(0, 8).map((opportunity) => (
+          <div key={opportunity.slug} className="snap-start">
+            <OpportunityCard opportunity={opportunity} variant="compact" />
+          </div>
         ))}
       </div>
 
@@ -51,7 +55,7 @@ export function FeaturedOpportunities(): React.JSX.Element {
         href="/discover"
         className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline sm:hidden"
       >
-        Explore all
+        View all
         <ArrowRight className="size-4" />
       </Link>
     </section>
