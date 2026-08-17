@@ -103,7 +103,6 @@ export default function PhoneVerificationPage(): React.JSX.Element {
       <BackButton label="Verification" />
 
       <header className="mt-7">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Identity</p>
         <h1 className="mt-2 font-heading text-3xl font-semibold">Verify phone number</h1>
         <p className="mt-3 text-muted-foreground">
           Secure your account by verifying your primary phone number.
@@ -142,6 +141,7 @@ export default function PhoneVerificationPage(): React.JSX.Element {
                     className="h-12 w-full appearance-none rounded-xl border bg-background px-4 pr-9 font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                   >
                     <option value="NG">🇳🇬 Nigeria</option>
+
                   </select>
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     ▼
@@ -169,13 +169,6 @@ export default function PhoneVerificationPage(): React.JSX.Element {
                   />
                 </div>
               </div>
-              <span
-                id="phone-number-hint"
-                className="rounded-lg border border-brand/20 bg-brand/5 px-3 py-2 text-xs font-medium leading-5 text-brand"
-              >
-                Enter the last 10 digits of your number without the first zero. Example:{' '}
-                <strong>8100000000</strong> becomes <strong>+2348100000000</strong>.
-              </span>
             </label>
 
             <button
