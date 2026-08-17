@@ -2,6 +2,7 @@
 
 import { Check, Copy, Upload } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
 import {
   createDepositRequest,
@@ -116,7 +117,9 @@ export function DepositRequest(): React.JSX.Element {
           disabled={!receipt || !amount || isSubmitting}
           className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {isSubmitting ? 'Submitting…' : 'Submit deposit request'}
+          <ButtonLoadingContent loading={isSubmitting} loadingLabel="Submitting">
+            Submit deposit request
+          </ButtonLoadingContent>
         </button>
       </form>
       <section className="mt-6 rounded-2xl border bg-background p-6">

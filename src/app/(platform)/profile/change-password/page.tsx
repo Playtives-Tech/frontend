@@ -3,6 +3,7 @@
 import { ArrowRight, KeyRound } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
 import { ApiError } from '@/lib/api';
 import { changePassword } from '@/lib/services/profile-service';
@@ -111,7 +112,13 @@ export default function ChangePasswordPage(): React.JSX.Element {
             disabled={isSubmitting}
             className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-50"
           >
-            {isSubmitting ? 'Updating...' : 'Update password'} <ArrowRight className="size-4" />
+            <ButtonLoadingContent
+              loading={isSubmitting}
+              loadingLabel="Updating password"
+              icon={<ArrowRight className="size-4" />}
+            >
+              Update password
+            </ButtonLoadingContent>
           </button>
         </form>
       </section>

@@ -1,13 +1,22 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Cormorant_Garamond, Sora } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { AppProviders } from '@/components/providers/app-providers';
 import { AppShell } from '@/components/navigation/app-shell';
 
 import '@/styles/globals.css';
 
-const sans = Inter({ variable: '--font-sans', subsets: ['latin'] });
-const heading = Playfair_Display({ variable: '--font-heading', subsets: ['latin'] });
+const sans = Sora({
+  variable: '--font-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+const heading = Cormorant_Garamond({
+  variable: '--font-heading',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: { default: 'Playtives', template: '%s | Playtives' },

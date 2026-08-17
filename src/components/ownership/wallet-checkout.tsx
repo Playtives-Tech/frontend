@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import type { Opportunity } from '@/lib/opportunities';
 import { acquireOpportunity } from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
@@ -129,8 +130,13 @@ export function WalletCheckout({
           onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {submitting ? 'Securing units…' : `Confirm ${formatNaira(total)}`}{' '}
-          <ArrowRight className="size-5" />
+          <ButtonLoadingContent
+            loading={submitting}
+            loadingLabel="Securing units"
+            icon={<ArrowRight className="size-5" />}
+          >
+            Confirm {formatNaira(total)}
+          </ButtonLoadingContent>
         </button>
       </div>
     </div>

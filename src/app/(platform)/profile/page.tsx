@@ -1,9 +1,10 @@
 'use client';
 
-import { ArrowRight, CheckCircle2, Mail, UserRound } from 'lucide-react';
+import { ArrowRight, Mail, UserRound } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { AccountModeToggle, type AccountMode } from '@/components/auth/account-mode-toggle';
 import { ProfileDashboard } from '@/components/profile/profile-dashboard';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
 import { ApiError } from '@/lib/api';
 import { login, register, resendVerification } from '@/lib/services/registration-service';
@@ -109,9 +110,11 @@ export default function ProfilePage(): React.JSX.Element {
                   )
                   .finally(() => setIsResending(false));
               }}
-              className="h-12 rounded-xl bg-brand px-5 font-semibold text-brand-foreground disabled:opacity-60"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground disabled:opacity-60"
             >
-              {isResending ? 'Sending…' : 'Resend verification email'}
+              <ButtonLoadingContent loading={isResending} loadingLabel="Sending">
+                Resend verification email
+              </ButtonLoadingContent>
             </button>
             <button
               type="button"
@@ -213,16 +216,13 @@ export default function ProfilePage(): React.JSX.Element {
             disabled={isSubmitting}
             className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110"
           >
-            {isSubmitting
-              ? 'Creating account…'
-              : mode === 'sign-up'
-                ? 'Create my account'
-                : 'Sign in'}{' '}
-            {isSubmitting ? (
-              <CheckCircle2 className="size-4 animate-pulse" />
-            ) : (
-              <ArrowRight className="size-4" />
-            )}
+            <ButtonLoadingContent
+              loading={isSubmitting}
+              loadingLabel={mode === 'sign-up' ? 'Creating account' : 'Signing in'}
+              icon={<ArrowRight className="size-4" />}
+            >
+              {mode === 'sign-up' ? 'Create my account' : 'Sign in'}
+            </ButtonLoadingContent>
           </button>
         </form>
       </div>

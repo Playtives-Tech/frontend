@@ -3,6 +3,7 @@
 import { ArrowRight, Fingerprint } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
 import { useProfileStore } from '@/stores/use-profile-store';
 import { useRouter } from 'next/navigation';
@@ -89,7 +90,13 @@ export default function NinVerificationPage(): React.JSX.Element {
               disabled={isSubmitting}
               className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-50"
             >
-              {isSubmitting ? 'Verifying...' : 'Verify NIN'} <ArrowRight className="size-4" />
+              <ButtonLoadingContent
+                loading={isSubmitting}
+                loadingLabel="Verifying NIN"
+                icon={<ArrowRight className="size-4" />}
+              >
+                Verify NIN
+              </ButtonLoadingContent>
             </button>
           </form>
         )}

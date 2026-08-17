@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import {
   sendPhoneCode,
   verifyBvn,
@@ -146,13 +147,11 @@ export function VerificationFlow({
           )}
           <button
             disabled={mutation.isPending}
-            className="mt-6 h-11 w-full rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:opacity-50"
+            className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:opacity-50"
           >
-            {mutation.isPending
-              ? 'Verifying…'
-              : type === 'phone' && !codeSent
-                ? 'Send code'
-                : 'Verify details'}
+            <ButtonLoadingContent loading={mutation.isPending} loadingLabel="Verifying">
+              {type === 'phone' && !codeSent ? 'Send code' : 'Verify details'}
+            </ButtonLoadingContent>
           </button>
           {type === 'phone' && codeSent && (
             <button
