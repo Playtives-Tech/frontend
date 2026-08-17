@@ -1,20 +1,46 @@
 'use client';
 
 import { ArrowRight, Phone } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { notify } from '@/lib/notify';
 import { useProfileStore } from '@/stores/use-profile-store';
 import { useRouter } from 'next/navigation';
+import { ApiError } from '@/lib/api';
+import {
+  getPhoneVerificationStatus,
+  sendPhoneCode,
+  verifyPhoneCode,
+} from '@/lib/services/profile-service';
 
 export default function PhoneVerificationPage(): React.JSX.Element {
   const [step, setStep] = useState<'input' | 'otp'>('input');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const setVerification = useProfileStore((state) => state.setVerification);
+  const setVerificationStatus = useProfileStore((state) => state.setVerificationStatus);
   const status = useProfileStore((state) => state.verification.phone);
   const router = useRouter();
+  const [maskedPhone, setMaskedPhone] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    void getPhoneVerificationStatus()
+      .then((result) => {
+        setVerificationStatus('phone', result.verified ? 'verified' : 'not-verified');
+        setMaskedPhone(result.phone);
+      })
+      .catch(() => undefined);
+  }, [setVerificationStatus]);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = window.setInterval(
+      () => setResendIn((seconds) => Math.max(0, seconds - 1)),
+      1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [resendIn]);
 
   async function handleSendCode(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -24,12 +50,16 @@ export default function PhoneVerificationPage(): React.JSX.Element {
     }
 
     setIsSubmitting(true);
-    // Simulate sending OTP
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-
-    notify.success('Code sent successfully');
-    setStep('otp');
+    try {
+      const result = await sendPhoneCode(phone);
+      notify.success(result.message);
+      setResendIn(result.resendAfterSeconds);
+      setStep('otp');
+    } catch (error: unknown) {
+      notify.error(error instanceof ApiError ? error.message : 'Could not send verification code');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function handleVerify(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -40,18 +70,30 @@ export default function PhoneVerificationPage(): React.JSX.Element {
     }
 
     setIsSubmitting(true);
-    // Simulate verification
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-
-    if (otp === '0000') {
-      notify.error('Invalid code. Please try again.');
-      return;
+    try {
+      const result = await verifyPhoneCode(phone, otp);
+      setVerificationStatus('phone', 'verified');
+      setMaskedPhone(result.phone);
+      notify.success(result.message);
+      router.back();
+    } catch (error: unknown) {
+      notify.error(error instanceof ApiError ? error.message : 'Could not verify code');
+    } finally {
+      setIsSubmitting(false);
     }
+  }
 
-    setVerification('phone');
-    notify.success('Phone number verified successfully');
-    router.back();
+  async function handleResend(): Promise<void> {
+    setIsSubmitting(true);
+    try {
+      const result = await sendPhoneCode(phone);
+      notify.success(result.message);
+      setResendIn(result.resendAfterSeconds);
+    } catch (error: unknown) {
+      notify.error(error instanceof ApiError ? error.message : 'Could not resend code');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -83,7 +125,7 @@ export default function PhoneVerificationPage(): React.JSX.Element {
 
         {status === 'verified' ? (
           <div className="mt-8 rounded-xl bg-emerald-500/10 p-5 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-            <strong>Verified!</strong> Your phone number is verified and secure.
+            <strong>Verified!</strong> {maskedPhone ?? 'Your phone number'} is verified and secure.
           </div>
         ) : step === 'input' ? (
           <form onSubmit={handleSendCode} className="mt-8 grid gap-5">
@@ -123,7 +165,7 @@ export default function PhoneVerificationPage(): React.JSX.Element {
               />
             </label>
             <p className="text-center text-sm text-muted-foreground">
-              Enter any 6 digit code (except 000000) to simulate success.
+              Enter the six-digit code sent by SMS. It expires shortly and can only be used once.
             </p>
 
             <button
@@ -140,6 +182,14 @@ export default function PhoneVerificationPage(): React.JSX.Element {
               className="mt-2 text-sm font-medium text-brand hover:underline"
             >
               Change phone number
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleResend()}
+              disabled={isSubmitting || resendIn > 0}
+              className="text-sm font-medium text-brand hover:underline disabled:opacity-50"
+            >
+              {resendIn > 0 ? `Resend code in ${resendIn}s` : 'Resend code'}
             </button>
           </form>
         )}

@@ -28,6 +28,7 @@ type ProfileActions = Readonly<{
   setAccounts: (accounts: LinkedAccount[]) => void;
   removeAccount: (id: string) => void;
   setVerification: (type: 'phone' | 'nin' | 'bvn') => void;
+  setVerificationStatus: (type: 'phone' | 'nin' | 'bvn', status: VerificationStatus) => void;
   resetProfile: () => void;
 }>;
 
@@ -46,6 +47,8 @@ export const useProfileStore = create<ProfileState & ProfileActions>()(
         set((state) => ({ accounts: state.accounts.filter((account) => account.id !== id) })),
       setVerification: (type) =>
         set((state) => ({ verification: { ...state.verification, [type]: 'verified' } })),
+      setVerificationStatus: (type, status) =>
+        set((state) => ({ verification: { ...state.verification, [type]: status } })),
       resetProfile: () => set(initialState),
     }),
     { name: 'playtives-profile', skipHydration: true },

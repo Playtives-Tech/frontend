@@ -45,16 +45,31 @@ export function removeBankAccount(id: string): Promise<{ message: string }> {
   });
 }
 
-export async function sendPhoneCode(phone: string): Promise<void> {
-  await pause(600);
-  if (!/^\+?234\d{10}$/.test(phone.replace(/\s/g, '')))
-    throw new Error('Enter a valid Nigerian phone number.');
+export function sendPhoneCode(
+  phone: string,
+): Promise<{ message: string; expiresInSeconds: number; resendAfterSeconds: number }> {
+  return api('/v1/auth/phone/send-otp', {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  });
 }
 
-export async function verifyPhoneCode(code: string): Promise<void> {
-  await pause(700);
-  if (code !== '123456')
-    throw new Error('That code is incorrect or has expired. Use 123456 for this demo.');
+export function verifyPhoneCode(
+  phone: string,
+  code: string,
+): Promise<{ message: string; phone: string }> {
+  return api('/v1/auth/phone/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify({ phone, code }),
+  });
+}
+
+export function getPhoneVerificationStatus(): Promise<{
+  verified: boolean;
+  phone: string | null;
+  verifiedAt: string | null;
+}> {
+  return api('/v1/auth/phone/status', { cache: 'no-store' });
 }
 
 export async function verifyNin(nin: string): Promise<void> {

@@ -5,6 +5,8 @@ import { CheckCircle2, ChevronRight, Check } from 'lucide-react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { useProfileStore, type VerificationStatus } from '@/stores/use-profile-store';
+import { useEffect } from 'react';
+import { getPhoneVerificationStatus } from '@/lib/services/profile-service';
 
 const checks = [
   {
@@ -43,6 +45,14 @@ function StatusBadge({ status }: Readonly<{ status: VerificationStatus }>): Reac
 
 export function VerificationDashboard(): React.JSX.Element {
   const verification = useProfileStore((state) => state.verification);
+  const setVerificationStatus = useProfileStore((state) => state.setVerificationStatus);
+  useEffect(() => {
+    void getPhoneVerificationStatus()
+      .then((result) =>
+        setVerificationStatus('phone', result.verified ? 'verified' : 'not-verified'),
+      )
+      .catch(() => undefined);
+  }, [setVerificationStatus]);
   const verified = Object.values(verification).filter((status) => status === 'verified').length;
 
   return (

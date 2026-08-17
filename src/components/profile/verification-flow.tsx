@@ -48,7 +48,7 @@ export function VerificationFlow({
           setCodeSent(true);
           return;
         }
-        await verifyPhoneCode(code);
+        await verifyPhoneCode(phone, code);
       }
       if (type === 'nin') await verifyNin(nin);
       if (type === 'bvn') await verifyBvn(bvn, name, dateOfBirth);
