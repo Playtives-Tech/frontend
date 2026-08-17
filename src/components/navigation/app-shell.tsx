@@ -72,8 +72,9 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     <div className="app-background min-h-dvh">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-[20vw] flex-col border-r border-emerald-950/30 bg-gradient-to-b from-emerald-800 via-emerald-900 to-emerald-950 px-6 py-8 text-white lg:flex">
         <Link href="/" className="flex items-center gap-3 px-2 font-heading text-4xl font-bold">
-          Playtives
+        playtives
         </Link>
+        <p className="mt-2 text-sm">Own together. Build forever.</p>
 
         <nav className="mt-12 grid gap-4">
           {navigationItems.map((item) => (

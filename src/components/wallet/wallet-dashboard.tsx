@@ -49,7 +49,7 @@ export function WalletDashboard(): React.JSX.Element {
         </p>
       )}
 
-      <section className="mt-8 rounded-3xl bg-gradient-to-br from-brand to-emerald-950 p-6 text-brand-foreground sm:p-8">
+      <section className="playtives-gold-card mt-8 rounded-3xl p-6 text-white sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
           Total available balance
         </p>

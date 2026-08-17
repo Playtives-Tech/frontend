@@ -1,21 +1,21 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Sora } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { AppProviders } from '@/components/providers/app-providers';
 import { AppShell } from '@/components/navigation/app-shell';
 
 import '@/styles/globals.css';
 
-const sans = Sora({
+const sans = Inter({
   variable: '--font-sans',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
 });
 
-const heading = Cormorant_Garamond({
+const heading = Playfair_Display({
   variable: '--font-heading',
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  weight: ['600', '700', '800'],
 });
 
 export const metadata: Metadata = {

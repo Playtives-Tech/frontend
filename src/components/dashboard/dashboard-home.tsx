@@ -48,7 +48,7 @@ export function DashboardHome(): React.JSX.Element {
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="flex items-start justify-between gap-5">
         <div>
-          <p className="text-sm font-semibold text-brand">Playtives</p>
+          <img src={"playtives-logo-mark.svg"} alt="Playtives logo mark" className="size-12" />
           <h1 className="mt-5 font-sans text-[24px] font-bold leading-8 tracking-normal text-foreground sm:text-[28px]">
             {isGuest ? 'Welcome to Playtives.' : `${greeting}, ${firstName}.`}
           </h1>
@@ -74,17 +74,17 @@ export function DashboardHome(): React.JSX.Element {
         />
       </div>
 
-      <section className="mt-7">
+      <section className="mt-7 gap-4">
         <h2 className="font-sans text-xl font-bold tracking-normal">Continue your journey</h2>
 
         <div className="mt-4 space-y-3">
-          <VerificationCard status={verificationStatus} />
           <ActionCard
             href={walletDestination}
             icon={WalletCards}
             title="Wallet"
             description="Fund your account and follow every transaction."
           />
+          <VerificationCard status={verificationStatus} />
         </div>
       </section>
 

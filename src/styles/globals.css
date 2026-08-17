@@ -33,6 +33,13 @@
 }
 
 @layer utilities {
+  .playtives-gold-card {
+    background:
+      radial-gradient(circle at 88% 16%, rgb(219 170 55 / 0.18), transparent 28%),
+      linear-gradient(135deg, #064b37 0%, #075d42 58%, #356f38 100%);
+    box-shadow: 0 22px 55px rgb(8 68 49 / 0.16);
+  }
+
   .app-background,
   .app-surface {
     background-color: hsl(var(--background));

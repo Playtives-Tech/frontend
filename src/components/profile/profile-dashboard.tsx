@@ -52,7 +52,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         <h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">My Profile</h1>
       </header>
 
-      <section className="mt-8 rounded-3xl bg-gradient-to-br from-brand to-emerald-950 p-6 text-brand-foreground sm:p-8">
+      <section className="playtives-gold-card mt-8 rounded-3xl p-6 text-white sm:p-8">
         <div className="flex items-center gap-4">
           <span className="grid size-16 place-items-center rounded-2xl bg-brand-foreground/15">
             <UserRound className="size-8" />

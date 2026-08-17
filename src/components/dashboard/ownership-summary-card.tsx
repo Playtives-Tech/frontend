@@ -19,7 +19,7 @@ export function OwnershipSummaryCard({
   const dealLabel = activeDealsCount === 1 ? 'deal' : 'deals';
 
   return (
-    <section className="rounded-[1.75rem] bg-gradient-to-br from-brand to-emerald-950 p-5 text-brand-foreground shadow-sm sm:p-6">
+    <section className="playtives-gold-card rounded-[1.75rem] p-5 text-white sm:p-6">
       <div className="flex items-start justify-between gap-5">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
