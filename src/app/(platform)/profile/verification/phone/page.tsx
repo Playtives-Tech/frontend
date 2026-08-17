@@ -15,7 +15,8 @@ import {
 
 export default function PhoneVerificationPage(): React.JSX.Element {
   const [step, setStep] = useState<'input' | 'otp'>('input');
-  const [phone, setPhone] = useState('');
+  const [countryCode] = useState('+234');
+  const [localNumber, setLocalNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const setVerificationStatus = useProfileStore((state) => state.setVerificationStatus);
@@ -23,6 +24,7 @@ export default function PhoneVerificationPage(): React.JSX.Element {
   const router = useRouter();
   const [maskedPhone, setMaskedPhone] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
+  const phone = `${countryCode}${localNumber}`;
 
   useEffect(() => {
     void getPhoneVerificationStatus()
@@ -44,8 +46,8 @@ export default function PhoneVerificationPage(): React.JSX.Element {
 
   async function handleSendCode(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (phone.length < 10) {
-      notify.error('Enter a valid phone number');
+    if (!/^[789]\d{9}$/.test(localNumber)) {
+      notify.error('Enter the 10 digits after +234, without the leading zero');
       return;
     }
 
@@ -131,14 +133,49 @@ export default function PhoneVerificationPage(): React.JSX.Element {
           <form onSubmit={handleSendCode} className="mt-8 grid gap-5">
             <label className="grid gap-2 text-sm font-medium">
               Phone number
-              <input
-                type="tel"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. +234 800 000 0000"
-                className="h-12 rounded-xl border bg-background px-4 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-              />
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
+                <div className="relative">
+                  <select
+                    aria-label="Country"
+                    value="NG"
+                    disabled={isSubmitting}
+                    className="h-12 w-full appearance-none rounded-xl border bg-background px-4 pr-9 font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="NG">🇳🇬 Nigeria</option>
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    ▼
+                  </span>
+                </div>
+                <div className="flex h-12 overflow-hidden rounded-xl border bg-background transition focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+                  <span className="flex items-center border-r bg-muted/50 px-3 font-semibold text-foreground">
+                    {countryCode}
+                  </span>
+                  <input
+                    type="tel"
+                    required
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    value={localNumber}
+                    onChange={(event) =>
+                      setLocalNumber(event.target.value.replace(/\D/g, '').slice(0, 10))
+                    }
+                    minLength={10}
+                    maxLength={10}
+                    pattern="[789][0-9]{9}"
+                    placeholder="8100000000"
+                    aria-describedby="phone-number-hint"
+                    className="min-w-0 flex-1 bg-transparent px-3 outline-none placeholder:text-muted-foreground/60"
+                  />
+                </div>
+              </div>
+              <span
+                id="phone-number-hint"
+                className="rounded-lg border border-brand/20 bg-brand/5 px-3 py-2 text-xs font-medium leading-5 text-brand"
+              >
+                Enter the last 10 digits of your number without the first zero. Example:{' '}
+                <strong>8100000000</strong> becomes <strong>+2348100000000</strong>.
+              </span>
             </label>
 
             <button
@@ -165,7 +202,8 @@ export default function PhoneVerificationPage(): React.JSX.Element {
               />
             </label>
             <p className="text-center text-sm text-muted-foreground">
-              Enter the six-digit code sent by SMS. It expires shortly and can only be used once.
+              Enter the six-digit code sent to <strong>{phone}</strong>. It expires shortly and can
+              only be used once.
             </p>
 
             <button
