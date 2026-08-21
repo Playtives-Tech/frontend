@@ -30,7 +30,9 @@ function DetailMetric({
     <div className="rounded-lg bg-surface px-3 py-2.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm font-semibold">{value}</p>
-      {supportingText ? <p className="mt-0.5 text-[11px] text-muted-foreground">{supportingText}</p> : null}
+      {supportingText ? (
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{supportingText}</p>
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,12 @@
 import { ArrowLeft, ArrowRight, Check, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatOpportunityMoney, formatOwnershipModel, formatReturnSchedule, type Opportunity } from '@/lib/opportunities';
+import {
+  formatOpportunityMoney,
+  formatOwnershipModel,
+  formatReturnSchedule,
+  type Opportunity,
+} from '@/lib/opportunities';
 
 type OpportunityOverviewProps = Readonly<{
   opportunity: Opportunity;
@@ -57,7 +62,7 @@ export function OpportunityOverview({
             </span>
           </div>
 
-          <h1 className="mt-5 max-w-5xl font-sans text-2xl font-semibold leading-tight tracking-tight sm:text-2.5xl">
+          <h1 className="sm:text-2.5xl mt-5 max-w-5xl font-sans text-2xl font-semibold leading-tight tracking-tight">
             {opportunity.title}
           </h1>
           <p className="mt-3 max-w-4xl text-sm font-medium leading-4 text-muted-foreground sm:text-[13px] sm:leading-5">
@@ -65,10 +70,17 @@ export function OpportunityOverview({
           </p>
 
           <dl className="mt-7 grid gap-5 border-y border-border/80 py-5 sm:grid-cols-3 sm:gap-8 sm:py-6">
-            <Metric label="Price per unit" value={formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} />
+            <Metric
+              label="Price per unit"
+              value={formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)}
+            />
             <Metric
               label="Duration"
-              value={opportunity.durationMonths ? `${opportunity.durationMonths} months` : 'Not specified'}
+              value={
+                opportunity.durationMonths
+                  ? `${opportunity.durationMonths} months`
+                  : 'Not specified'
+              }
             />
             <Metric
               label="Location"
@@ -79,14 +91,21 @@ export function OpportunityOverview({
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <Highlight
-              label={monthlyProfit == null ? 'Projected profit per unit' : 'Projected monthly profit per unit'}
+              label={
+                monthlyProfit == null
+                  ? 'Projected profit per unit'
+                  : 'Projected monthly profit per unit'
+              }
               value={formatOpportunityMoney(monthlyProfit ?? opportunity.projectedProfitMinorUnits)}
             />
             <Highlight
               label="Projected total profit per unit"
               value={formatOpportunityMoney(opportunity.projectedProfitMinorUnits)}
             />
-            <Highlight label="Distribution schedule" value={formatReturnSchedule(opportunity.returnSchedule)} />
+            <Highlight
+              label="Distribution schedule"
+              value={formatReturnSchedule(opportunity.returnSchedule)}
+            />
           </div>
 
           {/* <div className="mt-6 flex items-end justify-between gap-4 text-sm">
@@ -113,9 +132,10 @@ export function OpportunityOverview({
             <div>
               <h2 className="font-sans text-lg font-bold tracking-tight">What you receive</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {opportunity.minimumUnits} {opportunity.minimumUnits === 1 ? 'unit' : 'units'} minimum in a{' '}
-                {formatOwnershipModel(opportunity.ownershipModel).toLowerCase()} opportunity, with{' '}
-                {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()} distributions where available.
+                {opportunity.minimumUnits} {opportunity.minimumUnits === 1 ? 'unit' : 'units'}{' '}
+                minimum in a {formatOwnershipModel(opportunity.ownershipModel).toLowerCase()}{' '}
+                opportunity, with {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}{' '}
+                distributions where available.
               </p>
             </div>
           </div>
@@ -155,7 +175,10 @@ function Metric({
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 flex items-center gap-1.5 text-base font-bold tracking-tight">{icon}{value}</dd>
+      <dd className="mt-1 flex items-center gap-1.5 text-base font-bold tracking-tight">
+        {icon}
+        {value}
+      </dd>
     </div>
   );
 }

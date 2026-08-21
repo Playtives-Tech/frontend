@@ -66,9 +66,13 @@ export function WalletCheckout({
           <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
             <dt>
               <p className="text-sm font-semibold">Ownership model</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Your selected participation type</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Your selected participation type
+              </p>
             </dt>
-            <dd className="text-sm font-semibold">{opportunity.ownershipModel.replace('_', ' ')}</dd>
+            <dd className="text-sm font-semibold">
+              {opportunity.ownershipModel.replace('_', ' ')}
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Units</dt>
@@ -76,7 +80,9 @@ export function WalletCheckout({
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Projected ROI</dt>
-            <dd className="text-sm font-semibold text-brand">{opportunity.projectedReturnRatePercent}%</dd>
+            <dd className="text-sm font-semibold text-brand">
+              {opportunity.projectedReturnRatePercent}%
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Projected return</dt>

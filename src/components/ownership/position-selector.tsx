@@ -35,7 +35,8 @@ export function PositionSelector({
         How many units would you like to take?
       </h1>
       <p className="text-[13px] leading-5 text-muted-foreground">
-        Choose your units in {opportunity.title}. We will calculate the contribution and projected profit automatically.
+        Choose your units in {opportunity.title}. We will calculate the contribution and projected
+        profit automatically.
       </p>
       <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -101,9 +102,7 @@ export function PositionSelector({
           </div>
           <div className="sm:text-right">
             <p className="text-sm text-muted-foreground">Total ownership contribution</p>
-            <p className="mt-2 font-sans text-xl font-semibold text-brand">
-              {formatNaira(total)}
-            </p>
+            <p className="mt-2 font-sans text-xl font-semibold text-brand">{formatNaira(total)}</p>
           </div>
         </div>
       </section>
@@ -111,9 +110,9 @@ export function PositionSelector({
         <button
           type="button"
           onClick={onContinue}
-          className="mx-auto flex h-14 w-full max-w-3xl items-center justify-center text-[14px] rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110"
+          className="mx-auto flex h-14 w-full max-w-3xl items-center justify-center rounded-xl bg-brand px-5 text-[14px] font-semibold text-brand-foreground transition hover:brightness-110"
         >
-          Continue to payment  →
+          Continue to payment →
         </button>
       </div>
     </div>

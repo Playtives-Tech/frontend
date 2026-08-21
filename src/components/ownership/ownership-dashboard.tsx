@@ -122,7 +122,7 @@ export function OwnershipDashboard(): React.JSX.Element {
           </p>
         )}
         {!error && visible.length === 0 && (
-          <p className="rounded-2xl border bg-background p-8 text-[13px] text-center text-muted-foreground">
+          <p className="rounded-2xl border bg-background p-8 text-center text-[13px] text-muted-foreground">
             No {tab} ownership units yet.
           </p>
         )}

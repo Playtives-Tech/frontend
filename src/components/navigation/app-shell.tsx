@@ -37,7 +37,7 @@ function NavigationLink({
         compact ? 'flex-col gap-1 px-2 py-2 text-[10px]' : 'h-12 px-3.5 text-[.85rem]',
         inverse
           ? active
-            ? 'border border-white/15 border-l-4 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
+            ? 'border border-l-4 border-white/15 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
             : 'text-white/70 hover:bg-white/10 hover:text-white'
           : active
             ? compact
@@ -106,7 +106,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         <Link href="/" className="">
           <span className="font-wordmark text-4xl font-semibold leading-none">playtives</span>
         </Link>
-        <span className="mt-2 text-[.7rem] font-medium leading-5 text-white/65 tracking-normal">
+        <span className="mt-2 text-[.7rem] font-medium leading-5 tracking-normal text-white/65">
           Own together. Build forever.
         </span>
 
@@ -221,7 +221,9 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <strong className="block truncate tracking-tight font-sans font-semibold text-[.8rem]">{formatActivityAction(item.action)}</strong>
+        <strong className="block truncate font-sans text-[.8rem] font-semibold tracking-tight">
+          {formatActivityAction(item.action)}
+        </strong>
         <small className="block text-[.7rem] text-muted-foreground">
           {new Date(item.createdAt).toLocaleDateString('en-NG', {
             day: 'numeric',

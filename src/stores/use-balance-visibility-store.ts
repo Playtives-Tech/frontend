@@ -6,7 +6,9 @@ import { persist } from 'zustand/middleware';
 type BalanceVisibilityState = Readonly<{ isBalanceVisible: boolean }>;
 type BalanceVisibilityActions = Readonly<{ toggleBalanceVisibility: () => void }>;
 
-export const useBalanceVisibilityStore = create<BalanceVisibilityState & BalanceVisibilityActions>()(
+export const useBalanceVisibilityStore = create<
+  BalanceVisibilityState & BalanceVisibilityActions
+>()(
   persist(
     (set) => ({
       isBalanceVisible: true,

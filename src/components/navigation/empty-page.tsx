@@ -14,7 +14,7 @@ export function EmptyPage({
   return (
     <section className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-2xl flex-col justify-center px-5 py-8 sm:px-8 lg:px-10">
       <div className="max-w-xl">
-        <span className="mb-4 grid size-10 place-items-center rounded-xl bg-brand/12 text-brand">
+        <span className="bg-brand/12 mb-4 grid size-10 place-items-center rounded-xl text-brand">
           <Icon className="size-5" />
         </span>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">{eyebrow}</p>

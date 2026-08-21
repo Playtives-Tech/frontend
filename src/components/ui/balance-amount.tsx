@@ -16,7 +16,9 @@ export function BalanceAmount({
   toggle = false,
 }: BalanceAmountProps): React.JSX.Element {
   const isBalanceVisible = useBalanceVisibilityStore((state) => state.isBalanceVisible);
-  const toggleBalanceVisibility = useBalanceVisibilityStore((state) => state.toggleBalanceVisibility);
+  const toggleBalanceVisibility = useBalanceVisibilityStore(
+    (state) => state.toggleBalanceVisibility,
+  );
 
   return (
     <span className={cn('inline-flex flex-row items-center gap-3', className)}>
@@ -25,7 +27,7 @@ export function BalanceAmount({
         <button
           type="button"
           onClick={toggleBalanceVisibility}
-          className="order-2 grid size-9 shrink-0 place-items-center rounded-full transition hover:bg-current/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/60"
+          className="hover:bg-current/10 focus-visible:ring-current/60 order-2 grid size-9 shrink-0 place-items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2"
           aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
           title={isBalanceVisible ? 'Hide balances' : 'Show balances'}
         >

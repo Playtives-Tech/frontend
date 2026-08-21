@@ -56,11 +56,17 @@ export function DashboardHome(): React.JSX.Element {
     <div className="w-full px-4 py-4 sm:px-8 lg:py-6">
       <header className="flex items-start justify-between gap-5">
         <div>
-          <img src="/playtives-logo-mark.png" alt="Playtives logo mark" className="w-6 h-6 object-contain" />
+          <img
+            src="/playtives-logo-mark.png"
+            alt="Playtives logo mark"
+            className="h-6 w-6 object-contain"
+          />
           <h1 className="mt-3 font-sans text-[1rem] font-bold leading-8 tracking-normal text-foreground sm:text-[1.3rem]">
             {isGuest ? 'Welcome to Playtives.' : `${greeting}, ${firstName}.`}
           </h1>
-          <p className="text-[.8rem] font-medium text-muted-foreground">Continue your ownership journey.</p>
+          <p className="text-[.8rem] font-medium text-muted-foreground">
+            Continue your ownership journey.
+          </p>
         </div>
 
         <a
@@ -72,7 +78,7 @@ export function DashboardHome(): React.JSX.Element {
         </a>
       </header>
 
-      <div className="scrollbar-none -mx-4 mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8">
+      <div className="scrollbar-none -mx-4 mt-7 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-3 sm:-mx-8 sm:scroll-px-8 sm:px-8">
         <div className="w-[calc(100%_-_3.5rem)] min-w-[18rem] shrink-0 snap-start">
           <WalletSummaryCard
             balanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
@@ -108,7 +114,9 @@ export function DashboardHome(): React.JSX.Element {
               <WhatsAppIcon className="size-5" />
             </span>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#178b42]">Playtives community</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#178b42]">
+                Playtives community
+              </p>
               <h2 className="mt-1 text-sm font-semibold">Join us on WhatsApp</h2>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Receive helpful ownership updates and connect with the Playtives community.

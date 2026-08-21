@@ -80,7 +80,10 @@ export default function ActivityPage(): React.JSX.Element {
       </section>
 
       {result && result.totalPages > 1 ? (
-        <nav className="mt-4 flex items-center justify-between gap-3" aria-label="Activity pagination">
+        <nav
+          className="mt-4 flex items-center justify-between gap-3"
+          aria-label="Activity pagination"
+        >
           <button
             type="button"
             disabled={page === 1 || loading}
@@ -121,7 +124,9 @@ function ActivityRow({ log }: Readonly<{ log: ActivityLog }>): React.JSX.Element
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <strong className="block truncate font-sans text-[.8rem]">{formatActivityAction(log.action)}</strong>
+        <strong className="block truncate font-sans text-[.8rem]">
+          {formatActivityAction(log.action)}
+        </strong>
         <small className="mt-0.5 block font-sans text-[.7rem] text-muted-foreground">
           {new Date(log.createdAt).toLocaleDateString('en-NG', {
             day: 'numeric',

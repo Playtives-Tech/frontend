@@ -142,7 +142,6 @@ export default function PhoneVerificationPage(): React.JSX.Element {
                     className="h-12 w-full appearance-none rounded-xl border bg-background px-4 pr-9 font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                   >
                     <option value="NG">🇳🇬 Nigeria</option>
-
                   </select>
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     ▼

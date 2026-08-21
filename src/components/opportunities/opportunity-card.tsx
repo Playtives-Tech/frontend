@@ -31,13 +31,13 @@ export function OpportunityCard({
         )}
       </div>
       <div className="flex flex-1 flex-col p-2.5">
-        <h2 className="text-[14px] line-clamp-2 font-sans font-bold leading-6 tracking-normal">
+        <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-6 tracking-normal">
           {opportunity.title}
         </h2>
         <p className="mt-1 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
-        <p className="mt-1.5 line-clamp-1 text-xs font-semibold leading-4 text-yellow-600 text-muted-foreground">
+        <p className="mt-1.5 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600">
           {opportunity.projectedReturnRatePercent}% projected return
         </p>
       </div>

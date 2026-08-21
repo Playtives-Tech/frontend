@@ -18,19 +18,21 @@ export function WalletSummaryCard({
   const depositedFunds =
     depositedFundsMinorUnits === null ? '—' : formatNaira(depositedFundsMinorUnits / 100);
   const investmentReturns =
-    investmentReturnsMinorUnits === null
-      ? '—'
-      : formatNaira(investmentReturnsMinorUnits / 100);
+    investmentReturnsMinorUnits === null ? '—' : formatNaira(investmentReturnsMinorUnits / 100);
 
   return (
     <section className="h-full rounded-[1.5rem] border border-brand/15 bg-background p-5 shadow-sm sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-sans font-semibold uppercase tracking-[0.16em] text-brand">Wallet balance</p>
+          <p className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-brand">
+            Wallet balance
+          </p>
           <div className="mt-3 text-3xl font-bold tracking-tight text-foreground">
             <BalanceAmount value={balance} toggle />
           </div>
-          <p className="mt-2 text-[12px] text-muted-foreground">Funds available for your next ownership.</p>
+          <p className="mt-2 text-[12px] text-muted-foreground">
+            Funds available for your next ownership.
+          </p>
         </div>
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand">
           <WalletCards className="size-5" />

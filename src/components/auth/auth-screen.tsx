@@ -263,7 +263,9 @@ function FloatingField({
           type="button"
           onClick={() => setIsPasswordVisible((visible) => !visible)}
           className="absolute right-3 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-          aria-label={isPasswordVisible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-label={
+            isPasswordVisible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`
+          }
           aria-pressed={isPasswordVisible}
         >
           {isPasswordVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

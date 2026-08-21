@@ -185,7 +185,9 @@ export default function WithdrawPage(): React.JSX.Element {
           <form onSubmit={handleAmountSubmit} className="grid gap-4">
             <div>
               <p className="text-sm font-semibold text-muted-foreground">Available balance</p>
-              <div className="mt-1 text-xl font-semibold"><BalanceAmount value={formatNaira(balance)} toggle /></div>
+              <div className="mt-1 text-xl font-semibold">
+                <BalanceAmount value={formatNaira(balance)} toggle />
+              </div>
             </div>
 
             <label className="grid gap-2 text-sm font-semibold">

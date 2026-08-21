@@ -62,7 +62,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
-        <h1 className="mt-2 font-sans text-[15.5px]l font-semibold tracking-tight">My Profile</h1>
+        <h1 className="text-[15.5px]l mt-2 font-sans font-semibold tracking-tight">My Profile</h1>
       </header>
 
       <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">
@@ -75,7 +75,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <span className="rounded-full bg-brand-foreground/15 px-4 py-2 text-[10px] font-semibold">
                 Playtives member
               </span>
-              <h2 className="mt-2 text-xl font-sans font-semibold">{user.name}</h2>
+              <h2 className="mt-2 font-sans text-xl font-semibold">{user.name}</h2>
               <p className="mt-0.5 text-sm text-brand-foreground/75">{user.email}</p>
               {user.phone ? (
                 <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-brand-foreground/75">
@@ -132,7 +132,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <CreditCard className="size-4 text-brand" />
             <span className="min-w-0 flex-1">
               <strong className="block text-sm">Linked bank accounts</strong>
-              <small className="text-xs text-muted-foreground">Manage withdrawal destinations</small>
+              <small className="text-xs text-muted-foreground">
+                Manage withdrawal destinations
+              </small>
             </span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
@@ -146,7 +148,10 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <Mail className="size-4 shrink-0 text-brand" />
             <span className="min-w-0 flex-1">
               <strong className="block text-sm">Contact us</strong>
-              <a href={`mailto:${supportEmail}`} className="mt-0.5 block truncate text-xs text-muted-foreground hover:text-brand">
+              <a
+                href={`mailto:${supportEmail}`}
+                className="mt-0.5 block truncate text-xs text-muted-foreground hover:text-brand"
+              >
                 {supportEmail}
               </a>
             </span>
@@ -168,7 +173,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <WhatsAppIcon className="size-4 shrink-0 text-[#178b42]" />
             <span className="min-w-0 flex-1">
               <strong className="block text-sm">Join our community on WhatsApp</strong>
-              <small className="mt-0.5 block text-xs text-muted-foreground">Connect with other Playtives members</small>
+              <small className="mt-0.5 block text-xs text-muted-foreground">
+                Connect with other Playtives members
+              </small>
             </span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </a>
@@ -181,7 +188,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
           <Moon className="size-4 text-brand" />
           <span className="min-w-0 flex-1">
             <strong className="block text-sm">Dark mode</strong>
-            <small className="mt-0.5 block text-xs text-muted-foreground">Choose the theme that feels right for you</small>
+            <small className="mt-0.5 block text-xs text-muted-foreground">
+              Choose the theme that feels right for you
+            </small>
           </span>
           <ThemeToggle />
         </div>
@@ -195,7 +204,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <LogOut className="mt-0.5 size-4 shrink-0 text-brand" />
               <span>
                 <strong className="block text-sm">Sign out</strong>
-                <small className="mt-0.5 block text-xs text-muted-foreground">End this session on this device</small>
+                <small className="mt-0.5 block text-xs text-muted-foreground">
+                  End this session on this device
+                </small>
               </span>
             </span>
             <button
@@ -212,7 +223,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <Trash2 className="mt-0.5 size-4 shrink-0 text-red-600" />
               <span>
                 <strong className="block text-sm text-red-600">Delete account</strong>
-                <small className="mt-0.5 block text-xs text-muted-foreground">This action cannot be undone</small>
+                <small className="mt-0.5 block text-xs text-muted-foreground">
+                  This action cannot be undone
+                </small>
               </span>
             </span>
             <button
