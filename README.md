@@ -35,7 +35,7 @@ src/
     query/             Query keys and typed query option factories
     api.ts             Typed HTTP client and API error model
     notify.ts          Central toast helper
-  stores/              Local UI and display-only simulated session state
+  stores/              Local UI and display-only session presentation state
   styles/              Global CSS and design tokens
   types/               Shared TypeScript declarations and domain types
 ```
@@ -48,7 +48,7 @@ Routes should compose feature components. Feature components own their presentat
 - Global color tokens live in `src/styles/globals.css`; use semantic utilities such as `bg-brand`, `text-muted-foreground`, and `border-border` instead of raw colors.
 - The desktop sidebar and mobile bottom navigation share the same navigation definition.
 - Design for mobile first, then add responsive breakpoints deliberately.
-- Use `font-heading` for display hierarchy and `font-sans` for interface copy.
+- Use `font-sans` for display hierarchy and `font-sans` for interface copy.
 - Use the shared `Skeleton` component for loading layouts and Sonner through `notify` for messaging.
 
 ## Code style
@@ -64,7 +64,7 @@ Routes should compose feature components. Feature components own their presentat
 
 ## Data and state
 
-TanStack Query owns remote server state. Query keys live in `src/lib/query/query-keys.ts`, and query option factories live in `src/lib/query/query-options.ts`. Zustand owns transient interface state and the current display-only authentication simulation. Replace the simulation with HTTP-only cookie-backed authentication before connecting production identity flows.
+TanStack Query owns remote server state. Query keys live in `src/lib/query/query-keys.ts`, and query option factories live in `src/lib/query/query-options.ts`. Registration, verification, and resend use the backend `/v1/auth` endpoints. Zustand owns transient interface state and the current display-only signed-in presentation; replace that remaining sign-in simulation with HTTP-only cookie-backed sessions before production.
 
 ## Environment
 

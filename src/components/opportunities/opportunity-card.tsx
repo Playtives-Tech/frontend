@@ -1,84 +1,83 @@
-import { ArrowUpRight, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Opportunity } from '@/lib/opportunities';
+import { formatOpportunityMoney, type Opportunity } from '@/lib/opportunities';
 
-type OpportunityCardProps = Readonly<{ opportunity: Opportunity }>;
+type OpportunityCardProps = Readonly<{
+  opportunity: Opportunity;
+  variant?: 'default' | 'compact';
+}>;
 
-export function OpportunityCard({ opportunity }: OpportunityCardProps): React.JSX.Element {
+export function OpportunityCard({
+  opportunity,
+  variant = 'default',
+}: OpportunityCardProps): React.JSX.Element {
+  if (variant === 'compact') return <CompactOpportunityCard opportunity={opportunity} />;
+
   return (
     <Link
       href={`/discover/${opportunity.slug}`}
-      className="group overflow-hidden rounded-2xl border bg-background transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg"
+      className="group flex h-full min-h-[10.75rem] flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30"
     >
-      <div className="relative aspect-[16/9] overflow-hidden bg-muted">
-        <Image
-          src={opportunity.image}
-          alt={opportunity.alt}
-          fill
-          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-          className="object-cover transition duration-500 group-hover:scale-105"
-        />
+      <div className="relative h-24 shrink-0 overflow-hidden bg-muted">
+        {opportunity.imageUrl && (
+          <Image
+            src={opportunity.imageUrl}
+            unoptimized
+            alt={opportunity.imageAlt}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover"
+          />
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-2.5">
+        <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-6 tracking-normal">
+          {opportunity.title}
+        </h2>
+        <p className="mt-1 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
+          {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
+        </p>
+        <p className="mt-1.5 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600">
+          {opportunity.projectedReturnRatePercent}% projected return
+        </p>
+      </div>
+    </Link>
+  );
+}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
+function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): React.JSX.Element {
+  const projectedReturn = `${opportunity.projectedReturnRatePercent}% projected return`;
 
-        <span className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur">
-          {opportunity.category}
-        </span>
+  return (
+    <Link
+      href={`/discover/${opportunity.slug}`}
+      className="group flex w-[12rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[13rem] lg:w-[14rem]"
+    >
+      <div className="relative h-20 overflow-hidden bg-muted sm:h-24">
+        {opportunity.imageUrl && (
+          <Image
+            src={opportunity.imageUrl}
+            unoptimized
+            alt={opportunity.imageAlt}
+            fill
+            sizes="(min-width: 1024px) 16vw, 60vw"
+            className="object-cover"
+          />
+        )}
       </div>
 
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-brand">Up to {opportunity.returnRate}</p>
-
-            <h2 className="mt-2 font-heading text-xl font-semibold">{opportunity.title}</h2>
-          </div>
-
-          <ArrowUpRight className="size-5 shrink-0 text-muted-foreground transition group-hover:text-brand" />
-        </div>
-
-        <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
-          {opportunity.description}
+      <div className="flex flex-1 flex-col p-2.5">
+        <h3 className="line-clamp-1 font-sans text-sm font-bold leading-5 tracking-normal">
+          {opportunity.title}
+        </h3>
+        <p className="mt-1 text-xs leading-4 text-muted-foreground">
+          {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
-
-        <div className="mt-5 grid grid-cols-2 gap-y-4 gap-x-2 border-t pt-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">Entry</p>
-            <p className="mt-1 font-semibold">{opportunity.minimum}</p>
-          </div>
-
-          <div>
-            <p className="text-muted-foreground">Duration</p>
-            <p className="mt-1 font-semibold">{opportunity.duration}</p>
-          </div>
-
-          <div>
-            <p className="text-muted-foreground">Availability</p>
-            <p className="mt-1 font-semibold">{opportunity.positionsAvailable} of {opportunity.positionsTotal}</p>
-          </div>
-
-          <div>
-            <p className="text-muted-foreground">Return Schedule</p>
-            <p className="mt-1 font-semibold">{opportunity.returnSchedule}</p>
-          </div>
-
-          <div>
-            <p className="text-muted-foreground">Ownership</p>
-            <p className="mt-1 font-semibold">{opportunity.ownershipModel}</p>
-          </div>
-
-          <div>
-            <p className="text-muted-foreground">Operator</p>
-            <p className="mt-1 truncate font-semibold" title={opportunity.operator}>
-              {opportunity.operator}
-            </p>
-          </div>
-        </div>
-
-        <p className="mt-4 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <MapPin className="size-3.5" />
-          {opportunity.location}
+        <p
+          className="mt-1 truncate text-xs font-medium leading-4 text-amber-700 dark:text-amber-300"
+          title={projectedReturn}
+        >
+          {projectedReturn}
         </p>
       </div>
     </Link>

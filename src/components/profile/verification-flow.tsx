@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import {
   sendPhoneCode,
   verifyBvn,
@@ -48,7 +49,7 @@ export function VerificationFlow({
           setCodeSent(true);
           return;
         }
-        await verifyPhoneCode(code);
+        await verifyPhoneCode(phone, code);
       }
       if (type === 'nin') await verifyNin(nin);
       if (type === 'bvn') await verifyBvn(bvn, name, dateOfBirth);
@@ -66,7 +67,7 @@ export function VerificationFlow({
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
           Identity check
         </p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold">{meta[type].title}</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">{meta[type].title}</h1>
         <p className="mt-3 text-muted-foreground">{meta[type].description}</p>
       </header>
       {verified ? (
@@ -146,13 +147,11 @@ export function VerificationFlow({
           )}
           <button
             disabled={mutation.isPending}
-            className="mt-6 h-11 w-full rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:opacity-50"
+            className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:opacity-50"
           >
-            {mutation.isPending
-              ? 'Verifying…'
-              : type === 'phone' && !codeSent
-                ? 'Send code'
-                : 'Verify details'}
+            <ButtonLoadingContent loading={mutation.isPending} loadingLabel="Verifying">
+              {type === 'phone' && !codeSent ? 'Send code' : 'Verify details'}
+            </ButtonLoadingContent>
           </button>
           {type === 'phone' && codeSent && (
             <button

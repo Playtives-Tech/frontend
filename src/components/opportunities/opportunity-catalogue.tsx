@@ -1,42 +1,61 @@
 'use client';
 
 import { Search, SlidersHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
-  opportunities,
-  opportunityCategories,
-  type OpportunityCategory,
+  getOpportunities,
+  subscribeToOpportunityChanges,
+  type Opportunity,
 } from '@/lib/opportunities';
 import { OpportunityCard } from './opportunity-card';
 
 export function OpportunityCatalogue(): React.JSX.Element {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<OpportunityCategory>('All');
+  const [category, setCategory] = useState('All');
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    const load = () =>
+      getOpportunities()
+        .then(setOpportunities)
+        .catch((value: unknown) =>
+          setError(value instanceof Error ? value.message : 'Unable to load opportunities'),
+        )
+        .finally(() => setLoading(false));
+    void load();
+    const unsubscribe = subscribeToOpportunityChanges(() => void load());
+    const poll = window.setInterval(() => void load(), 15_000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
+  }, []);
+  const opportunityCategories = useMemo(
+    () => ['All', ...new Set(opportunities.map((item) => item.category))],
+    [opportunities],
+  );
   const visibleOpportunities = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return opportunities.filter(
       (opportunity) =>
         (category === 'All' || opportunity.category === category) &&
         (!normalizedQuery ||
-          `${opportunity.title} ${opportunity.description} ${opportunity.location}`
+          `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
-  }, [category, query]);
+  }, [category, opportunities, query]);
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+    <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
-        <h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="mt-2 font-sans text-2xl font-semibold leading-8 tracking-tight sm:text-[23px] sm:leading-9">
           Discover opportunities
         </h1>
-
-        <p className="mt-3 text-muted-foreground">
-          Explore opportunities selected for their potential and clear ownership story.
-        </p>
       </header>
 
-      <div className="mt-8 rounded-2xl border bg-background p-3 sm:p-4">
+      <div className="mt-3">
         <label className="flex h-12 items-center gap-3 rounded-xl bg-surface px-4 text-muted-foreground focus-within:ring-2 focus-within:ring-brand/30">
           <Search className="size-5" />
 
@@ -45,23 +64,19 @@ export function OpportunityCatalogue(): React.JSX.Element {
             onChange={(event) => setQuery(event.target.value)}
             type="search"
             className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            placeholder="Search opportunities"
-            aria-label="Search opportunities"
+            placeholder="Search what you would like to own or co-own"
+            aria-label="Search what you would like to own or co-own"
           />
         </label>
 
-        <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-1">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl border text-muted-foreground">
-            <SlidersHorizontal className="size-4" />
-          </span>
-
+        <div className="scrollbar-none mt-4 flex items-center gap-3 overflow-x-auto pb-1">
           {opportunityCategories.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setCategory(item)}
               className={cn(
-                'shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                'shrink-0 rounded-full px-4 py-2 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
                 category === item
                   ? 'bg-brand text-brand-foreground'
                   : 'bg-surface text-muted-foreground hover:text-foreground',
@@ -73,20 +88,26 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
-        <h2 className="font-heading text-2xl font-semibold">Available now</h2>
+      <div className="mt-7 flex items-center justify-between gap-4">
+        <h2 className="font-sans text-[.9rem] font-semibold leading-7 sm:text-[19px]">
+          Available now
+        </h2>
         <p className="text-sm text-muted-foreground">{visibleOpportunities.length} opportunities</p>
       </div>
 
-      {visibleOpportunities.length > 0 ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {loading ? (
+        <p className="mt-8 text-sm text-muted-foreground">Loading opportunities…</p>
+      ) : error ? (
+        <p className="text-destructive mt-8 text-sm">{error}</p>
+      ) : visibleOpportunities.length > 0 ? (
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibleOpportunities.map((opportunity) => (
             <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
           ))}
         </div>
       ) : (
         <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
-          <h2 className="font-heading text-xl font-semibold">No matching opportunities</h2>
+          <h2 className="font-sans text-xl font-semibold">No matching opportunities</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Try another search or select a different category.
           </p>

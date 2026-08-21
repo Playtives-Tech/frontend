@@ -1,6 +1,12 @@
 import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
+import { BalanceAmount } from '@/components/ui/balance-amount';
 import type { Opportunity } from '@/lib/opportunities';
+import { acquireOpportunity } from '@/lib/services/ownership-service';
+import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { formatNaira } from './formatters';
 
 type WalletCheckoutProps = Readonly<{
@@ -14,68 +20,104 @@ export function WalletCheckout({
   quantity,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
-  const storeWallet = useProfileStore((state) => state.walletBalance);
-  const storeAccruals = useProfileStore((state) => state.accrualsBalance);
-  const walletBalance = storeWallet + storeAccruals;
-  const total = opportunity.positionPrice * quantity;
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const idempotencyKey = useRef(crypto.randomUUID());
+  const router = useRouter();
+  useEffect(() => {
+    void getWallet()
+      .then(setWallet)
+      .catch(() => undefined);
+  }, []);
+  const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
+  const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = walletBalance >= total;
+  const confirm = async () => {
+    setSubmitting(true);
+    setError('');
+    try {
+      const ownership = await acquireOpportunity(opportunity, quantity, idempotencyKey.current);
+      router.replace(`/ownership/${ownership._id}`);
+      router.refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : 'The acquisition could not be completed');
+      setSubmitting(false);
+    }
+  };
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
+    <div className="mx-auto max-w-3xl px-5 py-7 sm:px-8 lg:px-10">
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex size-11 items-center justify-center rounded-xl border bg-background text-muted-foreground transition hover:bg-muted"
-        aria-label="Back to position selection"
+        className="inline-flex size-10 items-center justify-center rounded-xl border bg-background text-muted-foreground transition hover:bg-muted"
+        aria-label="Back to unit selection"
       >
         <ArrowLeft className="size-5" />
       </button>
-      <p className="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-        Secure checkout
-      </p>
-      <h1 className="mt-2 font-heading text-4xl font-semibold tracking-tight">
+      <h1 className="mt-7 font-sans text-2xl font-semibold tracking-tight sm:text-3xl">
         Complete your ownership contribution
       </h1>
-      <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        Review your units and confirm payment from your wallet.
+      </p>
+      <section className="mt-6 rounded-xl border bg-background p-4 sm:p-5">
         <dl className="grid divide-y">
-          <div className="flex items-center justify-between gap-4 py-4 first:pt-0">
+          <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
             <dt>
-              <p className="font-semibold">Ownership model</p>
-              <p className="mt-1 text-sm text-muted-foreground">{opportunity.ownershipModel}</p>
+              <p className="text-sm font-semibold">Ownership model</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Your selected participation type
+              </p>
             </dt>
-            <dd className="font-semibold">{opportunity.ownershipModel}</dd>
+            <dd className="text-sm font-semibold">
+              {opportunity.ownershipModel.replace('_', ' ')}
+            </dd>
           </div>
-          <div className="flex items-center justify-between gap-4 py-4">
-            <dt className="font-semibold">Positions</dt>
-            <dd className="font-semibold">{quantity}</dd>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm font-semibold">Units</dt>
+            <dd className="text-sm font-semibold">{quantity}</dd>
           </div>
-          <div className="flex items-center justify-between gap-4 pt-4">
-            <dt className="font-semibold">Total contribution</dt>
-            <dd className="text-xl font-semibold">{formatNaira(total)}</dd>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm font-semibold">Projected ROI</dt>
+            <dd className="text-sm font-semibold text-brand">
+              {opportunity.projectedReturnRatePercent}%
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm font-semibold">Projected return</dt>
+            <dd className="text-sm font-semibold">
+              {formatNaira((opportunity.projectedProfitMinorUnits / 100) * quantity)}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 pt-3">
+            <dt className="text-sm font-semibold">Total contribution</dt>
+            <dd className="text-lg font-semibold">{formatNaira(total)}</dd>
           </div>
         </dl>
       </section>
-      <section className="mt-8">
-        <h2 className="font-heading text-2xl font-semibold">Pay from wallet</h2>
-        <div className="mt-4 rounded-2xl border border-brand/30 bg-brand/5 p-5">
-          <div className="flex items-center gap-4">
-            <span className="grid size-12 place-items-center rounded-xl bg-brand/10 text-brand">
-              <WalletCards className="size-6" />
+      <section className="mt-6">
+        <h2 className="font-sans text-lg font-semibold">Pay from wallet</h2>
+        <div className="mt-3 rounded-xl border border-brand/30 bg-brand/5 p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-brand/10 text-brand">
+              <WalletCards className="size-5" />
             </span>
             <div>
-              <p className="font-semibold">Wallet balance</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {formatNaira(walletBalance)} available
-              </p>
+              <p className="text-sm font-semibold">Wallet balance</p>
+              <div className="mt-0.5 text-xl text-muted-foreground">
+                <BalanceAmount value={formatNaira(walletBalance)} toggle />
+              </div>
             </div>
           </div>
           {!hasFunds && (
-            <div className="mt-5 border-t border-brand/15 pt-5">
-              <p className="text-sm leading-6 text-muted-foreground">
+            <div className="mt-4 border-t border-brand/15 pt-4">
+              <p className="text-xs leading-5 text-muted-foreground">
                 Your wallet balance is below the contribution amount. Add funds before you continue.
               </p>
               <Link
                 href="/wallet"
-                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-brand/30 bg-background px-4 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/5"
+                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-brand/30 bg-background px-3 py-2 text-xs font-semibold text-brand transition hover:bg-brand/5"
               >
                 Top up wallet <ArrowRight className="size-4" />
               </Link>
@@ -83,17 +125,25 @@ export function WalletCheckout({
           )}
         </div>
       </section>
-      <p className="mt-6 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-        Wallet payments are confirmed server-side. In production, the final ownership record must
-        only be created after an authoritative wallet debit transaction.
-      </p>
+      {error && (
+        <p className="border-destructive/30 bg-destructive/5 text-destructive mt-6 rounded-xl border p-4 text-sm">
+          {error}
+        </p>
+      )}
       <div className="sticky bottom-0 z-10 -mx-5 mt-8 border-t bg-background/95 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <button
           type="button"
-          disabled={!hasFunds}
+          disabled={!hasFunds || submitting}
+          onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          Confirm {formatNaira(total)} <ArrowRight className="size-5" />
+          <ButtonLoadingContent
+            loading={submitting}
+            loadingLabel="Securing units"
+            icon={<ArrowRight className="size-5" />}
+          >
+            Confirm {formatNaira(total)}
+          </ButtonLoadingContent>
         </button>
       </div>
     </div>

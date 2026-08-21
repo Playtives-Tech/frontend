@@ -1,43 +1,57 @@
 import { ArrowRight, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { formatNaira } from '@/components/ownership/formatters';
+import { BalanceAmount } from '@/components/ui/balance-amount';
 
-type OwnershipSummaryCardProps = Readonly<{ href: string; isGuest: boolean }>;
+type OwnershipSummaryCardProps = Readonly<{
+  href: string;
+  isGuest: boolean;
+  activeContributionMinorUnits?: number;
+  activeDealsCount?: number;
+}>;
 
 export function OwnershipSummaryCard({
   href,
   isGuest,
+  activeContributionMinorUnits = 0,
+  activeDealsCount = 0,
 }: OwnershipSummaryCardProps): React.JSX.Element {
+  const activeContribution = formatNaira(activeContributionMinorUnits / 100);
+  const dealLabel = activeDealsCount === 1 ? 'deal' : 'deals';
+
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-brand to-emerald-950 p-6 text-brand-foreground sm:p-7">
+    <section className="playtives-gold-card h-full rounded-[1.5rem] p-5 text-white sm:p-6">
       <div className="flex items-start justify-between gap-5">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
-            Your active ownership
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80">
+            Your active portfolio
           </p>
 
-          <p className="mt-3 font-heading text-4xl font-semibold tracking-tight">₦0.00</p>
+          <div className="mt-2 font-sans text-3xl font-bold tracking-normal">
+            <BalanceAmount value={activeContribution} toggle />
+          </div>
+          <p className="mt-1 text-sm font-medium text-brand-foreground/75">
+            {activeDealsCount > 0
+              ? `Across ${activeDealsCount} active ${dealLabel}`
+              : 'No active contribution yet'}
+          </p>
         </div>
 
-        <span className="grid size-11 place-items-center rounded-xl bg-brand-foreground/10">
+        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-foreground/10 text-brand-foreground">
           <Building2 className="size-5" />
         </span>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
-        <p>
-          <span className="text-brand-foreground/65">Businesses owned</span>
-          <span className="ml-2 font-semibold">0</span>
+      {/* <div className="mt-7 border-t border-brand-foreground/20 pt-5">
+        <p className="text-sm font-semibold text-brand-foreground/75">Currently active</p>
+        <p className="mt-1 text-xl font-bold">
+          {activeDealsCount} {dealLabel}
         </p>
-
-        <p>
-          <span className="text-brand-foreground/65">Projected distributions</span>
-          <span className="ml-2 font-semibold">₦0.00</span>
-        </p>
-      </div>
+      </div> */}
 
       <Link
         href={href}
-        className="mt-6 inline-flex items-center gap-2 rounded-lg border border-brand-foreground/25 bg-brand-foreground/10 px-3.5 py-2 text-sm font-semibold transition hover:bg-brand-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-foreground/70"
+        className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg border border-brand-foreground/25 bg-brand-foreground/10 px-3.5 text-sm font-semibold transition hover:bg-brand-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-foreground/70"
       >
         {isGuest ? 'Create an account to own' : 'View my ownership'}
 

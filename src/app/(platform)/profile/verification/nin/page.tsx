@@ -3,6 +3,7 @@
 import { ArrowRight, Fingerprint } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
 import { useProfileStore } from '@/stores/use-profile-store';
 import { useRouter } from 'next/navigation';
@@ -42,7 +43,7 @@ export default function NinVerificationPage(): React.JSX.Element {
 
       <header className="mt-7">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Identity</p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold">NIN verification</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">NIN verification</h1>
         <p className="mt-3 text-muted-foreground">
           Verify your National Identification Number (NIN).
         </p>
@@ -54,7 +55,7 @@ export default function NinVerificationPage(): React.JSX.Element {
             <Fingerprint className="size-6" />
           </span>
           <div>
-            <h2 className="font-heading text-xl font-semibold">National ID</h2>
+            <h2 className="font-sans text-xl font-semibold">National ID</h2>
             <p className="text-sm text-muted-foreground">
               {status === 'verified' ? 'Your NIN is verified.' : 'Enter your 11-digit NIN.'}
             </p>
@@ -89,7 +90,13 @@ export default function NinVerificationPage(): React.JSX.Element {
               disabled={isSubmitting}
               className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-50"
             >
-              {isSubmitting ? 'Verifying...' : 'Verify NIN'} <ArrowRight className="size-4" />
+              <ButtonLoadingContent
+                loading={isSubmitting}
+                loadingLabel="Verifying NIN"
+                icon={<ArrowRight className="size-4" />}
+              >
+                Verify NIN
+              </ButtonLoadingContent>
             </button>
           </form>
         )}

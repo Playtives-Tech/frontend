@@ -18,21 +18,19 @@ export function ActionCard({
   return (
     <Link
       href={href}
-      className="group flex min-h-52 flex-col justify-between rounded-2xl border bg-background p-5 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-lg"
+      className="group flex items-center gap-4 rounded-2xl border border-border/70 bg-background p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-md"
     >
       <span className="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand">
         <Icon className="size-5" />
       </span>
 
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h2 className="font-heading text-xl font-semibold">{title}</h2>
+      <span className="min-w-0 flex-1">
+        <h2 className="font-sans text-lg font-bold tracking-normal">{title}</h2>
 
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-        </div>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+      </span>
 
-        <ArrowRight className="mb-1 size-5 shrink-0 text-brand transition-transform group-hover:translate-x-1" />
-      </div>
+      <ArrowRight className="size-5 shrink-0 text-brand transition-transform group-hover:translate-x-1" />
     </Link>
   );
 }

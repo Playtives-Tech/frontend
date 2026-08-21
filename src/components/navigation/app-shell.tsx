@@ -1,14 +1,19 @@
 'use client';
 
-import { Bell, LogIn, LogOut } from 'lucide-react';
+import { MoreHorizontal, WalletCards } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { notify } from '@/lib/notify';
 import { useAuthStore } from '@/stores/use-auth-store';
-import { navigationItems } from './navigation';
+import { navigationItems, sidebarNavigationItems, type NavigationItem } from './navigation';
+import { getAccessToken, isAccessTokenExpired } from '@/lib/session';
+import { getActivityLogs, type ActivityLog } from '@/lib/services/wallet-service';
+import { PageLoadingState } from '@/components/ui/loading-indicator';
+import { whatsappCommunityUrl } from '@/lib/community';
+import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
 
@@ -17,101 +22,246 @@ function NavigationLink({
   label,
   icon: Icon,
   compact = false,
-}: (typeof navigationItems)[number] & { compact?: boolean }): React.JSX.Element {
+  inverse = false,
+}: NavigationItem & {
+  compact?: boolean;
+  inverse?: boolean;
+}): React.JSX.Element {
   const pathname = usePathname();
   const active = href === '/' ? pathname === href : pathname.startsWith(href);
   return (
     <Link
       href={href}
       className={cn(
-        'group flex items-center gap-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-        compact ? 'flex-col gap-1 px-2 py-2 text-[11px]' : 'px-3 py-3 text-sm',
-        active
-          ? compact
-            ? 'text-brand'
-            : 'bg-brand text-brand-foreground shadow-sm'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        'group flex items-center gap-3 rounded-[.6rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+        compact ? 'flex-col gap-1 px-2 py-2 text-[10px]' : 'h-12 px-3.5 text-[.85rem]',
+        inverse
+          ? active
+            ? 'border border-l-4 border-white/15 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
+            : 'text-white/70 hover:bg-white/10 hover:text-white'
+          : active
+            ? compact
+              ? 'text-brand'
+              : 'bg-brand/10 text-brand'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
       aria-current={active ? 'page' : undefined}
     >
-      <Icon className={compact ? 'size-6' : 'size-6 shrink-0'} strokeWidth={active ? 2.5 : 2} />
+      <Icon className={compact ? 'size-5' : 'size-5 shrink-0'} strokeWidth={active ? 2.5 : 2} />
       <span>{label}</span>
     </Link>
   );
 }
 
 export function AppShell({ children }: AppShellProps): React.JSX.Element {
+  const pathname = usePathname();
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
-  function handleSignOut(): void {
-    signOut();
-    notify.info('You have signed out', { description: 'Sign in again when you are ready.' });
+  const isPublicRoute =
+    pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/verify-email';
+
+  useEffect(() => {
+    const validateSession = (): void => {
+      const token = getAccessToken();
+      const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
+
+      if (!hasValidSession && user) signOut();
+      if (!hasValidSession && !isPublicRoute) router.replace('/sign-in');
+      if (hasValidSession && isPublicRoute) router.replace('/');
+    };
+
+    if (!hasHydrated) return;
+    validateSession();
+    const timer = window.setInterval(validateSession, 30_000);
+    return () => window.clearInterval(timer);
+  }, [hasHydrated, isPublicRoute, router, signOut, user]);
+
+  if (!hasHydrated)
+    return (
+      <div className="app-background min-h-dvh">
+        <PageLoadingState label="Loading Playtives" />
+      </div>
+    );
+
+  const token = getAccessToken();
+  const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
+
+  if (isPublicRoute) {
+    if (hasValidSession) return <PageLoadingState label="Opening your dashboard" />;
+    return <>{children}</>;
   }
+
+  if (!hasValidSession)
+    return (
+      <div className="app-background min-h-dvh">
+        <PageLoadingState label="Opening sign in" />
+      </div>
+    );
+
   return (
     <div className="app-background min-h-dvh">
-      <aside className="app-surface fixed inset-y-0 left-0 z-20 hidden w-72 flex-col border-r px-5 py-6 lg:flex">
-        <Link href="/" className="flex items-center gap-3 px-2 font-heading text-xl font-semibold">
-          Playtives
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-emerald-950/30 bg-[radial-gradient(circle_at_8%_9%,rgb(220_170_42_/_0.28),transparent_24%),linear-gradient(160deg,#1a5634_0%,#07523b_42%,#003e2d_100%)] px-5 py-7 text-white lg:flex lg:w-[calc(15rem+5vw)]">
+        <Link href="/" className="">
+          <span className="font-wordmark text-4xl font-semibold leading-none">playtives</span>
         </Link>
+        <span className="mt-2 text-[.7rem] font-medium leading-5 tracking-normal text-white/65">
+          Own together. Build forever.
+        </span>
 
-        <p className="px-2 pt-12 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          Explore
-        </p>
-
-        <nav className="mt-3 grid gap-1">
-          {navigationItems.map((item) => (
-            <NavigationLink key={item.href} {...item} />
+        <nav className="mt-12 grid gap-2">
+          {sidebarNavigationItems.map((item) => (
+            <NavigationLink key={item.href} {...item} inverse />
           ))}
         </nav>
       </aside>
 
-      <header className="app-surface sticky top-0 z-10 flex h-16 items-center justify-between border-b px-5 backdrop-blur lg:ml-72 lg:px-10">
-        <div className="flex items-center gap-3 lg:hidden">
-          <span className="font-heading font-semibold">Playtives</span>
-        </div>
-
-        <p className="hidden text-sm font-medium text-muted-foreground lg:block"></p>
-
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-
-          <Link
-            href="/notifications"
-            className="relative grid size-10 place-items-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            aria-label="Notifications"
-          >
-            <Bell className="size-5" />
-            <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-brand" />
-          </Link>
-
-          {user ? (
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="hidden items-center gap-2 rounded-lg border bg-background px-3.5 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:border-brand/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex"
-            >
-              <LogOut className="size-4" />
-              Sign out
-            </button>
-          ) : (
-            <Link
-              href="/profile"
-              className="hidden items-center gap-2 rounded-lg border bg-background px-3.5 py-2 text-sm font-semibold text-foreground shadow-sm transition hover:border-brand/35 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:flex"
-            >
-              <LogIn className="size-4" />
-              Join Playtives
-            </Link>
-          )}
-        </div>
+      <header className="app-surface sticky top-0 z-10 mx-auto flex h-16 w-full max-w-[390px] items-center border-b px-5 backdrop-blur lg:hidden">
+        <span className="font-bold text-brand">Playtives</span>
       </header>
 
-      <main className="pb-24 lg:ml-72 lg:pb-10">{children}</main>
+      <main className="mx-auto w-full max-w-[390px] pb-24 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:max-w-none lg:pb-8">
+        {children}
+      </main>
 
-      <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
+      <RecentActivityRail userKey={user?.email ?? null} />
+
+      <a
+        href={whatsappCommunityUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Join the Playtives WhatsApp community"
+        title="Join our WhatsApp community"
+        className="fixed bottom-24 right-4 z-30 grid size-11 place-items-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#20bd5a] lg:bottom-6 lg:right-6"
+      >
+        <WhatsAppIcon className="size-5" />
+      </a>
+
+      <nav className="app-surface fixed inset-x-0 bottom-0 z-20 mx-auto flex h-[4.75rem] max-w-[390px] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
         {navigationItems.map((item) => (
           <NavigationLink key={item.href} {...item} compact />
         ))}
       </nav>
     </div>
   );
+}
+
+function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.Element {
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setActivity([]);
+
+    if (!userKey) {
+      return;
+    }
+
+    const load = () =>
+      getActivityLogs()
+        .then((logs) => {
+          if (!cancelled) setActivity(logs.slice(0, 6));
+        })
+        .catch(() => {
+          if (!cancelled) setActivity([]);
+        });
+
+    void load();
+    const timer = window.setInterval(() => void load(), 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [userKey]);
+
+  const signedIn = Boolean(userKey);
+
+  return (
+    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+5vw)]">
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold tracking-tight">Recent Activities</h2>
+          <Link
+            href="/wallet/activity"
+            className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground"
+            aria-label="View all activity"
+          >
+            <MoreHorizontal className="size-5" />
+          </Link>
+        </div>
+
+        {!signedIn ? (
+          <div className="mt-6 rounded-2xl border border-dashed bg-background/70 p-4 text-sm leading-6 text-muted-foreground">
+            Sign in to see wallet credits, unit purchases, and ownership updates here.
+          </div>
+        ) : activity.length > 0 ? (
+          <div className="mt-5 divide-y">
+            {activity.map((item) => (
+              <ActivityRow key={item._id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-6 text-sm text-muted-foreground">No recent activity yet.</p>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
+  const amount =
+    typeof item.metadata?.amountMinorUnits === 'number'
+      ? item.metadata.amountMinorUnits / 100
+      : null;
+
+  return (
+    <Link href="/wallet/activity" className="flex items-center gap-3 py-4">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
+        <WalletCards className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <strong className="block truncate font-sans text-[.8rem] font-semibold tracking-tight">
+          {formatActivityAction(item.action)}
+        </strong>
+        <small className="block text-[.7rem] text-muted-foreground">
+          {new Date(item.createdAt).toLocaleDateString('en-NG', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </small>
+      </span>
+      {amount !== null ? (
+        <strong className="text-xs text-brand">
+          {new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            maximumFractionDigits: 0,
+          }).format(amount)}
+        </strong>
+      ) : null}
+    </Link>
+  );
+}
+
+function formatActivityAction(action: string): string {
+  const labels: Record<string, string> = {
+    ACCOUNT_CREATED: 'account setup completed',
+    USER_LOGIN: 'User login completed',
+    ADMIN_LOGIN: 'admin login completed',
+    PASSWORD_CHANGED: 'password update completed',
+    BANK_ACCOUNT_LINKED: 'bank account linked',
+    BANK_ACCOUNT_REMOVED: 'bank account removed',
+    WALLET_CREATED: 'wallet setup completed',
+    DEPOSIT_REQUESTED: 'wallet deposit requested',
+    WITHDRAWAL_REQUESTED: 'wallet withdrawal requested',
+    EARNINGS_CREDITED: 'earnings payment credited',
+    PHONE_OTP_SENT: 'verification code sent',
+    PHONE_VERIFIED: 'phone verification completed',
+    OPPORTUNITY_ACQUIRED: 'opportunity purchase completed',
+  };
+
+  const label = labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
+  return `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
 }

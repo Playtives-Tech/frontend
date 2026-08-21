@@ -1,30 +1,72 @@
 'use client';
 
-import { Check, Copy, FileUp } from 'lucide-react';
-import { useState } from 'react';
+import { Check, Copy, Upload } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
+import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
+import {
+  createDepositRequest,
+  getDepositRequests,
+  type DepositRequestRecord,
+} from '@/lib/services/wallet-service';
 
 const accountNumber = '0123456789';
 
 export function DepositRequest(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
-  const [receiptName, setReceiptName] = useState('');
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
+  useEffect(() => {
+    void getDepositRequests()
+      .then(setRequests)
+      .catch(() => undefined);
+  }, []);
   async function copyAccountNumber(): Promise<void> {
     await navigator.clipboard.writeText(accountNumber);
     setCopied(true);
     notify.success('Account number copied');
   }
+  async function submit(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    const amountInNaira = Number(amount.replace(/,/g, ''));
+    if (!Number.isInteger(amountInNaira) || amountInNaira < 1) {
+      notify.error('Enter a valid whole-naira deposit amount.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const request = await createDepositRequest({
+        amountMinorUnits: amountInNaira * 100,
+        receipt: receipt!,
+      });
+      setAmount('');
+      setReceipt(null);
+      setRequests((current) => [request, ...current]);
+      notify.success('Deposit request submitted', {
+        description: 'Your receipt is awaiting admin review.',
+      });
+    } catch (error: unknown) {
+      notify.error(
+        error instanceof Error ? error.message : 'Deposit request could not be submitted.',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Wallet funding</p>
-      <h1 className="mt-2 font-heading text-3xl font-semibold">Fund your wallet</h1>
-      <p className="mt-3 text-muted-foreground">
+    <div className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:px-10">
+      <BackButton label="Wallet" />
+      <h1 className="mt-6 font-sans text-2xl font-semibold">Fund your wallet</h1>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
         Make a transfer to the account below, then submit your receipt for admin approval.
       </p>
-      <section className="mt-8 rounded-2xl border bg-background p-6">
-        <p className="text-sm text-muted-foreground">Account number</p>
+      <section className="mt-6 rounded-xl border bg-background p-5">
+        <p className="text-xs text-muted-foreground">Account number</p>
         <div className="mt-2 flex items-center justify-between gap-4">
-          <p className="font-heading text-3xl font-semibold tracking-wider">{accountNumber}</p>
+          <p className="font-sans text-2xl font-semibold tracking-wider">{accountNumber}</p>
           <button
             type="button"
             onClick={copyAccountNumber}
@@ -34,46 +76,81 @@ export function DepositRequest(): React.JSX.Element {
             {copied ? <Check className="size-5" /> : <Copy className="size-5" />}
           </button>
         </div>
-        <div className="mt-6 grid gap-4 border-t pt-5 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 border-t pt-4 sm:grid-cols-2">
           <div>
-            <p className="text-sm text-muted-foreground">Bank</p>
-            <p className="mt-1 font-semibold">GTBank</p>
+            <p className="text-xs text-muted-foreground">Bank</p>
+            <p className="mt-1 text-sm font-semibold">GTBank</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Account name</p>
-            <p className="mt-1 font-semibold">Playtives Technologies Ltd</p>
+            <p className="text-xs text-muted-foreground">Account name</p>
+            <p className="mt-1 text-sm font-semibold">Playtives Technologies Ltd</p>
           </div>
         </div>
       </section>
-      <section className="mt-6 rounded-2xl border bg-background p-6">
-        <h2 className="font-heading text-xl font-semibold">Submit proof of payment</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Receipt submissions are reviewed by an administrator before your wallet is credited.
+      <form
+        onSubmit={(event) => void submit(event)}
+        className="mt-5 rounded-xl border bg-background p-5"
+      >
+        <h2 className="font-sans text-lg font-semibold">Submit payment receipt</h2>
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          Upload the receipt generated by your bank. An administrator will verify it before
+          crediting your wallet.
         </p>
-        <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-4 transition hover:bg-muted">
-          <FileUp className="size-5 text-brand" />
-          <span className="min-w-0 flex-1 text-sm font-medium">
-            {receiptName || 'Upload transfer receipt'}
-          </span>
+        <label className="mt-4 block text-sm font-medium">
+          Amount (NGN)
           <input
-            type="file"
-            accept="image/*,.pdf"
-            className="sr-only"
-            onChange={(event) => setReceiptName(event.target.files?.[0]?.name ?? '')}
+            inputMode="numeric"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value.replace(/[^0-9,]/g, ''))}
+            placeholder="250,000"
+            className="mt-2 h-11 w-full rounded-xl border bg-background px-4 text-sm outline-none focus:ring-2 focus:ring-brand"
           />
         </label>
+        <label className="mt-4 block text-sm font-medium">
+          Payment receipt image
+          <span className="mt-2 flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed bg-background p-4 text-center text-sm text-muted-foreground hover:border-brand">
+            <Upload className="mb-2 size-5 text-brand" />
+            {receipt ? receipt.name : 'Choose a JPEG, PNG, or WebP receipt'}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => setReceipt(event.target.files?.[0] ?? null)}
+            />
+          </span>
+        </label>
         <button
-          type="button"
-          disabled={!receiptName}
-          onClick={() =>
-            notify.success('Deposit request submitted', {
-              description: 'Your receipt is awaiting admin review.',
-            })
-          }
-          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:cursor-not-allowed disabled:opacity-45"
+          type="submit"
+          disabled={!receipt || !amount || isSubmitting}
+          className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:cursor-not-allowed disabled:opacity-45"
         >
-          Submit deposit request
+          <ButtonLoadingContent loading={isSubmitting} loadingLabel="Submitting">
+            Submit deposit request
+          </ButtonLoadingContent>
         </button>
+      </form>
+      <section className="mt-6 rounded-xl border bg-background p-4">
+        <h2 className="font-sans text-lg font-semibold">Deposit history</h2>
+        <div className="mt-3 divide-y">
+          {requests.map((request) => (
+            <div key={request._id} className="flex items-center justify-between gap-4 py-3 text-sm">
+              <div>
+                <p className="font-semibold">
+                  ₦{(request.amountMinorUnits / 100).toLocaleString('en-NG')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(request.createdAt).toLocaleString('en-NG')}
+                </p>
+              </div>
+              <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase">
+                {request.status}
+              </span>
+            </div>
+          ))}
+          {requests.length === 0 ? (
+            <p className="py-4 text-sm text-muted-foreground">No deposit requests yet.</p>
+          ) : null}
+        </div>
       </section>
       <p className="mt-5 text-sm leading-6 text-muted-foreground">
         Wallet balances are only credited after the server validates an approved deposit request.

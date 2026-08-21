@@ -2,12 +2,17 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clearAccessToken, setAccessToken } from '@/lib/session';
 
-export type KycStatus = 'unverified' | 'in-review' | 'verified';
-export type CurrentUser = Readonly<{ name: string; email: string; kycStatus: KycStatus }>;
+export type CurrentUser = Readonly<{
+  name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+}>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{
-  signIn: (user: Omit<CurrentUser, 'kycStatus'>) => void;
+  signIn: (user: CurrentUser, accessToken: string) => void;
   signOut: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
 }>;
@@ -17,8 +22,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     (set) => ({
       user: null,
       hasHydrated: false,
-      signIn: (user) => set({ user: { ...user, kycStatus: 'unverified' } }),
-      signOut: () => set({ user: null }),
+      signIn: (user, accessToken) => {
+        setAccessToken(accessToken);
+        set({ user });
+      },
+      signOut: () => {
+        clearAccessToken();
+        set({ user: null });
+      },
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
     }),
     {

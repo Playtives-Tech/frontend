@@ -1,13 +1,7 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
+import { PageLoadingState } from '@/components/ui/loading-indicator';
 
 export default function Loading(): React.JSX.Element {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <Skeleton className="h-7 w-28" />
-      <Skeleton className="h-16 max-w-3xl" />
-      <Skeleton className="h-6 max-w-xl" />
-    </main>
-  );
+  return <PageLoadingState label="Loading" description="Getting the next screen ready." />;
 }
