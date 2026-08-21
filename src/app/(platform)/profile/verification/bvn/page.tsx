@@ -45,7 +45,7 @@ export default function BvnVerificationPage(): React.JSX.Element {
 
       <header className="mt-7">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Identity</p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold">BVN verification</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">BVN verification</h1>
         <p className="mt-3 text-muted-foreground">
           Verify your Bank Verification Number (BVN) to enable withdrawals.
         </p>
@@ -57,7 +57,7 @@ export default function BvnVerificationPage(): React.JSX.Element {
             <FileCheck className="size-6" />
           </span>
           <div>
-            <h2 className="font-heading text-xl font-semibold">Bank details</h2>
+            <h2 className="font-sans text-xl font-semibold">Bank details</h2>
             <p className="text-sm text-muted-foreground">
               {status === 'verified'
                 ? 'Your BVN is verified.'

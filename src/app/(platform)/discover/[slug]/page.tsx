@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OwnershipFlow } from '@/components/ownership/ownership-flow';
+import { PageLoadingState } from '@/components/ui/loading-indicator';
 import {
   getOpportunity,
   subscribeToOpportunityChanges,
@@ -35,11 +36,6 @@ export default function OpportunityDetailPage(): React.JSX.Element {
     };
   }, [router, slug]);
   if (error) return <div className="text-destructive mx-auto max-w-5xl p-10 text-sm">{error}</div>;
-  if (!opportunity)
-    return (
-      <div className="mx-auto max-w-5xl p-10 text-sm text-muted-foreground">
-        Loading opportunity…
-      </div>
-    );
+  if (!opportunity) return <PageLoadingState label="Loading opportunity" />;
   return <OwnershipFlow opportunity={opportunity} />;
 }

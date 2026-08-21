@@ -60,7 +60,7 @@ export function VerificationDashboard(): React.JSX.Element {
       <BackButton label="Profile" />
 
       <header className="mt-7">
-        <h1 className="mt-2 font-heading text-3xl font-semibold">Identity and verification</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">Identity and verification</h1>
         <p className="mt-3 text-muted-foreground">
           Complete these checks to protect your account and unlock verified ownership transactions.
         </p>
@@ -70,7 +70,7 @@ export function VerificationDashboard(): React.JSX.Element {
         <span className="mx-auto grid size-16 place-items-center rounded-full bg-brand/10 text-brand">
           <Check className="size-8" />
         </span>
-        <h2 className="mt-5 font-heading text-2xl font-semibold">
+        <h2 className="mt-5 font-sans text-2xl font-semibold">
           {verified === 3 ? 'Your identity is verified' : `${verified} of 3 checks complete`}
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">

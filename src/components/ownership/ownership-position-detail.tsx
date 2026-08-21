@@ -9,6 +9,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import type { MemberMaturityPayout, Ownership } from '@/lib/services/ownership-service';
+import { BalanceAmount } from '@/components/ui/balance-amount';
 import { formatNaira } from './formatters';
 
 type OwnershipPositionDetailProps = Readonly<{
@@ -19,11 +20,17 @@ type OwnershipPositionDetailProps = Readonly<{
 function DetailMetric({
   label,
   value,
-}: Readonly<{ label: string; value: string }>): React.JSX.Element {
+  supportingText,
+}: Readonly<{
+  label: string;
+  value: React.ReactNode;
+  supportingText?: string;
+}>): React.JSX.Element {
   return (
-    <div className="rounded-xl bg-surface p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 font-semibold">{value}</p>
+    <div className="rounded-lg bg-surface px-3 py-2.5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+      {supportingText ? <p className="mt-0.5 text-[11px] text-muted-foreground">{supportingText}</p> : null}
     </div>
   );
 }
@@ -34,17 +41,19 @@ export function OwnershipPositionDetail({
 }: OwnershipPositionDetailProps): React.JSX.Element {
   const opportunity = ownership.opportunityId;
   const completed = ownership.status === 'COMPLETED';
+  const projectedReturn =
+    (ownership.amountMinorUnits / 100) * (ownership.projectedReturnRatePercent / 100);
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10">
+    <div className="mx-auto max-w-4xl px-5 py-6 sm:px-8 lg:px-10">
       <Link
         href="/ownership"
-        className="inline-flex items-center gap-2 rounded-lg border bg-background px-3.5 py-2 text-sm font-semibold shadow-sm transition hover:border-brand/35 hover:bg-muted"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3 text-xs font-semibold text-muted-foreground transition hover:border-brand/35 hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         Back to My Ownership
       </Link>
-      <section className="mt-6 overflow-hidden rounded-3xl border bg-background">
-        <div className="relative aspect-[16/7] min-h-56 bg-muted">
+      <section className="mt-5 overflow-hidden rounded-xl border bg-background">
+        <div className="relative aspect-[16/7] min-h-44 bg-muted">
           <Image
             src={opportunity.imageUrl}
             unoptimized
@@ -56,70 +65,79 @@ export function OwnershipPositionDetail({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
         </div>
-        <div className="relative -mt-9 rounded-t-3xl bg-background p-6 sm:p-8">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
+        <div className="relative -mt-5 rounded-t-xl bg-background p-4 sm:p-5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
             {completed ? <CheckCircle2 className="size-3.5" /> : <Clock3 className="size-3.5" />}
             {completed ? 'Completed ownership' : 'Active ownership'}
           </span>
-          <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="mt-3 font-sans text-2xl font-semibold tracking-tight sm:text-3xl">
             {opportunity.title}
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {ownership.units} {ownership.units === 1 ? 'unit' : 'units'}
           </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
             <DetailMetric
               label="Your contribution"
-              value={formatNaira(ownership.amountMinorUnits / 100)}
+              value={<BalanceAmount value={formatNaira(ownership.amountMinorUnits / 100)} toggle />}
             />
-            <DetailMetric label="Target ROI" value={`${ownership.projectedReturnRatePercent}%`} />
             <DetailMetric
-              label={completed ? 'Completion' : 'Expected completion'}
+              label="Projected return"
               value={
-                opportunity.principalReleaseDate
-                  ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG')
-                  : `${opportunity.durationMonths ?? 0} months`
+                <span className="flex items-center gap-1.5">
+                  <BalanceAmount value={formatNaira(projectedReturn)} />
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    · {ownership.projectedReturnRatePercent}% target ROI
+                  </span>
+                </span>
               }
             />
-            <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
           </div>
           {!completed && (
             <>
-              <div className="mt-7 flex items-center justify-between text-sm">
+              {/* <div className="mt-5 flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Cycle progress</span>
                 <span className="font-semibold text-brand">
                   {ownership.progressPercent}% complete
                 </span>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+              </div> */}
+              {/* <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-brand"
                   style={{ width: `${ownership.progressPercent}%` }}
                 />
-              </div>
-              <section className="mt-10">
-                <h2 className="font-heading text-xl font-semibold">Unit information</h2>
-                <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">
+              </div> */}
+              <section className="mt-7">
+                <h2 className="font-sans text-lg font-semibold">Unit information</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
                   Your ownership units are active. Operator updates, reviewed evidence, and
                   distribution records will appear here as the cycle progresses.
                 </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <DetailMetric label="Operator" value={opportunity.operator} />
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <DetailMetric
+                    label={completed ? 'Completion' : 'Expected completion'}
+                    value={
+                      opportunity.principalReleaseDate
+                        ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG')
+                        : `${opportunity.durationMonths ?? 0} months`
+                    }
+                  />
+                  <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
                   <DetailMetric label="Ownership model" value={opportunity.ownershipModel} />
                 </div>
               </section>
             </>
           )}
           {completed && (
-            <section className="mt-10 rounded-2xl bg-surface p-5 sm:p-6">
-              <h2 className="font-heading text-xl font-semibold">
+            <section className="mt-7 rounded-xl bg-surface p-4 sm:p-5">
+              <h2 className="font-sans text-lg font-semibold">
                 {payout?.status === 'APPROVED'
                   ? 'Payout credited to your wallet'
                   : payout?.status === 'REJECTED'
                     ? 'Payout requires attention'
                     : 'Payout awaiting admin approval'}
               </h2>
-              <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {payout?.status === 'APPROVED'
                   ? `${formatNaira(payout.totalPayoutMinorUnits / 100)} has been credited to your earnings balance.`
                   : payout?.status === 'REJECTED'
@@ -127,17 +145,17 @@ export function OwnershipPositionDetail({
                       'The payout was not approved. Contact support for a review.'
                     : `This cycle is complete. ${payout ? formatNaira(payout.totalPayoutMinorUnits / 100) : 'The maturity payout'} will only be credited after admin approval.`}
               </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <Link
                   href="/wallet"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-background px-4 text-sm font-semibold transition hover:border-brand/35 hover:bg-muted"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border bg-background px-4 text-xs font-semibold transition hover:border-brand/35 hover:bg-muted"
                 >
                   <WalletCards className="size-4" />
                   View wallet
                 </Link>
                 <Link
                   href="/discover"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
                 >
                   <RefreshCw className="size-4" />
                   Explore opportunities
@@ -145,18 +163,18 @@ export function OwnershipPositionDetail({
               </div>
             </section>
           )}
-          <section className="mt-10 border-t pt-7">
-            <h2 className="font-heading text-xl font-semibold">Ownership timeline</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <section className="mt-7 border-t pt-5">
+            <h2 className="font-sans text-lg font-semibold">Ownership timeline</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CalendarDays className="size-4 text-brand" />
                 Units acquired
               </p>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CheckCircle2 className="size-4 text-brand" />
                 Agreement recorded
               </p>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock3 className="size-4 text-brand"> </Clock3>
                 {completed ? 'Cycle completed' : 'Cycle in progress'}
               </p>

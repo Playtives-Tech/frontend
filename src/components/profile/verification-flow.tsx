@@ -67,7 +67,7 @@ export function VerificationFlow({
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
           Identity check
         </p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold">{meta[type].title}</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">{meta[type].title}</h1>
         <p className="mt-3 text-muted-foreground">{meta[type].description}</p>
       </header>
       {verified ? (

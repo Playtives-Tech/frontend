@@ -43,7 +43,7 @@ export default function NinVerificationPage(): React.JSX.Element {
 
       <header className="mt-7">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">Identity</p>
-        <h1 className="mt-2 font-heading text-3xl font-semibold">NIN verification</h1>
+        <h1 className="mt-2 font-sans text-3xl font-semibold">NIN verification</h1>
         <p className="mt-3 text-muted-foreground">
           Verify your National Identification Number (NIN).
         </p>
@@ -55,7 +55,7 @@ export default function NinVerificationPage(): React.JSX.Element {
             <Fingerprint className="size-6" />
           </span>
           <div>
-            <h2 className="font-heading text-xl font-semibold">National ID</h2>
+            <h2 className="font-sans text-xl font-semibold">National ID</h2>
             <p className="text-sm text-muted-foreground">
               {status === 'verified' ? 'Your NIN is verified.' : 'Enter your 11-digit NIN.'}
             </p>

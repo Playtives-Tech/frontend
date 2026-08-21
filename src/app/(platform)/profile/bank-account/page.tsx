@@ -1,8 +1,9 @@
 'use client';
 
-import { CheckCircle2, Landmark, Loader2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Landmark, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
+import { ButtonLoadingContent, LoadingSpinner } from '@/components/ui/loading-indicator';
 import { ApiError } from '@/lib/api';
 import { notify } from '@/lib/notify';
 import {
@@ -90,14 +91,14 @@ export default function BankAccountPage(): React.JSX.Element {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
+    <div className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:px-10">
       <BackButton label="Profile" />
-      <h1 className="mt-8 font-heading text-3xl font-semibold">Linked bank accounts</h1>
-      <p className="mt-3 text-muted-foreground">
+      <h1 className="mt-6 font-sans text-2xl font-semibold">Linked bank accounts</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
         Add verified Nigerian accounts for withdrawals and payouts.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-4 text-sm leading-6 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+      <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-xs leading-5 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
         <strong>Account ownership requirement:</strong> The bank account must be registered in the
         same name as your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>
         . Accounts with a different holder name will not be linked.
@@ -109,9 +110,9 @@ export default function BankAccountPage(): React.JSX.Element {
         </p>
       ) : null}
 
-      <section className="mt-7 rounded-2xl border bg-background p-6">
-        <h2 className="font-heading text-xl font-semibold">Add an account</h2>
-        <form onSubmit={verify} className="mt-5 grid gap-5">
+      <section className="mt-6 rounded-xl border bg-background p-4">
+        <h2 className="font-sans text-lg font-semibold">Add an account</h2>
+        <form onSubmit={verify} className="mt-4 grid gap-4">
           <label className="grid gap-2 text-sm font-semibold">
             Bank
             <select
@@ -123,7 +124,7 @@ export default function BankAccountPage(): React.JSX.Element {
                 setError(null);
               }}
               disabled={loading || resolving || linking}
-              className="h-12 rounded-xl border bg-background px-4"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
             >
               <option value="">Select your bank</option>
               {banks.map((bank) => (
@@ -146,27 +147,28 @@ export default function BankAccountPage(): React.JSX.Element {
               inputMode="numeric"
               pattern="\d{10}"
               disabled={resolving || linking}
-              className="h-12 rounded-xl border bg-background px-4"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
               placeholder="10-digit account number"
             />
           </label>
           <button
             type="submit"
             disabled={resolving || linking || loading || !bankCode || number.length !== 10}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-40"
           >
-            {resolving ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="size-4" />
-            )}
-            {resolving ? 'Verifying account…' : 'Verify account'}
+            <ButtonLoadingContent
+              loading={resolving}
+              loadingLabel="Verifying account"
+              icon={<CheckCircle2 className="size-4" />}
+            >
+              Verify account
+            </ButtonLoadingContent>
           </button>
         </form>
 
         {resolved ? (
           <div
-            className={`mt-5 rounded-2xl border p-5 ${
+            className={`mt-4 rounded-xl border p-4 ${
               resolved.nameMatches
                 ? 'border-emerald-500/30 bg-emerald-500/10'
                 : 'border-red-500/30 bg-red-500/10'
@@ -175,7 +177,7 @@ export default function BankAccountPage(): React.JSX.Element {
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Account name returned by the bank
             </p>
-            <p className="mt-2 text-lg font-semibold">{resolved.accountName}</p>
+            <p className="mt-1.5 text-base font-semibold">{resolved.accountName}</p>
             <p className="mt-1 text-sm text-muted-foreground">
               {resolved.bankName} · •••• {resolved.accountNumberLast4}
             </p>
@@ -188,14 +190,15 @@ export default function BankAccountPage(): React.JSX.Element {
                   type="button"
                   onClick={() => void link()}
                   disabled={linking}
-                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-foreground disabled:opacity-40"
+                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-40"
                 >
-                  {linking ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="size-4" />
-                  )}
-                  {linking ? 'Linking account…' : 'Link this account'}
+                  <ButtonLoadingContent
+                    loading={linking}
+                    loadingLabel="Linking account"
+                    icon={<CheckCircle2 className="size-4" />}
+                  >
+                    Link this account
+                  </ButtonLoadingContent>
                 </button>
               </>
             ) : (
@@ -208,12 +211,13 @@ export default function BankAccountPage(): React.JSX.Element {
         ) : null}
       </section>
 
-      <section className="mt-8">
-        <h2 className="font-heading text-xl font-semibold">Your accounts</h2>
-        <div className="mt-4 grid gap-3">
+      <section className="mt-6">
+        <h2 className="font-sans text-lg font-semibold">Your accounts</h2>
+        <div className="mt-3 grid gap-2">
           {loading ? (
-            <p className="rounded-2xl border p-5 text-sm text-muted-foreground">
-              Loading accounts…
+            <p className="inline-flex items-center gap-2 rounded-2xl border p-5 text-sm text-muted-foreground">
+              <LoadingSpinner />
+              Loading accounts
             </p>
           ) : accounts.length === 0 ? (
             <p className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
@@ -223,10 +227,10 @@ export default function BankAccountPage(): React.JSX.Element {
             accounts.map((account) => (
               <article
                 key={account.id}
-                className="flex items-center gap-4 rounded-2xl border bg-background p-5"
+                className="flex items-center gap-3 rounded-xl border bg-background p-4"
               >
-                <span className="grid size-12 place-items-center rounded-xl bg-brand/10 text-brand">
-                  <Landmark className="size-5" />
+                <span className="grid size-10 place-items-center rounded-lg bg-brand/10 text-brand">
+                  <Landmark className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <strong className="block">
@@ -242,7 +246,7 @@ export default function BankAccountPage(): React.JSX.Element {
                   className="grid size-10 place-items-center rounded-xl text-red-600 transition hover:bg-red-50 disabled:opacity-40 dark:hover:bg-red-950/20"
                 >
                   {removingId === account.id ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <LoadingSpinner className="size-4" label="Removing account" />
                   ) : (
                     <Trash2 className="size-4" />
                   )}

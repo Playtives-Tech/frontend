@@ -48,7 +48,7 @@ Routes should compose feature components. Feature components own their presentat
 - Global color tokens live in `src/styles/globals.css`; use semantic utilities such as `bg-brand`, `text-muted-foreground`, and `border-border` instead of raw colors.
 - The desktop sidebar and mobile bottom navigation share the same navigation definition.
 - Design for mobile first, then add responsive breakpoints deliberately.
-- Use `font-heading` for display hierarchy and `font-sans` for interface copy.
+- Use `font-sans` for display hierarchy and `font-sans` for interface copy.
 - Use the shared `Skeleton` component for loading layouts and Sonner through `notify` for messaging.
 
 ## Code style

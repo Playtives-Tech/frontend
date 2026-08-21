@@ -50,16 +50,12 @@ export function OpportunityCatalogue(): React.JSX.Element {
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
-        <h1 className="mt-2 font-heading text-[28px] font-semibold leading-[34px] tracking-tight sm:text-[32px] sm:leading-10">
+        <h1 className="mt-2 font-sans text-2xl font-semibold leading-8 tracking-tight sm:text-[23px] sm:leading-9">
           Discover opportunities
         </h1>
-
-        <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
-          Browse the currently published opportunities and their latest availability.
-        </p>
       </header>
 
-      <div className="mt-6 rounded-2xl border border-border/70 bg-background p-3 shadow-sm sm:p-4">
+      <div className="mt-3">
         <label className="flex h-12 items-center gap-3 rounded-xl bg-surface px-4 text-muted-foreground focus-within:ring-2 focus-within:ring-brand/30">
           <Search className="size-5" />
 
@@ -68,23 +64,19 @@ export function OpportunityCatalogue(): React.JSX.Element {
             onChange={(event) => setQuery(event.target.value)}
             type="search"
             className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            placeholder="Search opportunities"
-            aria-label="Search opportunities"
+            placeholder="Search what you would like to own or co-own"
+            aria-label="Search what you would like to own or co-own"
           />
         </label>
 
-        <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-1">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl border text-muted-foreground">
-            <SlidersHorizontal className="size-4" />
-          </span>
-
+        <div className="scrollbar-none mt-4 flex items-center gap-3 overflow-x-auto pb-1">
           {opportunityCategories.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setCategory(item)}
               className={cn(
-                'shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                'shrink-0 rounded-full px-4 py-2 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
                 category === item
                   ? 'bg-brand text-brand-foreground'
                   : 'bg-surface text-muted-foreground hover:text-foreground',
@@ -97,7 +89,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       </div>
 
       <div className="mt-7 flex items-center justify-between gap-4">
-        <h2 className="font-heading text-[22px] font-semibold leading-7 sm:text-2xl sm:leading-[30px]">
+        <h2 className="font-sans text-[.9rem] font-semibold leading-7 sm:text-[19px]">
           Available now
         </h2>
         <p className="text-sm text-muted-foreground">{visibleOpportunities.length} opportunities</p>
@@ -115,7 +107,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       ) : (
         <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
-          <h2 className="font-heading text-xl font-semibold">No matching opportunities</h2>
+          <h2 className="font-sans text-xl font-semibold">No matching opportunities</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Try another search or select a different category.
           </p>

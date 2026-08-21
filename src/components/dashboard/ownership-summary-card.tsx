@@ -1,6 +1,7 @@
 import { ArrowRight, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatNaira } from '@/components/ownership/formatters';
+import { BalanceAmount } from '@/components/ui/balance-amount';
 
 type OwnershipSummaryCardProps = Readonly<{
   href: string;
@@ -19,14 +20,16 @@ export function OwnershipSummaryCard({
   const dealLabel = activeDealsCount === 1 ? 'deal' : 'deals';
 
   return (
-    <section className="playtives-gold-card rounded-[1.75rem] p-5 text-white sm:p-6">
+    <section className="playtives-gold-card h-full rounded-[1.5rem] p-5 text-white sm:p-6">
       <div className="flex items-start justify-between gap-5">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
-            Your active contribution
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80">
+            Your active portfolio
           </p>
 
-          <p className="mt-2 font-sans text-4xl font-bold tracking-normal">{activeContribution}</p>
+          <div className="mt-2 font-sans text-3xl font-bold tracking-normal">
+            <BalanceAmount value={activeContribution} toggle />
+          </div>
           <p className="mt-1 text-sm font-medium text-brand-foreground/75">
             {activeDealsCount > 0
               ? `Across ${activeDealsCount} active ${dealLabel}`
@@ -34,17 +37,17 @@ export function OwnershipSummaryCard({
           </p>
         </div>
 
-        <span className="grid size-12 place-items-center rounded-2xl bg-brand-foreground/10">
+        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-foreground/10 text-brand-foreground">
           <Building2 className="size-5" />
         </span>
       </div>
 
-      <div className="mt-7 border-t border-brand-foreground/20 pt-5">
+      {/* <div className="mt-7 border-t border-brand-foreground/20 pt-5">
         <p className="text-sm font-semibold text-brand-foreground/75">Currently active</p>
-        <p className="mt-1 text-2xl font-bold">
+        <p className="mt-1 text-xl font-bold">
           {activeDealsCount} {dealLabel}
         </p>
-      </div>
+      </div> */}
 
       <Link
         href={href}

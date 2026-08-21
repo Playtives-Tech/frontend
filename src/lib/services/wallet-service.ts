@@ -32,6 +32,18 @@ export function getActivityLogs(): Promise<ActivityLog[]> {
   return api<ActivityLog[]>('/v1/activity-logs/me');
 }
 
+export type ActivityLogPage = Readonly<{
+  items: ActivityLog[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}>;
+
+export function getActivityLogPage(page: number, limit = 8): Promise<ActivityLogPage> {
+  return api<ActivityLogPage>(`/v1/activity-logs/me/page?page=${page}&limit=${limit}`);
+}
+
 export type DepositRequestRecord = Readonly<{
   _id: string;
   amountMinorUnits: number;

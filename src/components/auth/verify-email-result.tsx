@@ -1,8 +1,9 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, LoaderCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-indicator';
 import { ApiError } from '@/lib/api';
 import { verifyEmail } from '@/lib/services/registration-service';
 
@@ -35,16 +36,19 @@ export function VerifyEmailResult({
     };
   }, [token]);
 
-  const Icon =
-    state === 'verifying' ? LoaderCircle : state === 'verified' ? CheckCircle2 : AlertCircle;
+  const Icon = state === 'verified' ? CheckCircle2 : AlertCircle;
 
   return (
     <main className="grid min-h-dvh place-items-center bg-muted/20 px-5 py-10">
       <section className="w-full max-w-xl rounded-3xl border bg-background p-8 text-center shadow-sm">
         <span className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand/10 text-brand">
-          <Icon className={`size-8 ${state === 'verifying' ? 'animate-spin' : ''}`} />
+          {state === 'verifying' ? (
+            <LoadingSpinner className="size-8" label="Verifying email" />
+          ) : (
+            <Icon className="size-8" />
+          )}
         </span>
-        <h1 className="mt-5 font-heading text-3xl font-semibold">
+        <h1 className="mt-5 font-sans text-3xl font-semibold">
           {state === 'verifying'
             ? 'Verifying email'
             : state === 'verified'
@@ -54,7 +58,7 @@ export function VerifyEmailResult({
         <p className="mt-3 text-muted-foreground">{message}</p>
         {state !== 'verifying' && (
           <Link
-            href="/profile"
+            href="/sign-in"
             className="mt-7 inline-flex h-12 items-center justify-center rounded-xl bg-brand px-6 font-semibold text-brand-foreground"
           >
             {state === 'verified' ? 'Continue to sign in' : 'Return to account access'}

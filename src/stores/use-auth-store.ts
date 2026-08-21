@@ -4,8 +4,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { clearAccessToken, setAccessToken } from '@/lib/session';
 
-export type KycStatus = 'pending' | 'verified' | 'rejected';
-export type CurrentUser = Readonly<{ name: string; email: string; kycStatus: KycStatus }>;
+export type CurrentUser = Readonly<{
+  name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+}>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{
   signIn: (user: CurrentUser, accessToken: string) => void;

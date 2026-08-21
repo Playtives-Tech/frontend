@@ -31,37 +31,34 @@ export function PositionSelector({
       >
         <ArrowLeft className="size-5" />
       </button>
-      <p className="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-        Select units
-      </p>
-      <h1 className="mt-2 font-heading text-4xl font-semibold tracking-tight">
+      <h1 className="mt-5 font-sans text-[22px] font-semibold tracking-tight">
         How many units would you like to take?
       </h1>
-      <p className="mt-4 text-lg leading-8 text-muted-foreground">
+      <p className="text-[13px] leading-5 text-muted-foreground">
         Choose your units in {opportunity.title}. We will calculate the contribution and projected profit automatically.
       </p>
       <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Price per unit</p>
-            <p className="mt-2 text-xl font-semibold">{formatNaira(unitPrice)}</p>
+            <p className="mt-2 text-[15px] font-semibold">{formatNaira(unitPrice)}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Available now</p>
-            <p className="mt-2 text-xl font-semibold">{opportunity.availableUnits}</p>
+            <p className="mt-2 text-[15px] font-semibold">{opportunity.availableUnits}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Duration</p>
-            <p className="mt-2 text-xl font-semibold">
+            <p className="mt-2 text-[15px] font-semibold">
               {opportunity.durationMonths
                 ? `${opportunity.durationMonths} months`
                 : 'Not specified'}
             </p>
           </div>
-          <div className="rounded-xl bg-surface p-4">
+          {/* <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Maximum per member</p>
             <p className="mt-2 text-xl font-semibold">{maximum}</p>
-          </div>
+          </div> */}
         </div>
         <div className="mt-6 flex items-center justify-between gap-4 text-sm">
           <span className="text-muted-foreground">
@@ -87,24 +84,24 @@ export function PositionSelector({
                 type="button"
                 onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
                 disabled={quantity === 1}
-                className="grid size-12 place-items-center rounded-xl border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
+                className="grid size-10 place-items-center rounded-[10px] border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Minus className="size-5" />
+                <Minus className="size-3" />
               </button>
-              <span className="w-8 text-center text-3xl font-semibold">{quantity}</span>
+              <span className="w-8 text-center text-xl font-semibold">{quantity}</span>
               <button
                 type="button"
                 onClick={() => onQuantityChange(Math.min(maximum, quantity + 1))}
                 disabled={quantity === maximum}
-                className="grid size-12 place-items-center rounded-xl border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
+                className="grid size-10 place-items-center rounded-[10px] border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Plus className="size-5" />
+                <Plus className="size-3" />
               </button>
             </div>
           </div>
           <div className="sm:text-right">
             <p className="text-sm text-muted-foreground">Total ownership contribution</p>
-            <p className="mt-2 font-heading text-3xl font-semibold text-brand">
+            <p className="mt-2 font-sans text-xl font-semibold text-brand">
               {formatNaira(total)}
             </p>
           </div>
@@ -114,9 +111,9 @@ export function PositionSelector({
         <button
           type="button"
           onClick={onContinue}
-          className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110"
+          className="mx-auto flex h-14 w-full max-w-3xl items-center justify-center text-[14px] rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110"
         >
-          Continue to payment →
+          Continue to payment  →
         </button>
       </div>
     </div>

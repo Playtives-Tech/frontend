@@ -9,12 +9,12 @@ export function WelcomeToast(): null {
   const user = useAuthStore((state) => state.user);
   useEffect(() => {
     if (!hasHydrated || !user) return;
-    const timeoutId = window.setTimeout(() => {
-      notify.success('Welcome back to Playtives', {
-        description: 'Your investment journey is ready when you are.',
-      });
-    }, 250);
-    return () => window.clearTimeout(timeoutId);
+    // const timeoutId = window.setTimeout(() => {
+    //   notify.success('Welcome back to Playtives', {
+    //     description: 'Your investment journey is ready when you are.',
+    //   });
+    // }, 250);
+    // return () => window.clearTimeout(timeoutId);
   }, [hasHydrated, user]);
   return null;
 }

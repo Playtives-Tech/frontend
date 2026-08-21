@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 @layer base {
+  html {
+    font-size: 15px;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 224 31% 12%;
@@ -11,9 +15,10 @@
     --border: 220 16% 88%;
     --brand: 157 52% 31%;
     --brand-foreground: 0 0% 100%;
-    --stripe: 157 52% 31% / 0.018;
+    --stripe: 157 52% 31% / 0.01;
   }
   .dark {
+    color-scheme: dark;
     --background: 224 28% 8%;
     --foreground: 210 40% 96%;
     --surface: 224 23% 12%;
@@ -22,7 +27,7 @@
     --border: 220 16% 22%;
     --brand: 157 48% 48%;
     --brand-foreground: 224 28% 8%;
-    --stripe: 157 48% 48% / 0.028;
+    --stripe: 157 48% 48% / 0.018;
   }
   * {
     @apply border-border;
@@ -30,9 +35,26 @@
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }
+
+  .auth-floating-input:-webkit-autofill,
+  .auth-floating-input:-webkit-autofill:hover,
+  .auth-floating-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    -webkit-box-shadow: 0 0 0 1000px hsl(var(--background)) inset;
+    box-shadow: 0 0 0 1000px hsl(var(--background)) inset;
+  }
 }
 
 @layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   .playtives-gold-card {
     background:
       radial-gradient(circle at 88% 16%, rgb(219 170 55 / 0.18), transparent 28%),
@@ -48,7 +70,7 @@
       hsl(var(--stripe)) 0,
       hsl(var(--stripe)) 1px,
       transparent 1px,
-      transparent 18px
+      transparent 24px
     );
   }
 

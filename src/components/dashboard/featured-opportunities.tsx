@@ -26,24 +26,24 @@ export function FeaturedOpportunities(): React.JSX.Element {
     };
   }, []);
   return (
-    <section className="mt-10 overflow-hidden">
+    <section className="mt-8 overflow-hidden">
       <div className="flex items-center justify-between gap-5">
         <div>
-          <h2 className="font-sans text-xl font-bold tracking-normal">
-            Palm oil opportunities
+          <h2 className="font-sans text-lg font-bold tracking-normal">
+            Discover opportunities
           </h2>
         </div>
 
         <Link
           href="/discover"
-          className="hidden items-center gap-2 text-sm font-semibold text-brand hover:underline sm:inline-flex"
+          className="hidden items-center gap-1.5 text-xs font-semibold text-brand hover:underline sm:inline-flex"
         >
           View all
           <ArrowRight className="size-4" />
         </Link>
       </div>
 
-      <div className="mt-4 flex snap-x gap-3 overflow-x-auto overscroll-x-contain pb-4">
+      <div className="scrollbar-none -mx-4 mt-3 flex snap-x gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8">
         {opportunities.slice(0, 8).map((opportunity) => (
           <div key={opportunity.slug} className="snap-start">
             <OpportunityCard opportunity={opportunity} variant="compact" />
@@ -53,7 +53,7 @@ export function FeaturedOpportunities(): React.JSX.Element {
 
       <Link
         href="/discover"
-        className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline sm:hidden"
+        className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline sm:hidden"
       >
         View all
         <ArrowRight className="size-4" />

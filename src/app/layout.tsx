@@ -12,8 +12,8 @@ const sans = Inter({
   weight: ['400', '500', '600', '700', '800'],
 });
 
-const heading = Playfair_Display({
-  variable: '--font-heading',
+const wordmark = Playfair_Display({
+  variable: '--font-wordmark',
   subsets: ['latin'],
   weight: ['600', '700', '800'],
 });
@@ -40,7 +40,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${sans.variable} ${heading.variable} font-sans`}>
+      <body className={`${sans.variable} ${wordmark.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppProviders>
             <AppShell>{children}</AppShell>

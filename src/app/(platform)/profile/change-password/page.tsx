@@ -44,7 +44,7 @@ export default function ChangePasswordPage(): React.JSX.Element {
       const response = await changePassword(currentPassword, newPassword);
       signOut();
       notify.success(response.message);
-      router.replace('/profile?mode=sign-in');
+      router.replace('/sign-in');
     } catch (error: unknown) {
       notify.error(error instanceof ApiError ? error.message : 'Could not update your password');
     } finally {
@@ -53,25 +53,25 @@ export default function ChangePasswordPage(): React.JSX.Element {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
+    <div className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:px-10">
       <BackButton label="Profile" />
 
-      <header className="mt-7">
-        <h1 className="mt-2 font-heading text-3xl font-semibold">Change password</h1>
-        <p className="mt-3 text-muted-foreground">
+      <header className="mt-6">
+        <h1 className="mt-2 font-sans text-2xl font-semibold">Change password</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Ensure your account is using a long, random password to stay secure.
         </p>
       </header>
 
-      <section className="mt-8 rounded-2xl border bg-background p-6 sm:p-8">
-        <div className="flex items-center gap-4">
-          <span className="grid size-12 place-items-center rounded-2xl bg-brand/10 text-brand">
-            <KeyRound className="size-6" />
+      <section className="mt-6 rounded-xl border bg-background p-4 sm:p-5">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg bg-brand/10 text-brand">
+            <KeyRound className="size-5" />
           </span>
-          <h2 className="font-heading text-xl font-semibold">Update password</h2>
+          <h2 className="font-sans text-lg font-semibold">Update password</h2>
         </div>
 
-        <form onSubmit={submit} className="mt-8 grid gap-5">
+        <form onSubmit={submit} className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm font-medium">
             Current password
             <input
@@ -79,7 +79,7 @@ export default function ChangePasswordPage(): React.JSX.Element {
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="h-12 rounded-xl border bg-background px-4 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="h-10 rounded-lg border bg-background px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
           </label>
 
@@ -91,7 +91,7 @@ export default function ChangePasswordPage(): React.JSX.Element {
               minLength={8}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="h-12 rounded-xl border bg-background px-4 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="h-10 rounded-lg border bg-background px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
           </label>
 
@@ -103,14 +103,14 @@ export default function ChangePasswordPage(): React.JSX.Element {
               minLength={8}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="h-12 rounded-xl border bg-background px-4 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="h-10 rounded-lg border bg-background px-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
           </label>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-50"
+            className="mt-2 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-50"
           >
             <ButtonLoadingContent
               loading={isSubmitting}

@@ -35,7 +35,7 @@ export function ConfirmModal({
       <section className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-5">
           <div>
-            <h2 id="confirm-title" className="font-heading text-xl font-semibold">
+            <h2 id="confirm-title" className="font-sans text-xl font-semibold">
               {title}
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>

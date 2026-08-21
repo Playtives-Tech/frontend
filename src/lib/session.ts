@@ -16,7 +16,7 @@ export function expireSession(): void {
   if (typeof window === 'undefined') return;
   clearAccessToken();
   localStorage.removeItem('playtives-auth');
-  const destination = '/profile?mode=sign-in';
+  const destination = '/sign-in';
   if (`${window.location.pathname}${window.location.search}` !== destination)
     window.location.replace(destination);
 }

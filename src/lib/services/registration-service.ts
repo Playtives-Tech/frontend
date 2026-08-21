@@ -4,6 +4,8 @@ import type { WalletSummary } from './wallet-service';
 export type RegistrationInput = Readonly<{
   name: string;
   email: string;
+  phone: string;
+  country: string;
   password: string;
 }>;
 
@@ -12,6 +14,8 @@ export type RegistrationResponse = Readonly<{
     id: string;
     name: string;
     email: string;
+    phone: string;
+    country: string;
     emailVerified: false;
   }>;
   message: string;
@@ -49,7 +53,8 @@ export function login(
     email: string;
     emailVerified: true;
     roles: string[];
-    kycStatus: 'pending' | 'verified' | 'rejected';
+    phone: string | null;
+    country: string | null;
   };
   wallet: WalletSummary;
 }> {
@@ -63,8 +68,8 @@ export function getCurrentUser(): Promise<{
   id: string;
   name: string;
   email: string;
-  kycStatus: 'pending' | 'verified' | 'rejected';
-  kycVerifiedAt: string | null;
+  phone: string | null;
+  country: string | null;
 }> {
   return api('/v1/auth/me', { cache: 'no-store' });
 }
