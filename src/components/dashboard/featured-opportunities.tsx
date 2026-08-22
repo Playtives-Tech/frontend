@@ -26,7 +26,7 @@ export function FeaturedOpportunities(): React.JSX.Element {
     };
   }, []);
   return (
-    <section className="mt-8 overflow-hidden">
+    <section className="mt-8">
       <div className="flex items-center justify-between gap-5">
         <div>
           <h2 className="font-sans text-lg font-bold tracking-normal">Discover opportunities</h2>

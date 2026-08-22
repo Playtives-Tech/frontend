@@ -8,10 +8,10 @@ import { notify } from '@/lib/notify';
 import {
   createDepositRequest,
   getDepositRequests,
+  getWalletFundingDetails,
   type DepositRequestRecord,
+  type WalletFundingDetails,
 } from '@/lib/services/wallet-service';
-
-const accountNumber = '0123456789';
 
 export function DepositRequest(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
@@ -19,13 +19,18 @@ export function DepositRequest(): React.JSX.Element {
   const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
+  const [fundingDetails, setFundingDetails] = useState<WalletFundingDetails | null>(null);
   useEffect(() => {
     void getDepositRequests()
       .then(setRequests)
       .catch(() => undefined);
+    void getWalletFundingDetails()
+      .then(setFundingDetails)
+      .catch(() => notify.error('Wallet funding details could not be loaded.'));
   }, []);
   async function copyAccountNumber(): Promise<void> {
-    await navigator.clipboard.writeText(accountNumber);
+    if (!fundingDetails) return;
+    await navigator.clipboard.writeText(fundingDetails.accountNumber);
     setCopied(true);
     notify.success('Account number copied');
   }
@@ -59,17 +64,20 @@ export function DepositRequest(): React.JSX.Element {
   return (
     <div className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:px-10">
       <BackButton label="Wallet" />
-      <h1 className="mt-6 font-sans text-2xl font-semibold">Fund your wallet</h1>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+      <h1 className="mt-6 font-sans text-[18px] font-semibold">Fund your wallet</h1>
+      <p className="text-sm leading-6 text-muted-foreground">
         Make a transfer to the account below, then submit your receipt for admin approval.
       </p>
       <section className="mt-6 rounded-xl border bg-background p-5">
         <p className="text-xs text-muted-foreground">Account number</p>
         <div className="mt-2 flex items-center justify-between gap-4">
-          <p className="font-sans text-2xl font-semibold tracking-wider">{accountNumber}</p>
+          <p className="font-sans text-2xl font-semibold tracking-wider">
+            {fundingDetails?.accountNumber ?? 'Loading…'}
+          </p>
           <button
             type="button"
-            onClick={copyAccountNumber}
+            onClick={() => void copyAccountNumber()}
+            disabled={!fundingDetails}
             className="grid size-11 place-items-center rounded-xl border text-brand transition hover:bg-muted"
             aria-label="Copy account number"
           >
@@ -79,11 +87,11 @@ export function DepositRequest(): React.JSX.Element {
         <div className="mt-5 grid gap-4 border-t pt-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-muted-foreground">Bank</p>
-            <p className="mt-1 text-sm font-semibold">GTBank</p>
+            <p className="mt-1 text-sm font-semibold">{fundingDetails?.bankName ?? '—'}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Account name</p>
-            <p className="mt-1 text-sm font-semibold">Playtives Technologies Ltd</p>
+            <p className="mt-1 text-sm font-semibold">{fundingDetails?.accountName ?? '—'}</p>
           </div>
         </div>
       </section>
@@ -130,7 +138,7 @@ export function DepositRequest(): React.JSX.Element {
         </button>
       </form>
       <section className="mt-6 rounded-xl border bg-background p-4">
-        <h2 className="font-sans text-lg font-semibold">Deposit history</h2>
+        <h2 className="font-sans text-[16px] font-semibold">Deposit history</h2>
         <div className="mt-3 divide-y">
           {requests.map((request) => (
             <div key={request._id} className="flex items-center justify-between gap-4 py-3 text-sm">
@@ -142,7 +150,7 @@ export function DepositRequest(): React.JSX.Element {
                   {new Date(request.createdAt).toLocaleString('en-NG')}
                 </p>
               </div>
-              <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase">
+              <span className="rounded-full bg-muted px-5 py-1 text-[11px] font-semibold uppercase">
                 {request.status}
               </span>
             </div>
@@ -152,9 +160,6 @@ export function DepositRequest(): React.JSX.Element {
           ) : null}
         </div>
       </section>
-      <p className="mt-5 text-sm leading-6 text-muted-foreground">
-        Wallet balances are only credited after the server validates an approved deposit request.
-      </p>
     </div>
   );
 }

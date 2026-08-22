@@ -233,7 +233,7 @@ export default function BankAccountPage(): React.JSX.Element {
                   <Landmark className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <strong className="block">
+                  <strong className="block font-sans text-[14px] font-semibold">
                     {account.bank} · •••• {account.last4}
                   </strong>
                   <p className="mt-1 truncate text-sm text-muted-foreground">{account.name}</p>

@@ -62,10 +62,10 @@ export function OpportunityOverview({
             </span>
           </div>
 
-          <h1 className="sm:text-2.5xl mt-5 max-w-5xl font-sans text-2xl font-semibold leading-tight tracking-tight">
+          <h1 className="sm:text-[18px] mt-5 max-w-5xl font-sans text-[18px] font-semibold leading-tight tracking-tight">
             {opportunity.title}
           </h1>
-          <p className="mt-3 max-w-4xl text-sm font-medium leading-4 text-muted-foreground sm:text-[13px] sm:leading-5">
+          <p className="mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5">
             {opportunity.summary}
           </p>
 

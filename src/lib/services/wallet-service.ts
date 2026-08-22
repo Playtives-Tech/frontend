@@ -19,6 +19,16 @@ export function getWallet(): Promise<WalletSummary> {
   return api<WalletSummary>('/v1/wallet');
 }
 
+export type WalletFundingDetails = Readonly<{
+  accountNumber: string;
+  bankName: string;
+  accountName: string;
+}>;
+
+export function getWalletFundingDetails(): Promise<WalletFundingDetails> {
+  return api<WalletFundingDetails>('/v1/wallet/funding-details');
+}
+
 export type ActivityLog = Readonly<{
   _id: string;
   action: string;

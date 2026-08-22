@@ -1,3 +1,4 @@
-export const supportEmail = 'coown@playtives.com';
-export const whatsappCommunityUrl =
-  'https://chat.whatsapp.com/Ix44I7Hhc6s5A6IjuVdiVD?s=cl&p=i&mlu=4';
+import { env } from './env';
+
+export const supportEmail = env.NEXT_PUBLIC_SUPPORT_EMAIL;
+export const whatsappCommunityUrl = env.NEXT_PUBLIC_WHATSAPP_COMMUNITY_URL;
