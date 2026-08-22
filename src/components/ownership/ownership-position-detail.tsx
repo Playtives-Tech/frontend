@@ -52,7 +52,7 @@ export function OwnershipPositionDetail({
         className="inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3 text-xs font-semibold text-muted-foreground transition hover:border-brand/35 hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to My Ownership
+        Back
       </Link>
       <section className="mt-5 overflow-hidden rounded-xl border bg-background">
         <div className="relative aspect-[16/7] min-h-44 bg-muted">
@@ -72,7 +72,7 @@ export function OwnershipPositionDetail({
             {completed ? <CheckCircle2 className="size-3.5" /> : <Clock3 className="size-3.5" />}
             {completed ? 'Completed ownership' : 'Active ownership'}
           </span>
-          <h1 className="mt-3 font-sans text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="mt-3 font-sans text-[18px] font-semibold tracking-tight sm:text-[18px]">
             {opportunity.title}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -110,8 +110,8 @@ export function OwnershipPositionDetail({
                 />
               </div> */}
               <section className="mt-7">
-                <h2 className="font-sans text-lg font-semibold">Unit information</h2>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                <h2 className="font-sans text-[17px] font-semibold">Unit information</h2>
+                <p className="mt-1 max-w-3xl text-[12px] leading-6 text-muted-foreground">
                   Your ownership units are active. Operator updates, reviewed evidence, and
                   distribution records will appear here as the cycle progresses.
                 </p>
@@ -166,8 +166,8 @@ export function OwnershipPositionDetail({
             </section>
           )}
           <section className="mt-7 border-t pt-5">
-            <h2 className="font-sans text-lg font-semibold">Ownership timeline</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <h2 className="font-sans text-[16px] font-semibold">Ownership timeline</h2>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CalendarDays className="size-4 text-brand" />
                 Units acquired

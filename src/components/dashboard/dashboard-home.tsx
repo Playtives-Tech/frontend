@@ -114,11 +114,8 @@ export function DashboardHome(): React.JSX.Element {
               <WhatsAppIcon className="size-5" />
             </span>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#178b42]">
-                Playtives community
-              </p>
               <h2 className="mt-1 text-sm font-semibold">Join us on WhatsApp</h2>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              <p className="text-xs leading-5 text-muted-foreground">
                 Receive helpful ownership updates and connect with the Playtives community.
               </p>
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, WalletCards } from 'lucide-react';
+import { ArrowRight, WalletCards } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -184,10 +184,11 @@ function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.
           <h2 className="text-base font-bold tracking-tight">Recent Activities</h2>
           <Link
             href="/wallet/activity"
-            className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-muted px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
             aria-label="View all activity"
           >
-            <MoreHorizontal className="size-5" />
+            View all
+            <ArrowRight className="size-4" />
           </Link>
         </div>
 
