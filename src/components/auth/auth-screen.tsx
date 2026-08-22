@@ -202,7 +202,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-60"
+            className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-60"
           >
             <ButtonLoadingContent
               loading={isSubmitting}
@@ -214,7 +214,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           </button>
         </form>
 
-        <p className="mt-6 text-center text-[.85rem] text-muted-foreground">
+        <p className="mt-6 text-center text-[.8rem] text-muted-foreground">
           {isSignUp ? 'Already have an account?' : 'New to Playtives?'}{' '}
           <Link
             href={isSignUp ? '/sign-in' : '/sign-up'}
