@@ -1,11 +1,14 @@
-import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Copy, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { BalanceAmount } from '@/components/ui/balance-amount';
 import type { Opportunity } from '@/lib/opportunities';
-import { acquireOpportunity } from '@/lib/services/ownership-service';
+import {
+  acquireOpportunity,
+  createOwnershipPaymentNarration,
+} from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { formatNaira } from './formatters';
 
@@ -22,6 +25,7 @@ export function WalletCheckout({
 }: WalletCheckoutProps): React.JSX.Element {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [narrationCopied, setNarrationCopied] = useState(false);
   const [error, setError] = useState('');
   const idempotencyKey = useRef(crypto.randomUUID());
   const router = useRouter();
@@ -33,11 +37,21 @@ export function WalletCheckout({
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = walletBalance >= total;
+  const narration = createOwnershipPaymentNarration(opportunity.slug, quantity);
+  const copyNarration = async () => {
+    await navigator.clipboard.writeText(narration);
+    setNarrationCopied(true);
+  };
   const confirm = async () => {
     setSubmitting(true);
     setError('');
     try {
-      const ownership = await acquireOpportunity(opportunity, quantity, idempotencyKey.current);
+      const ownership = await acquireOpportunity(
+        opportunity,
+        quantity,
+        narration,
+        idempotencyKey.current,
+      );
       router.replace(`/ownership/${ownership._id}`);
       router.refresh();
     } catch (value) {
@@ -95,6 +109,28 @@ export function WalletCheckout({
             <dd className="text-lg font-semibold">{formatNaira(total)}</dd>
           </div>
         </dl>
+      </section>
+      <section className="mt-5 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-sans text-sm font-semibold">Payment narration</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Required for this offer. This narration is generated from your selected units and
+              recorded with your payment.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void copyNarration()}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border bg-background px-2.5 text-xs font-semibold text-brand transition hover:bg-muted"
+          >
+            {narrationCopied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+            {narrationCopied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+        <code className="mt-3 block rounded-lg border border-amber-500/15 bg-background px-3 py-2 text-xs font-semibold tracking-wide text-foreground">
+          {narration}
+        </code>
       </section>
       <section className="mt-6">
         <h2 className="font-sans text-lg font-semibold">Pay from wallet</h2>

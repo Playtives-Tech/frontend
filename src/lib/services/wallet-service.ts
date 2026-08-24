@@ -57,6 +57,7 @@ export function getActivityLogPage(page: number, limit = 8): Promise<ActivityLog
 export type DepositRequestRecord = Readonly<{
   _id: string;
   amountMinorUnits: number;
+  narration: string;
   receiptImageUrl: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
@@ -64,10 +65,12 @@ export type DepositRequestRecord = Readonly<{
 
 export function createDepositRequest(input: {
   amountMinorUnits: number;
+  narration: string;
   receipt: File;
 }): Promise<DepositRequestRecord> {
   const body = new FormData();
   body.append('amountMinorUnits', String(input.amountMinorUnits));
+  body.append('narration', input.narration);
   body.append('receipt', input.receipt);
   return api<DepositRequestRecord>('/v1/wallet/deposits', {
     method: 'POST',

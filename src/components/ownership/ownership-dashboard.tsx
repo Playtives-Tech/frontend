@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -19,6 +19,8 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
   const opportunity = ownership.opportunityId;
   const projectedReturn =
     (ownership.amountMinorUnits / 100) * (ownership.projectedReturnRatePercent / 100);
+  const formatDate = (value: string | null) =>
+    value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set';
   return (
     <Link
       href={`/ownership/${ownership._id}`}
@@ -39,7 +41,7 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
       <div>
         <h2 className="font-sans text-[14px] font-bold">{opportunity.title}</h2>
         <p className="text-[12px] text-muted-foreground">
-          {ownership.units} {ownership.units === 1 ? 'unit' : 'units'} . Cycle in progress
+          {ownership.units} {ownership.units === 1 ? 'unit' : 'units'} · {ownership.status === 'COMPLETED' ? 'Cycle completed' : 'Cycle in progress'}
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <div className="rounded-xl bg-surface px-3 py-2.5">
@@ -59,6 +61,10 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
             </div>
           </div>
         </div>
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <CalendarDays className="size-3.5 text-brand" />
+          Acquired {formatDate(ownership.createdAt)} · {ownership.status === 'COMPLETED' ? `Completed ${formatDate(ownership.completedAt)}` : `Matures ${formatDate(ownership.maturityAt)}`}
+        </p>
       </div>
       <ChevronRight className="hidden size-5 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-brand sm:block" />
     </Link>
