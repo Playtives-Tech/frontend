@@ -98,3 +98,35 @@ export async function changePassword(
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 }
+
+export type NameChangeRequest = Readonly<{
+  id: string;
+  reason: string;
+  status: 'PENDING' | 'LINK_SENT' | 'COMPLETED';
+  createdAt: string;
+  linkSentAt: string | null;
+  completedAt: string | null;
+}>;
+
+export function requestNameChange(reason: string): Promise<NameChangeRequest> {
+  return api<NameChangeRequest>('/v1/profile/name-change-requests', {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function getLatestNameChangeRequest(): Promise<NameChangeRequest | null> {
+  return api<NameChangeRequest | null>('/v1/profile/name-change-requests/latest', {
+    cache: 'no-store',
+  });
+}
+
+export function completeNameChange(
+  token: string,
+  name: string,
+): Promise<{ message: string }> {
+  return api<{ message: string }>('/v1/name-change/complete', {
+    method: 'POST',
+    body: JSON.stringify({ token, name }),
+  });
+}

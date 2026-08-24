@@ -8,7 +8,7 @@ export const navigationItems = [
   { href: '/discover', label: 'Discover', icon: Compass },
   { href: '/ownership', label: 'My Ownership', icon: PieChart },
   { href: '/learn', label: 'Learn', icon: BookOpen },
-  { href: '/profile', label: 'Profile', icon: UserRound },
+  { href: '/profile', label: 'Account', icon: UserRound },
 ] as const satisfies readonly NavigationItem[];
 
 export const sidebarNavigationItems = [

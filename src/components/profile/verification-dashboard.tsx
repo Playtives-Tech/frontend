@@ -57,7 +57,7 @@ export function VerificationDashboard(): React.JSX.Element {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 lg:px-10">
-      <BackButton label="Profile" />
+      <BackButton label="Account" />
 
       <header className="mt-7">
         <h1 className="mt-2 font-sans text-3xl font-semibold">Identity and verification</h1>

@@ -135,13 +135,13 @@ export function DepositRequest(): React.JSX.Element {
           </span>
         </label>
         <label className="mt-4 block text-sm font-medium">
-          Payment receipt image
+          Payment receipt
           <span className="mt-2 flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed bg-background p-4 text-center text-sm text-muted-foreground hover:border-brand">
             <Upload className="mb-2 size-5 text-brand" />
-            {receipt ? receipt.name : 'Choose a JPEG, PNG, or WebP receipt'}
+            {receipt ? receipt.name : 'Choose a JPEG, PNG, WebP, or PDF receipt'}
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,application/pdf,.pdf"
               className="sr-only"
               onChange={(event) => setReceipt(event.target.files?.[0] ?? null)}
             />

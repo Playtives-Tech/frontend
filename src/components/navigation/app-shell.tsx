@@ -59,8 +59,12 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
+  const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
-    pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/verify-email';
+    pathname === '/sign-in' ||
+    pathname === '/sign-up' ||
+    pathname === '/verify-email' ||
+    isNameChangeRoute;
 
   useEffect(() => {
     const validateSession = (): void => {
@@ -69,7 +73,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
 
       if (!hasValidSession && user) signOut();
       if (!hasValidSession && !isPublicRoute) router.replace('/sign-in');
-      if (hasValidSession && isPublicRoute) router.replace('/');
+      if (hasValidSession && isPublicRoute && !isNameChangeRoute) router.replace('/');
     };
 
     if (!hasHydrated) return;
@@ -89,7 +93,8 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
 
   if (isPublicRoute) {
-    if (hasValidSession) return <PageLoadingState label="Opening your dashboard" />;
+    if (hasValidSession && !isNameChangeRoute)
+      return <PageLoadingState label="Opening your dashboard" />;
     return <>{children}</>;
   }
 
