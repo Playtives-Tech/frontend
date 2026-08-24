@@ -16,9 +16,9 @@ export function OpportunityCard({
   return (
     <Link
       href={`/discover/${opportunity.slug}`}
-      className="group flex h-full min-h-[10.75rem] flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30"
+      className="group flex w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:min-h-[10.75rem]"
     >
-      <div className="relative h-24 shrink-0 overflow-hidden bg-muted">
+      <div className="relative aspect-video shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:h-24">
         {opportunity.imageUrl && (
           <Image
             src={opportunity.imageUrl}
@@ -30,14 +30,14 @@ export function OpportunityCard({
           />
         )}
       </div>
-      <div className="flex flex-1 flex-col p-2.5">
-        <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-6 tracking-normal">
+      <div className="px-4 py-3 sm:flex sm:flex-1 sm:flex-col sm:p-2.5">
+        <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-5 tracking-normal sm:leading-6">
           {opportunity.title}
         </h2>
         <p className="mt-1 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
-        <p className="mt-1.5 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600">
+        <p className="mt-1 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600 sm:mt-1.5">
           {opportunity.projectedReturnRatePercent}% projected return
         </p>
       </div>

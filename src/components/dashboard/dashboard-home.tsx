@@ -1,12 +1,13 @@
 'use client';
 
-import { ArrowUpRight, Bell } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Bell, WalletCards } from 'lucide-react';
+import Link from 'next/link';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 import { OwnershipSummaryCard } from '@/components/dashboard/ownership-summary-card';
 // KYC is temporarily paused: import { VerificationCard } from '@/components/dashboard/verification-card';
 import { WalletSummaryCard } from '@/components/dashboard/wallet-summary-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
-import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
+import { getActivityLogs, getWallet, type ActivityLog, type WalletSummary } from '@/lib/services/wallet-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
@@ -16,6 +17,7 @@ export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [greeting, setGreeting] = useState('Good to see you');
   const isGuest = user === null;
   const firstName = user?.name.split(' ')[0];
@@ -36,6 +38,9 @@ export function DashboardHome(): React.JSX.Element {
     void getWallet()
       .then(setWallet)
       .catch(() => setWallet(null));
+    void getActivityLogs()
+      .then((items) => setActivity(items.slice(0, 4)))
+      .catch(() => setActivity([]));
   }, [isGuest]);
   useEffect(() => {
     const hour = new Date().getHours();
@@ -106,6 +111,28 @@ export function DashboardHome(): React.JSX.Element {
 
       <FeaturedOpportunities />
 
+      <section className="mt-7 lg:hidden">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-base font-semibold tracking-tight">Recent activities</h2>
+          <Link
+            href="/wallet/activity"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand"
+          >
+            View all
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+        <div className="mt-3 divide-y rounded-xl border bg-background px-4">
+          {activity.length > 0 ? (
+            activity.map((item) => <MobileActivityRow key={item._id} item={item} />)
+          ) : (
+            <p className="py-5 text-xs leading-5 text-muted-foreground">
+              Your important wallet and ownership updates will appear here.
+            </p>
+          )}
+        </div>
+      </section>
+
       <section className="relative mt-7 overflow-hidden rounded-xl border border-[#25D366]/20 bg-[linear-gradient(120deg,rgb(37_211_102_/_0.10),rgb(255_255_255_/_0.96)_52%)] p-4 dark:border-[#25D366]/15 dark:bg-[linear-gradient(120deg,rgb(37_211_102_/_0.16),rgb(20_32_27_/_0.96)_52%)] sm:p-5">
         <div className="pointer-events-none absolute -right-8 -top-10 size-32 rounded-full bg-[#25D366]/10 blur-2xl" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -133,4 +160,51 @@ export function DashboardHome(): React.JSX.Element {
       </section>
     </div>
   );
+}
+
+function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX.Element {
+  const amount = typeof item.metadata?.amountMinorUnits === 'number' ? item.metadata.amountMinorUnits / 100 : null;
+  return (
+    <Link href="/wallet/activity" className="flex items-center gap-3 py-3.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
+        <WalletCards className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <strong className="block truncate text-xs font-semibold text-foreground">
+          {formatActivityAction(item.action)}
+        </strong>
+        <small className="mt-0.5 block text-[11px] text-muted-foreground">
+          {new Date(item.createdAt).toLocaleDateString('en-NG', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </small>
+      </span>
+      {amount !== null ? (
+        <strong className="text-xs font-semibold text-brand">
+          {new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            maximumFractionDigits: 0,
+          }).format(amount)}
+        </strong>
+      ) : null}
+    </Link>
+  );
+}
+
+function formatActivityAction(action: string): string {
+  const labels: Record<string, string> = {
+    ACCOUNT_CREATED: 'Account setup completed',
+    PASSWORD_CHANGED: 'Password updated',
+    BANK_ACCOUNT_LINKED: 'Bank account linked',
+    BANK_ACCOUNT_REMOVED: 'Bank account removed',
+    WALLET_CREATED: 'Wallet setup completed',
+    DEPOSIT_REQUESTED: 'Wallet deposit requested',
+    WITHDRAWAL_REQUESTED: 'Wallet withdrawal requested',
+    EARNINGS_CREDITED: 'Earnings payment credited',
+    OPPORTUNITY_ACQUIRED: 'Opportunity purchase completed',
+  };
+  return labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
 }

@@ -24,9 +24,9 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
   return (
     <Link
       href={`/ownership/${ownership._id}`}
-      className="group grid gap-4 rounded-2xl border bg-background px-3 py-2 transition-colors hover:border-brand/30 sm:grid-cols-[5rem_1fr_auto_auto] sm:items-center"
+      className="group grid overflow-hidden rounded-2xl border bg-background transition-colors hover:border-brand/30 sm:gap-4 sm:px-3 sm:py-2 sm:grid-cols-[5rem_1fr_auto_auto] sm:items-center"
     >
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+      <div className="relative aspect-video overflow-hidden bg-muted sm:aspect-square sm:rounded-xl">
         {opportunity.imageUrl && (
           <Image
             src={opportunity.imageUrl}
@@ -38,7 +38,7 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
           />
         )}
       </div>
-      <div>
+      <div className="px-4 py-3 sm:px-0 sm:py-0">
         <h2 className="font-sans text-[14px] font-bold">{opportunity.title}</h2>
         <p className="text-[12px] text-muted-foreground">
           {ownership.units} {ownership.units === 1 ? 'unit' : 'units'} · {ownership.status === 'COMPLETED' ? 'Cycle completed' : 'Cycle in progress'}

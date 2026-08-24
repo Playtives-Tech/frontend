@@ -64,14 +64,14 @@ export default function ChangePasswordPage(): React.JSX.Element {
       </header>
 
       <section className="mt-6 rounded-xl border bg-background p-4 sm:p-5">
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-brand/10 text-brand">
             <KeyRound className="size-5" />
           </span>
           <h2 className="font-sans text-lg font-semibold">Update password</h2>
-        </div>
+        </div> */}
 
-        <form onSubmit={submit} className="mt-6 grid gap-4">
+        <form onSubmit={submit} className="mt-3 grid gap-4">
           <label className="grid gap-2 text-sm font-medium">
             Current password
             <input

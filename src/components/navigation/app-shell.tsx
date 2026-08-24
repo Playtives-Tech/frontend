@@ -117,11 +117,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </nav>
       </aside>
 
-      <header className="app-surface sticky top-0 z-10 mx-auto flex h-16 w-full max-w-[390px] items-center border-b px-5 backdrop-blur lg:hidden">
-        <span className="font-bold text-brand">Playtives</span>
-      </header>
-
-      <main className="mx-auto w-full max-w-[390px] pb-24 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:max-w-none lg:pb-8">
+      <main className="w-full pb-24 pt-6 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
@@ -138,7 +134,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         <WhatsAppIcon className="size-5" />
       </a>
 
-      <nav className="app-surface fixed inset-x-0 bottom-0 z-20 mx-auto flex h-[4.75rem] max-w-[390px] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
+      <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
         {navigationItems.map((item) => (
           <NavigationLink key={item.href} {...item} compact />
         ))}
