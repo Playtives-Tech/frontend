@@ -11,6 +11,7 @@ export type Ownership = Readonly<{
     units: number;
     unitPriceMinorUnits: number;
     amountMinorUnits: number;
+    narration: string;
     createdAt: string;
   }>;
   units: number;
@@ -27,6 +28,7 @@ export type Ownership = Readonly<{
   cyclesAccrued: number;
   nextAccrualAt: string | null;
   maturityAt: string | null;
+  completedAt: string | null;
 }>;
 
 export type MemberMaturityPayout = Readonly<{
@@ -45,6 +47,7 @@ export type MemberMaturityPayout = Readonly<{
 export function acquireOpportunity(
   opportunity: Opportunity,
   units: number,
+  narration: string,
   idempotencyKey: string,
 ): Promise<Ownership> {
   return api<Ownership>(`/v1/opportunities/${opportunity._id}/acquire`, {
@@ -53,8 +56,16 @@ export function acquireOpportunity(
       'Idempotency-Key': idempotencyKey,
       'If-Match': String(opportunity.revision),
     },
-    body: JSON.stringify({ units }),
+    body: JSON.stringify({ units, narration }),
   });
+}
+
+export function createOwnershipPaymentNarration(slug: string, units: number): string {
+  const offer = slug
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `PLAYTIVES-${offer}-${units}U`;
 }
 
 export function getOwnerships(): Promise<Ownership[]> {

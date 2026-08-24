@@ -45,6 +45,8 @@ export function OwnershipPositionDetail({
   const completed = ownership.status === 'COMPLETED';
   const projectedReturn =
     (ownership.amountMinorUnits / 100) * (ownership.projectedReturnRatePercent / 100);
+  const formatDate = (value: string | null) =>
+    value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not set';
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 sm:px-8 lg:px-10">
       <Link
@@ -95,6 +97,14 @@ export function OwnershipPositionDetail({
               }
             />
           </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <DetailMetric label="Ownership created" value={formatDate(ownership.createdAt)} />
+            <DetailMetric label="Maturity date" value={formatDate(ownership.maturityAt)} />
+            <DetailMetric
+              label={completed ? 'Completed on' : 'Cycle status'}
+              value={completed ? formatDate(ownership.completedAt) : 'Cycle in progress'}
+            />
+          </div>
           {!completed && (
             <>
               {/* <div className="mt-5 flex items-center justify-between text-xs">
@@ -116,14 +126,6 @@ export function OwnershipPositionDetail({
                   distribution records will appear here as the cycle progresses.
                 </p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <DetailMetric
-                    label={completed ? 'Completion' : 'Expected completion'}
-                    value={
-                      opportunity.principalReleaseDate
-                        ? new Date(opportunity.principalReleaseDate).toLocaleDateString('en-NG')
-                        : `${opportunity.durationMonths ?? 0} months`
-                    }
-                  />
                   <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
                   <DetailMetric label="Ownership model" value={opportunity.ownershipModel} />
                 </div>

@@ -28,7 +28,6 @@ export type Opportunity = Readonly<{
   rolloverNextPrincipalMinorUnits: number | null;
   rolloverNextProjectedProfitMinorUnits: number | null;
   location: string;
-  operator: string;
   principalReleaseDate: string | null;
   imageUrl: string;
   imageWidth: number;

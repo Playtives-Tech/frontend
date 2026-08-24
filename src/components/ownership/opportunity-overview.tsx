@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AgreementPreview } from './agreement-preview';
 import {
   formatOpportunityMoney,
   formatOwnershipModel,
@@ -126,9 +127,7 @@ export function OpportunityOverview({
 
           <div className="mt-8 space-y-7">
             <ContentSection title="About the opportunity" text={opportunity.about} />
-            {opportunity.agreement ? (
-              <ContentSection title="Opportunity agreement" text={opportunity.agreement} />
-            ) : null}
+            {opportunity.agreement ? <AgreementPreview agreement={opportunity.agreement} /> : null}
             <div>
               <h2 className="font-sans text-lg font-bold tracking-tight">What you receive</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
