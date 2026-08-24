@@ -21,8 +21,8 @@ export function BalanceAmount({
   );
 
   return (
-    <span className={cn('inline-flex flex-row items-center gap-3', className)}>
-      <span className="order-1">{isBalanceVisible ? value : '••••••'}</span>
+    <span className={cn('inline-flex max-w-full flex-wrap items-center gap-2', className)}>
+      <span className="order-1 min-w-0 break-all">{isBalanceVisible ? value : '••••••'}</span>
       {toggle ? (
         <button
           type="button"

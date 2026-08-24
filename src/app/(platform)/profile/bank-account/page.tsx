@@ -110,7 +110,7 @@ export default function BankAccountPage(): React.JSX.Element {
         </p>
       ) : null}
 
-      <section className="mt-6 rounded-xl border bg-background p-4">
+      <section className="mt-6 overflow-hidden rounded-xl border bg-background p-4">
         <h2 className="font-sans text-lg font-semibold">Add an account</h2>
         <form onSubmit={verify} className="mt-4 grid gap-4">
           <label className="grid gap-2 text-sm font-semibold">
@@ -124,7 +124,7 @@ export default function BankAccountPage(): React.JSX.Element {
                 setError(null);
               }}
               disabled={loading || resolving || linking}
-              className="h-10 rounded-lg border bg-background px-3 text-sm"
+              className="h-10 w-full min-w-0 max-w-full rounded-lg border bg-background px-3 text-sm"
             >
               <option value="">Select your bank</option>
               {banks.map((bank) => (
@@ -147,14 +147,14 @@ export default function BankAccountPage(): React.JSX.Element {
               inputMode="numeric"
               pattern="\d{10}"
               disabled={resolving || linking}
-              className="h-10 rounded-lg border bg-background px-3 text-sm"
+              className="h-10 w-full min-w-0 max-w-full rounded-lg border bg-background px-3 text-sm"
               placeholder="10-digit account number"
             />
           </label>
           <button
             type="submit"
             disabled={resolving || linking || loading || !bankCode || number.length !== 10}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-40"
+            className="inline-flex h-10 w-full min-w-0 max-w-full items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-40"
           >
             <ButtonLoadingContent
               loading={resolving}
