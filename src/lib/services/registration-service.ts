@@ -6,6 +6,7 @@ export type RegistrationInput = Readonly<{
   email: string;
   phone: string;
   country: string;
+  gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say';
   password: string;
 }>;
 
@@ -16,6 +17,7 @@ export type RegistrationResponse = Readonly<{
     email: string;
     phone: string;
     country: string;
+    gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say';
     emailVerified: false;
   }>;
   message: string;
@@ -55,6 +57,7 @@ export function login(
     roles: string[];
     phone: string | null;
     country: string | null;
+    gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
   };
   wallet: WalletSummary;
 }> {
@@ -70,6 +73,7 @@ export function getCurrentUser(): Promise<{
   email: string;
   phone: string | null;
   country: string | null;
+  gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
 }> {
   return api('/v1/auth/me', { cache: 'no-store' });
 }

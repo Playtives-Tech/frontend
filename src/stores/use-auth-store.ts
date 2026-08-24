@@ -9,6 +9,7 @@ export type CurrentUser = Readonly<{
   email: string;
   phone: string | null;
   country: string | null;
+  gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
 }>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{

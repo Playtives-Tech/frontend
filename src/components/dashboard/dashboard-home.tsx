@@ -3,9 +3,8 @@
 import { ArrowRight, ArrowUpRight, Bell, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
-import { OwnershipSummaryCard } from '@/components/dashboard/ownership-summary-card';
 // KYC is temporarily paused: import { VerificationCard } from '@/components/dashboard/verification-card';
-import { WalletSummaryCard } from '@/components/dashboard/wallet-summary-card';
+import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
 import { getActivityLogs, getWallet, type ActivityLog, type WalletSummary } from '@/lib/services/wallet-service';
 import { useAuthStore } from '@/stores/use-auth-store';
@@ -24,7 +23,6 @@ export function DashboardHome(): React.JSX.Element {
   // KYC is temporarily paused.
   // const requiresKyc = user?.kycStatus !== 'verified' && !isGuest;
   // const verificationStatus = isGuest ? 'guest' : requiresKyc ? 'unverified' : 'verified';
-  const ownershipDestination = isGuest ? '/profile' : '/ownership';
   useEffect(() => {
     if (isGuest) {
       setOwnerships([]);
@@ -83,22 +81,13 @@ export function DashboardHome(): React.JSX.Element {
         </a>
       </header>
 
-      <div className="scrollbar-none -mx-4 mt-7 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-3 sm:-mx-8 sm:scroll-px-8 sm:px-8">
-        <div className="w-[calc(100%_-_3.5rem)] min-w-[18rem] shrink-0 snap-start">
-          <WalletSummaryCard
-            balanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
-            depositedFundsMinorUnits={wallet?.deposit.availableBalanceMinorUnits ?? null}
-            investmentReturnsMinorUnits={wallet?.earnings.availableBalanceMinorUnits ?? null}
-          />
-        </div>
-        <div className="w-[calc(100%_-_3.5rem)] min-w-[18rem] shrink-0 snap-start">
-          <OwnershipSummaryCard
-            href={ownershipDestination}
-            isGuest={isGuest}
-            activeContributionMinorUnits={activeContributionMinorUnits}
-            activeDealsCount={activeOwnerships.length}
-          />
-        </div>
+      <div className="mt-7">
+        <PortfolioSummaryCard
+          walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
+          ownershipBalanceMinorUnits={activeContributionMinorUnits}
+          activeOwnershipCount={activeOwnerships.length}
+          isGuest={isGuest}
+        />
       </div>
 
       {/* KYC is temporarily paused.

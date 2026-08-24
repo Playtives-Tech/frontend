@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, ChevronDown, Eye, EyeOff, LogIn, Mail, MapPin, UserPlus } from 'lucide-react';
+import { ArrowRight, ChevronDown, Eye, EyeOff, LogIn, Mail, MapPin, UserPlus, UsersRound } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ComponentProps, type FormEvent, useState } from 'react';
@@ -19,6 +19,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
+  const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           email: email.trim(),
           phone: phone.trim(),
           country,
+          gender: gender as 'female' | 'male' | 'non_binary' | 'prefer_not_to_say',
           password,
         });
         setPendingEmail(response.user.email);
@@ -63,6 +65,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           email: response.user.email,
           phone: response.user.phone,
           country: response.user.country,
+          gender: response.user.gender,
         },
         response.accessToken,
       );
@@ -173,6 +176,10 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
 
           {isSignUp ? (
             <CountryField value={country} onChange={(event) => setCountry(event.target.value)} />
+          ) : null}
+
+          {isSignUp ? (
+            <GenderField value={gender} onChange={(event) => setGender(event.target.value)} />
           ) : null}
 
           <FloatingField
@@ -498,6 +505,34 @@ function CountryField({
             {country}
           </option>
         ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    </div>
+  );
+}
+
+function GenderField({
+  value,
+  onChange,
+}: Pick<ComponentProps<'select'>, 'value' | 'onChange'>): React.JSX.Element {
+  return (
+    <div className="relative">
+      <UsersRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-brand" />
+      <select
+        id="gender"
+        name="gender"
+        value={value}
+        onChange={onChange}
+        required
+        className="h-12 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-xs text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+      >
+        <option value="" disabled>
+          Gender
+        </option>
+        <option value="female">Woman</option>
+        <option value="male">Man</option>
+        <option value="non_binary">Non-binary</option>
+        <option value="prefer_not_to_say">Prefer not to say</option>
       </select>
       <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
     </div>

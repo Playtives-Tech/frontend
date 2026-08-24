@@ -12,6 +12,7 @@ import {
   Trash2,
   Phone,
   UserRound,
+  FilePenLine,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -25,6 +26,11 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { supportEmail, whatsappCommunityUrl } from '@/lib/community';
 import { notify } from '@/lib/notify';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
+import {
+  getLatestNameChangeRequest,
+  requestNameChange,
+  type NameChangeRequest,
+} from '@/lib/services/profile-service';
 
 // ... rest of file unchanged ...
 
@@ -34,12 +40,19 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const resetProfile = useProfileStore((state) => state.resetProfile);
+  const [nameChangeRequest, setNameChangeRequest] = useState<NameChangeRequest | null>(null);
+  const [showNameRequestForm, setShowNameRequestForm] = useState(false);
+  const [nameChangeReason, setNameChangeReason] = useState('');
+  const [isSubmittingNameRequest, setIsSubmittingNameRequest] = useState(false);
   const [dialog, setDialog] = useState<
     'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | null
   >(null);
   useEffect(() => {
     void getWallet()
       .then(setWallet)
+      .catch(() => undefined);
+    void getLatestNameChangeRequest()
+      .then(setNameChangeRequest)
       .catch(() => undefined);
   }, []);
   const close = (): void => setDialog(null);
@@ -58,11 +71,31 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       notify.error('Could not copy the support email');
     }
   };
+  const submitNameChangeRequest = async (): Promise<void> => {
+    const reason = nameChangeReason.trim();
+    if (reason.length < 10) {
+      notify.error('Please tell support why you need to update your name');
+      return;
+    }
+
+    setIsSubmittingNameRequest(true);
+    try {
+      const request = await requestNameChange(reason);
+      setNameChangeRequest(request);
+      setShowNameRequestForm(false);
+      setNameChangeReason('');
+      notify.success('Name change request sent to support');
+    } catch {
+      notify.error('Could not send your name change request');
+    } finally {
+      setIsSubmittingNameRequest(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
-        <h1 className="text-[15.5px]l mt-2 font-sans font-semibold tracking-tight">My Profile</h1>
+        <h1 className="text-[15.5px]l mt-2 font-sans font-semibold tracking-tight">My Account</h1>
       </header>
 
       <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">
@@ -83,6 +116,13 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
                   {user.phone}
                 </p>
               ) : null}
+              {user.gender ? (
+                <p className="mt-0.5 text-[12px] capitalize text-brand-foreground/75">
+                  {user.gender === 'prefer_not_to_say'
+                    ? 'Prefer not to say'
+                    : user.gender.replace('_', '-')}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -93,6 +133,72 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             </div>
           </div> */}
         </div>
+      </section>
+
+      <section className="mt-5 rounded-xl border bg-background p-4">
+        <div className="flex flex-wrap items-start gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+            <FilePenLine className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-sans text-[15.5px] font-semibold">Full name change</h2>
+            {nameChangeRequest?.status === 'LINK_SENT' ? (
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Support reviewed your request and sent a secure name-change link to your email.
+              </p>
+            ) : nameChangeRequest?.status === 'PENDING' ? (
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Your request is with support. We will email you if it is approved.
+              </p>
+            ) : (
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                To protect your account, name changes are reviewed by support before you can update them.
+              </p>
+            )}
+          </div>
+          {!nameChangeRequest || nameChangeRequest.status === 'COMPLETED' ? (
+            <button
+              type="button"
+              onClick={() => setShowNameRequestForm((visible) => !visible)}
+              className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border px-2.5 text-xs font-semibold transition hover:bg-muted"
+            >
+              Request change
+            </button>
+          ) : null}
+        </div>
+        {showNameRequestForm ? (
+          <div className="mt-4 border-t pt-4">
+            <label className="text-xs font-semibold" htmlFor="name-change-reason">
+              Why do you need to update your name?
+            </label>
+            <textarea
+              id="name-change-reason"
+              value={nameChangeReason}
+              onChange={(event) => setNameChangeReason(event.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="For example, my registered name was entered incorrectly."
+              className="mt-2 w-full resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-brand"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowNameRequestForm(false)}
+                className="h-8 rounded-lg px-2.5 text-xs font-semibold text-muted-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSubmittingNameRequest}
+                onClick={() => void submitNameChangeRequest()}
+                className="h-8 rounded-lg bg-brand px-3 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {isSubmittingNameRequest ? 'Sending request…' : 'Send request'}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-5 divide-y rounded-xl border bg-background px-4">

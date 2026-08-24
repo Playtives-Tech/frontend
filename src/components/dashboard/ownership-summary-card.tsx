@@ -24,7 +24,7 @@ export function OwnershipSummaryCard({
       <div className="flex items-start justify-between gap-5">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80">
-            Your active portfolio
+            Your ownership portfolio
           </p>
 
           <div className="mt-2 font-sans text-3xl font-bold tracking-normal">

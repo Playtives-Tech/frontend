@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, Landmark, Trash2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Landmark, Search, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent, LoadingSpinner } from '@/components/ui/loading-indicator';
@@ -23,6 +23,8 @@ export default function BankAccountPage(): React.JSX.Element {
   const accounts = useProfileStore((state) => state.accounts);
   const setAccounts = useProfileStore((state) => state.setAccounts);
   const [banks, setBanks] = useState<NigerianBank[]>([]);
+  const [bankQuery, setBankQuery] = useState('');
+  const [bankPickerOpen, setBankPickerOpen] = useState(false);
   const [bankCode, setBankCode] = useState('');
   const [number, setNumber] = useState('');
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,9 @@ export default function BankAccountPage(): React.JSX.Element {
   const [resolved, setResolved] = useState<ResolvedBankAccount | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const filteredBanks = banks.filter((bank) =>
+    bank.name.toLowerCase().includes(bankQuery.trim().toLowerCase()),
+  );
 
   useEffect(() => {
     void Promise.all([listNigerianBanks(), listBankAccounts()])
@@ -67,6 +72,7 @@ export default function BankAccountPage(): React.JSX.Element {
       setAccounts([account, ...accounts]);
       setNumber('');
       setBankCode('');
+      setBankQuery('');
       setResolved(null);
       notify.success('Bank account verified and linked');
     } catch (reason: unknown) {
@@ -92,7 +98,7 @@ export default function BankAccountPage(): React.JSX.Element {
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:px-10">
-      <BackButton label="Profile" />
+      <BackButton label="Account" />
       <h1 className="mt-6 font-sans text-2xl font-semibold">Linked bank accounts</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
         Add verified Nigerian accounts for withdrawals and payouts.
@@ -101,7 +107,7 @@ export default function BankAccountPage(): React.JSX.Element {
       <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-xs leading-5 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
         <strong>Account ownership requirement:</strong> The bank account must be registered in the
         same name as your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>
-        . Accounts with a different holder name will not be linked.
+        . Accounts with a different holder name will not be linked. Apply for full name change on your Account page to correct your credentials
       </div>
 
       {error ? (
@@ -115,24 +121,56 @@ export default function BankAccountPage(): React.JSX.Element {
         <form onSubmit={verify} className="mt-4 grid gap-4">
           <label className="grid gap-2 text-sm font-semibold">
             Bank
-            <select
-              required
-              value={bankCode}
-              onChange={(event) => {
-                setBankCode(event.target.value);
-                setResolved(null);
-                setError(null);
-              }}
-              disabled={loading || resolving || linking}
-              className="h-10 w-full min-w-0 max-w-full rounded-lg border bg-background px-3 text-sm"
-            >
-              <option value="">Select your bank</option>
-              {banks.map((bank) => (
-                <option key={bank.id} value={bank.code}>
-                  {bank.name}
-                </option>
-              ))}
-            </select>
+            <span className="relative block">
+              <button
+                type="button"
+                disabled={loading || resolving || linking}
+                onClick={() => setBankPickerOpen((open) => !open)}
+                className="flex h-10 w-full items-center justify-between rounded-lg border bg-background px-3 text-left text-sm font-normal disabled:opacity-50"
+                aria-expanded={bankPickerOpen}
+                aria-haspopup="listbox"
+              >
+                <span className={bankCode ? 'text-foreground' : 'text-muted-foreground'}>
+                  {banks.find((bank) => bank.code === bankCode)?.name ?? 'Select your bank'}
+                </span>
+                <ChevronDown className="size-4 text-muted-foreground" />
+              </button>
+              {bankPickerOpen ? (
+                <span className="absolute z-20 mt-1 block w-full overflow-hidden rounded-lg border bg-background p-2 shadow-lg">
+                  <span className="relative block">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      value={bankQuery}
+                      onChange={(event) => setBankQuery(event.target.value)}
+                      autoFocus
+                      className="h-9 w-full rounded-md border bg-background py-2 pl-9 pr-3 text-sm font-normal outline-none focus:border-brand"
+                      placeholder="Search banks"
+                      aria-label="Search banks"
+                    />
+                  </span>
+                  <span className="mt-2 block max-h-52 overflow-y-auto" role="listbox">
+                    {filteredBanks.length ? filteredBanks.map((bank) => (
+                      <button
+                        key={bank.id}
+                        type="button"
+                        role="option"
+                        aria-selected={bank.code === bankCode}
+                        onClick={() => {
+                          setBankCode(bank.code);
+                          setBankQuery('');
+                          setBankPickerOpen(false);
+                          setResolved(null);
+                          setError(null);
+                        }}
+                        className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal transition hover:bg-muted"
+                      >
+                        {bank.name}
+                      </button>
+                    )) : <span className="block px-3 py-4 text-center text-xs font-normal text-muted-foreground">No banks match your search.</span>}
+                  </span>
+                </span>
+              ) : null}
+            </span>
           </label>
           <label className="grid gap-2 text-sm font-semibold">
             Account number
