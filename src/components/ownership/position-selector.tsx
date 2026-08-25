@@ -1,5 +1,11 @@
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
-import type { Opportunity } from '@/lib/opportunities';
+import {
+  formatCapitalReturn,
+  formatOpportunityTerm,
+  formatProjectedDistribution,
+  formatReturnSchedule,
+  type Opportunity,
+} from '@/lib/opportunities';
 import { formatNaira } from './formatters';
 
 type PositionSelectorProps = Readonly<{
@@ -39,7 +45,7 @@ export function PositionSelector({
         profit automatically.
       </p>
       <section className="mt-8 rounded-2xl border bg-background p-5 sm:p-6">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-surface p-4">
             <p className="text-sm text-muted-foreground">Price per unit</p>
             <p className="mt-2 text-[15px] font-semibold">{formatNaira(unitPrice)}</p>
@@ -49,11 +55,22 @@ export function PositionSelector({
             <p className="mt-2 text-[15px] font-semibold">{opportunity.availableUnits}</p>
           </div>
           <div className="rounded-xl bg-surface p-4">
-            <p className="text-sm text-muted-foreground">Duration</p>
+            <p className="text-sm text-muted-foreground">Term</p>
             <p className="mt-2 text-[15px] font-semibold">
-              {opportunity.durationMonths
-                ? `${opportunity.durationMonths} months`
-                : 'Not specified'}
+              {formatOpportunityTerm(opportunity)}
+            </p>
+          </div>
+          <div className="rounded-xl bg-surface p-4">
+            <p className="text-sm text-muted-foreground">Capital return</p>
+            <p className="mt-2 text-[15px] font-semibold leading-5">
+              {formatCapitalReturn(opportunity)}
+            </p>
+          </div>
+          <div className="rounded-xl bg-surface p-4">
+            <p className="text-sm text-muted-foreground">Projected distribution</p>
+            <p className="mt-2 text-[15px] font-semibold leading-5">
+              {formatProjectedDistribution(opportunity)} ·{' '}
+              {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}
             </p>
           </div>
           {/* <div className="rounded-xl bg-surface p-4">

@@ -4,7 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { BalanceAmount } from '@/components/ui/balance-amount';
-import type { Opportunity } from '@/lib/opportunities';
+import {
+  formatCapitalReturn,
+  formatProjectedDistribution,
+  formatProjectedReturnRate,
+  formatReturnSchedule,
+  isVariableDistribution,
+  type Opportunity,
+} from '@/lib/opportunities';
 import {
   acquireOpportunity,
   createOwnershipPaymentNarration,
@@ -15,12 +22,14 @@ import { formatNaira } from './formatters';
 type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
   quantity: number;
+  agreementAccepted: boolean;
   onBack: () => void;
 }>;
 
 export function WalletCheckout({
   opportunity,
   quantity,
+  agreementAccepted,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
@@ -50,6 +59,7 @@ export function WalletCheckout({
         opportunity,
         quantity,
         narration,
+        opportunity.agreementVersion ?? '1.0',
         idempotencyKey.current,
       );
       router.replace(`/ownership/${ownership._id}`);
@@ -93,15 +103,23 @@ export function WalletCheckout({
             <dd className="text-sm font-semibold">{quantity}</dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
-            <dt className="text-sm font-semibold">Projected ROI</dt>
+            <dt className="text-sm font-semibold">Projected distribution rate</dt>
             <dd className="text-sm font-semibold text-brand">
-              {opportunity.projectedReturnRatePercent}%
+              {formatProjectedReturnRate(opportunity)} · {formatReturnSchedule(opportunity.returnSchedule)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
-            <dt className="text-sm font-semibold">Projected return</dt>
+            <dt className="text-sm font-semibold">
+              Projected {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()} distribution
+            </dt>
             <dd className="text-sm font-semibold">
-              {formatNaira((opportunity.projectedProfitMinorUnits / 100) * quantity)}
+              {formatProjectedDistribution(opportunity, quantity)}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm font-semibold">Capital return</dt>
+            <dd className="max-w-[55%] text-right text-sm font-semibold leading-5">
+              {formatCapitalReturn(opportunity)}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-4 pt-3">
@@ -110,6 +128,11 @@ export function WalletCheckout({
           </div>
         </dl>
       </section>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        {isVariableDistribution(opportunity)
+          ? 'This is a variable distribution based on the opportunity’s realised performance. It is projected, not guaranteed.'
+          : 'Projected distributions are estimates and are not guaranteed.'}
+      </p>
       <section className="mt-5 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -169,7 +192,7 @@ export function WalletCheckout({
       <div className="sticky bottom-0 z-10 -mx-5 mt-8 border-t bg-background/95 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10">
         <button
           type="button"
-          disabled={!hasFunds || submitting}
+          disabled={!hasFunds || !agreementAccepted || submitting}
           onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >

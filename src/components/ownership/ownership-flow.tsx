@@ -12,6 +12,7 @@ type OwnershipFlowProps = Readonly<{ opportunity: Opportunity }>;
 export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.Element {
   const [step, setStep] = useState<OwnershipStep>('overview');
   const [quantity, setQuantity] = useState(1);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
   if (step === 'positions')
     return (
       <PositionSelector
@@ -27,8 +28,16 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
       <WalletCheckout
         opportunity={opportunity}
         quantity={quantity}
+        agreementAccepted={agreementAccepted}
         onBack={() => setStep('positions')}
       />
     );
-  return <OpportunityOverview opportunity={opportunity} onContinue={() => setStep('positions')} />;
+  return (
+    <OpportunityOverview
+      opportunity={opportunity}
+      agreementAccepted={agreementAccepted}
+      onAgreementAccepted={() => setAgreementAccepted(true)}
+      onContinue={() => setStep('positions')}
+    />
+  );
 }

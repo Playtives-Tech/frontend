@@ -8,8 +8,14 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { MemberMaturityPayout, Ownership } from '@/lib/services/ownership-service';
+import {
+  getOwnershipCapitalReturn,
+  getOwnershipProjection,
+  type MemberMaturityPayout,
+  type Ownership,
+} from '@/lib/services/ownership-service';
 import { BalanceAmount } from '@/components/ui/balance-amount';
+import { formatReturnSchedule } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
 
 type OwnershipPositionDetailProps = Readonly<{
@@ -43,8 +49,7 @@ export function OwnershipPositionDetail({
 }: OwnershipPositionDetailProps): React.JSX.Element {
   const opportunity = ownership.opportunityId;
   const completed = ownership.status === 'COMPLETED';
-  const projectedReturn =
-    (ownership.amountMinorUnits / 100) * (ownership.projectedReturnRatePercent / 100);
+  const projection = getOwnershipProjection(ownership);
   const formatDate = (value: string | null) =>
     value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not set';
   return (
@@ -86,20 +91,21 @@ export function OwnershipPositionDetail({
               value={<BalanceAmount value={formatNaira(ownership.amountMinorUnits / 100)} toggle />}
             />
             <DetailMetric
-              label="Projected return"
-              value={
-                <span className="flex items-center gap-1.5">
-                  <BalanceAmount value={formatNaira(projectedReturn)} />
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    · {ownership.projectedReturnRatePercent}% target ROI
-                  </span>
-                </span>
-              }
+              label={`Projected ${formatReturnSchedule(ownership.returnSchedule).toLowerCase()} distribution`}
+              value={<BalanceAmount value={projection.amount} />}
+              supportingText={`${projection.rate} ${ownership.returnSchedule.toLowerCase()} rate`}
             />
           </div>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            <DetailMetric label="Ownership created" value={formatDate(ownership.createdAt)} />
-            <DetailMetric label="Maturity date" value={formatDate(ownership.maturityAt)} />
+          <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+            <CalendarDays className="mt-0.5 size-4 shrink-0 text-brand" />
+            <span>
+              Acquired {formatDate(ownership.createdAt)} ·{' '}
+              {ownership.termType === 'LIFE_OF_ASSET'
+                ? `Capital returns — ${getOwnershipCapitalReturn(ownership)}`
+                : `Principal return ${formatDate(ownership.maturityAt)}`}
+            </span>
+          </p>
+          <div className="mt-4 grid gap-2">
             <DetailMetric
               label={completed ? 'Completed on' : 'Cycle status'}
               value={completed ? formatDate(ownership.completedAt) : 'Cycle in progress'}
@@ -126,7 +132,32 @@ export function OwnershipPositionDetail({
                   distribution records will appear here as the cycle progresses.
                 </p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <DetailMetric label="Return schedule" value={opportunity.returnSchedule} />
+                  <DetailMetric
+                    label="Return schedule"
+                    value={formatReturnSchedule(ownership.returnSchedule)}
+                    supportingText={
+                      ownership.termType === 'LIFE_OF_ASSET'
+                        ? 'Variable distributions are based on realised performance.'
+                        : `${ownership.scheduledReturnCycles} scheduled ${ownership.scheduledReturnCycles === 1 ? 'return' : 'returns'}`
+                    }
+                  />
+                  <DetailMetric
+                    label={ownership.termType === 'LIFE_OF_ASSET' ? 'Distribution timing' : 'Next return date'}
+                    value={
+                      ownership.termType === 'LIFE_OF_ASSET'
+                        ? `${formatReturnSchedule(ownership.returnSchedule)} allocation`
+                        : formatDate(ownership.nextAccrualAt)
+                    }
+                    supportingText={
+                      ownership.termType === 'LIFE_OF_ASSET'
+                        ? 'Any distribution is calculated from realised performance and credited after allocation.'
+                        : 'Returns are credited to your earnings balance automatically.'
+                    }
+                  />
+                  <DetailMetric
+                    label="Returns credited"
+                    value={<BalanceAmount value={formatNaira(ownership.totalAccruedReturnMinorUnits / 100)} />}
+                  />
                   <DetailMetric label="Ownership model" value={opportunity.ownershipModel} />
                 </div>
               </section>
@@ -138,12 +169,12 @@ export function OwnershipPositionDetail({
                 {payout?.status === 'APPROVED'
                   ? 'Payout credited to your wallet'
                   : payout?.status === 'REJECTED'
-                    ? 'Payout requires attention'
+                  ? 'Payout requires attention'
                     : 'Payout awaiting admin approval'}
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {payout?.status === 'APPROVED'
-                  ? `${formatNaira(payout.totalPayoutMinorUnits / 100)} has been credited to your earnings balance.`
+                  ? `${formatNaira(payout.totalPayoutMinorUnits / 100)} principal has been returned to your wallet balance.`
                   : payout?.status === 'REJECTED'
                     ? payout.reviewNote ||
                       'The payout was not approved. Contact support for a review.'

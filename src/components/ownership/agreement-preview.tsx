@@ -1,9 +1,23 @@
 'use client';
 
-import { FileText, X } from 'lucide-react';
+import { Check, Download, FileText, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-export function AgreementPreview({ agreement }: Readonly<{ agreement: string }>): React.JSX.Element {
+export function AgreementPreview({
+  agreement,
+  version = '1.0',
+  effectiveDate,
+  resourceUrl,
+  accepted,
+  onAccept,
+}: Readonly<{
+  agreement: string;
+  version?: string;
+  effectiveDate?: string | null;
+  resourceUrl?: string;
+  accepted?: boolean;
+  onAccept?: () => void;
+}>): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const preview = useMemo(
     () =>
@@ -19,14 +33,12 @@ export function AgreementPreview({ agreement }: Readonly<{ agreement: string }>)
     <section>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-[16px] font-semibold tracking-tight">Opportunity agreement</h2>
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"
-        >
-          <FileText className="size-4" />
-          Read full agreement
-        </button>
+        <div className="flex shrink-0 items-center gap-3">
+          {accepted ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand"><Check className="size-3.5" /> Accepted</span> : null}
+          <button type="button" onClick={() => setIsOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75">
+            <FileText className="size-4" /> Read full agreement
+          </button>
+        </div>
       </div>
       <div className="mt-2 border-l-2 border-brand/25 pl-3 text-sm leading-6 text-muted-foreground">
         {preview.map((line, index) => (
@@ -47,6 +59,7 @@ export function AgreementPreview({ agreement }: Readonly<{ agreement: string }>)
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Before you continue</p>
                 <h2 className="mt-1 text-lg font-semibold">Opportunity agreement</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Version {version}{effectiveDate ? ` · Effective ${new Date(effectiveDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
               </div>
               <button
                 type="button"
@@ -60,13 +73,14 @@ export function AgreementPreview({ agreement }: Readonly<{ agreement: string }>)
             <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-8">
               <MarkdownContent markdown={agreement} />
             </div>
-            <footer className="flex shrink-0 justify-end border-t px-5 py-3 sm:px-6">
+            <footer className="flex shrink-0 items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
+              {resourceUrl ? <a href={resourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"><Download className="size-4" /> Download copy</a> : <span />}
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => { onAccept?.(); setIsOpen(false); }}
                 className="h-10 rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
               >
-                I have read this agreement
+                {accepted ? 'Agreement accepted' : 'I agree to this agreement'}
               </button>
             </footer>
           </article>

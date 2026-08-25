@@ -4,25 +4,36 @@ import Link from 'next/link';
 import { AgreementPreview } from './agreement-preview';
 import {
   formatOpportunityMoney,
+  formatCapitalReturn,
+  formatOpportunityTerm,
   formatOwnershipModel,
+  formatProjectedDistribution,
+  formatProjectedReturnRate,
   formatReturnSchedule,
+  isVariableDistribution,
   type Opportunity,
 } from '@/lib/opportunities';
 
 type OpportunityOverviewProps = Readonly<{
   opportunity: Opportunity;
   onContinue?: () => void;
+  agreementAccepted?: boolean;
+  onAgreementAccepted?: () => void;
 }>;
 
 export function OpportunityOverview({
   opportunity,
   onContinue,
+  agreementAccepted = false,
+  onAgreementAccepted,
 }: OpportunityOverviewProps): React.JSX.Element {
   const filledUnits = Math.max(0, opportunity.totalUnits - opportunity.availableUnits);
   const progress =
     opportunity.totalUnits > 0 ? Math.min(100, (filledUnits / opportunity.totalUnits) * 100) : 0;
   const isCoFunded = opportunity.ownershipModel === 'CO_OWNERSHIP';
-  const monthlyProfit = opportunity.projectedMonthlyProfitMinorUnits;
+  const agreementRequired = Boolean(opportunity.agreement.trim());
+  const canContinue = opportunity.availableUnits >= opportunity.minimumUnits &&
+    (!agreementRequired || agreementAccepted);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
@@ -70,42 +81,35 @@ export function OpportunityOverview({
             {opportunity.summary}
           </p>
 
-          <dl className="mt-7 grid gap-5 border-y border-border/80 py-5 sm:grid-cols-3 sm:gap-8 sm:py-6">
+          <dl className="mt-7 grid gap-5 border-y border-border/80 py-5 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:py-6 lg:grid-cols-4">
             <Metric
               label="Price per unit"
               value={formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)}
             />
             <Metric
-              label="Duration"
-              value={
-                opportunity.durationMonths
-                  ? `${opportunity.durationMonths} months`
-                  : 'Not specified'
-              }
+              label="Term"
+              value={formatOpportunityTerm(opportunity)}
             />
             <Metric
               label="Location"
               value={opportunity.location || 'Not specified'}
               icon={<MapPin className="size-4 text-brand" />}
             />
+            <Metric label="Capital return" value={formatCapitalReturn(opportunity)} />
           </dl>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <Highlight
-              label={
-                monthlyProfit == null
-                  ? 'Projected profit per unit'
-                  : 'Projected monthly profit per unit'
-              }
-              value={formatOpportunityMoney(monthlyProfit ?? opportunity.projectedProfitMinorUnits)}
+              label="Projected distribution rate"
+              value={`${formatProjectedReturnRate(opportunity)} · ${formatReturnSchedule(opportunity.returnSchedule)}`}
             />
             <Highlight
-              label="Projected total profit per unit"
-              value={formatOpportunityMoney(opportunity.projectedProfitMinorUnits)}
+              label={`Projected ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()} distribution per unit`}
+              value={formatProjectedDistribution(opportunity)}
             />
             <Highlight
-              label="Distribution schedule"
-              value={formatReturnSchedule(opportunity.returnSchedule)}
+              label="Return type"
+              value={isVariableDistribution(opportunity) ? 'Variable — based on realised performance' : 'Projected — not guaranteed'}
             />
           </div>
 
@@ -122,19 +126,30 @@ export function OpportunityOverview({
           </div> */}
 
           <p className="mt-5 rounded-xl border border-brand/25 bg-brand/10 px-4 py-3 text-sm leading-6 text-brand dark:border-brand/35 dark:bg-brand/15">
-            Projected profit figures are provided for planning only and are not guaranteed.
+            {opportunity.projectionDisclaimer ||
+              'Projected distribution figures are provided for planning only and are not guaranteed.'}
           </p>
 
           <div className="mt-8 space-y-7">
             <ContentSection title="About the opportunity" text={opportunity.about} />
-            {opportunity.agreement ? <AgreementPreview agreement={opportunity.agreement} /> : null}
+            {opportunity.agreement ? (
+              <AgreementPreview
+                agreement={opportunity.agreement}
+                version={opportunity.agreementVersion}
+                effectiveDate={opportunity.agreementEffectiveDate}
+                resourceUrl={opportunity.agreementResourceUrl}
+                accepted={agreementAccepted}
+                onAccept={onAgreementAccepted}
+              />
+            ) : null}
             <div>
               <h2 className="font-sans text-lg font-bold tracking-tight">What you receive</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 {opportunity.minimumUnits} {opportunity.minimumUnits === 1 ? 'unit' : 'units'}{' '}
                 minimum in a {formatOwnershipModel(opportunity.ownershipModel).toLowerCase()}{' '}
-                opportunity, with {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}{' '}
-                distributions where available.
+                opportunity, with {isVariableDistribution(opportunity) ? 'variable ' : ''}
+                {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()} distributions where
+                available. Your capital is returned {formatCapitalReturn(opportunity).toLowerCase()}.
               </p>
             </div>
           </div>
@@ -145,12 +160,14 @@ export function OpportunityOverview({
         <div className="sticky bottom-[4.75rem] z-10 mt-5 border-t border-border/70 bg-background/95 py-3 backdrop-blur lg:bottom-0">
           <button
             type="button"
-            disabled={opportunity.availableUnits < opportunity.minimumUnits}
+            disabled={!canContinue}
             onClick={onContinue}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
           >
             {opportunity.availableUnits < opportunity.minimumUnits
               ? 'Currently unavailable'
+              : agreementRequired && !agreementAccepted
+                ? 'Accept agreement to continue'
               : isCoFunded
                 ? 'Co-fund now'
                 : 'Own this opportunity'}
