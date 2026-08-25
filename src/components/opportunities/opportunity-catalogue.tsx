@@ -12,7 +12,7 @@ import { OpportunityCard } from './opportunity-card';
 
 export function OpportunityCatalogue(): React.JSX.Element {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('All');
+  const [sector, setSector] = useState('All');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,7 +32,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       window.clearInterval(poll);
     };
   }, []);
-  const opportunityCategories = useMemo(
+  const opportunitySectors = useMemo(
     () => ['All', ...new Set(opportunities.map((item) => item.category))],
     [opportunities],
   );
@@ -40,13 +40,13 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     return opportunities.filter(
       (opportunity) =>
-        (category === 'All' || opportunity.category === category) &&
+        (sector === 'All' || opportunity.category === sector) &&
         (!normalizedQuery ||
           `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
-  }, [category, opportunities, query]);
+  }, [sector, opportunities, query]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
@@ -70,14 +70,14 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </label>
 
         <div className="scrollbar-none mt-4 flex items-center gap-3 overflow-x-auto pb-1">
-          {opportunityCategories.map((item) => (
+          {opportunitySectors.map((item) => (
             <button
               key={item}
               type="button"
-              onClick={() => setCategory(item)}
+              onClick={() => setSector(item)}
               className={cn(
                 'shrink-0 rounded-full px-4 py-2 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-                category === item
+                sector === item
                   ? 'bg-brand text-brand-foreground'
                   : 'bg-surface text-muted-foreground hover:text-foreground',
               )}
@@ -109,7 +109,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
         <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
           <h2 className="font-sans text-xl font-semibold">No matching opportunities</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Try another search or select a different category.
+            Try another search or select a different sector or industry.
           </p>
         </section>
       )}

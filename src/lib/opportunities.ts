@@ -4,21 +4,47 @@ import { env } from './env';
 export type OpportunityStatus = 'PUBLISHED';
 export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
 export type OwnershipModel = 'CO_OWNERSHIP' | 'FULL_OWNERSHIP';
+export type OpportunityStructure = OwnershipModel | 'CO_FUNDING';
+export type TermType = 'FIXED_TERM' | 'LIFE_OF_ASSET';
+export type DurationUnit = 'DAYS' | 'MONTHS' | 'YEARS';
 
 export type Opportunity = Readonly<{
   _id: string;
   slug: string;
   title: string;
   category: string;
+  opportunityStructure: OpportunityStructure;
+  returnModel: string;
+  projectionType: string;
   summary: string;
   about: string;
   agreement: string;
+  agreementVersion?: string;
+  agreementEffectiveDate?: string | null;
+  agreementStatus?: 'DRAFT' | 'ACTIVE' | 'RETIRED';
+  agreementResourceUrl?: string;
   pricePerUnitMinorUnits: number;
   minimumUnits: number;
   totalUnits: number;
+  memberFundedUnits: number;
+  sponsorUnits: number;
+  totalEconomicUnits: number;
+  fundingTargetMinorUnits: number;
+  ownershipPerUnitPercent: number | null;
   availableUnits: number;
   durationMonths: number | null;
+  termType: TermType;
+  durationValue: number | null;
+  durationUnit: DurationUnit | null;
+  capitalExitDescription: string;
+  projectionDisclaimer: string;
   projectedReturnRatePercent: number;
+  projectedDistributionPerUnitMinorUnits: number | null;
+  projectedDistributionPerUnitMinimumMinorUnits: number | null;
+  projectedDistributionPerUnitMaximumMinorUnits: number | null;
+  equivalentProjectedPercentage: number | null;
+  equivalentProjectedMinimumPercentage: number | null;
+  equivalentProjectedMaximumPercentage: number | null;
   projectedProfitMinorUnits: number;
   projectedMonthlyProfitMinorUnits: number | null;
   returnSchedule: ReturnSchedule;
@@ -28,7 +54,7 @@ export type Opportunity = Readonly<{
   rolloverNextPrincipalMinorUnits: number | null;
   rolloverNextProjectedProfitMinorUnits: number | null;
   location: string;
-  principalReleaseDate: string | null;
+  memberAvailabilityDate: string | null;
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
@@ -85,4 +111,61 @@ export function formatReturnSchedule(schedule: ReturnSchedule): string {
 
 export function formatOwnershipModel(model: OwnershipModel): string {
   return model === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership';
+}
+
+export function formatOpportunityTerm(opportunity: Opportunity): string {
+  if (opportunity.termType === 'LIFE_OF_ASSET') return 'Life of asset';
+
+  const duration = opportunity.durationValue ?? opportunity.durationMonths;
+  if (!duration) return 'Fixed term';
+  const unit = (opportunity.durationUnit ?? 'MONTHS').toLowerCase();
+  return `${duration} ${unit}`;
+}
+
+export function formatCapitalReturn(opportunity: Opportunity): string {
+  if (opportunity.termType === 'LIFE_OF_ASSET')
+    return (
+      opportunity.capitalExitDescription ||
+      'Upon asset sale or another qualifying exit event'
+    );
+
+  return `At the end of the ${formatOpportunityTerm(opportunity)} term`;
+}
+
+export function formatProjectedReturnRate(opportunity: Opportunity): string {
+  const minimum = opportunity.equivalentProjectedMinimumPercentage;
+  const maximum = opportunity.equivalentProjectedMaximumPercentage;
+  if (minimum != null && maximum != null)
+    return `${formatPercentage(minimum)}–${formatPercentage(maximum)}`;
+  if (opportunity.equivalentProjectedPercentage != null)
+    return formatPercentage(opportunity.equivalentProjectedPercentage);
+  if (opportunity.projectedReturnRatePercent > 0)
+    return formatPercentage(opportunity.projectedReturnRatePercent);
+  return 'Variable';
+}
+
+export function formatProjectedDistribution(
+  opportunity: Opportunity,
+  quantity = 1,
+): string {
+  const minimum = opportunity.projectedDistributionPerUnitMinimumMinorUnits;
+  const maximum = opportunity.projectedDistributionPerUnitMaximumMinorUnits;
+  if (minimum != null && maximum != null)
+    return `${formatOpportunityMoney(minimum * quantity)}–${formatOpportunityMoney(maximum * quantity)}`;
+  if (opportunity.projectedDistributionPerUnitMinorUnits != null)
+    return formatOpportunityMoney(opportunity.projectedDistributionPerUnitMinorUnits * quantity);
+  return 'Not projected as a cash distribution';
+}
+
+export function isVariableDistribution(opportunity: Opportunity): boolean {
+  return (
+    opportunity.returnModel === 'PROFIT_SHARING_VARIABLE' ||
+    opportunity.returnModel === 'REVENUE_SHARING_VARIABLE' ||
+    opportunity.projectedDistributionPerUnitMinimumMinorUnits != null ||
+    opportunity.projectedDistributionPerUnitMaximumMinorUnits != null
+  );
+}
+
+function formatPercentage(value: number): string {
+  return `${value.toFixed(4).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
 }

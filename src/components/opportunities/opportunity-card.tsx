@@ -1,6 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatOpportunityMoney, type Opportunity } from '@/lib/opportunities';
+import {
+  formatOpportunityMoney,
+  formatProjectedReturnRate,
+  formatReturnSchedule,
+  isVariableDistribution,
+  type Opportunity,
+} from '@/lib/opportunities';
 
 type OpportunityCardProps = Readonly<{
   opportunity: Opportunity;
@@ -38,7 +44,7 @@ export function OpportunityCard({
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
         <p className="mt-1 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600 sm:mt-1.5">
-          {opportunity.projectedReturnRatePercent}% projected return
+          {projectionLabel(opportunity)}
         </p>
       </div>
     </Link>
@@ -46,7 +52,7 @@ export function OpportunityCard({
 }
 
 function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): React.JSX.Element {
-  const projectedReturn = `${opportunity.projectedReturnRatePercent}% projected return`;
+  const projectedReturn = projectionLabel(opportunity);
 
   return (
     <Link
@@ -82,4 +88,11 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
       </div>
     </Link>
   );
+}
+
+function projectionLabel(opportunity: Opportunity): string {
+  const schedule = formatReturnSchedule(opportunity.returnSchedule).toLowerCase();
+  if (opportunity.projectionType === 'NOT_APPLICABLE') return 'No periodic distribution projected';
+  const qualifier = isVariableDistribution(opportunity) ? 'variable projected distribution' : 'projected return';
+  return `${formatProjectedReturnRate(opportunity)} ${qualifier} · ${schedule}`;
 }

@@ -1,12 +1,13 @@
 'use client';
 
-import { CalendarDays, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
+import { getOwnershipProjection, getOwnerships, type Ownership } from '@/lib/services/ownership-service';
 import { cn } from '@/lib/utils';
 import { BalanceAmount } from '@/components/ui/balance-amount';
+import { formatReturnSchedule } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
 
 type OwnershipTab = 'active' | 'completed';
@@ -17,10 +18,7 @@ const tabs = [
 
 function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React.JSX.Element {
   const opportunity = ownership.opportunityId;
-  const projectedReturn =
-    (ownership.amountMinorUnits / 100) * (ownership.projectedReturnRatePercent / 100);
-  const formatDate = (value: string | null) =>
-    value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set';
+  const projection = getOwnershipProjection(ownership);
   return (
     <Link
       href={`/ownership/${ownership._id}`}
@@ -52,19 +50,14 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
           </div>
 
           <div className="rounded-xl bg-surface px-3 py-2.5">
-            <p className="text-xs font-medium text-muted-foreground">Projected return</p>
-            <div className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-brand">
-              <BalanceAmount value={formatNaira(projectedReturn)} />
-              <span className="text-[11px] font-medium text-muted-foreground">
-                · {ownership.projectedReturnRatePercent}% target ROI
-              </span>
+            <p className="text-xs font-medium text-muted-foreground">
+              Projected {formatReturnSchedule(ownership.returnSchedule).toLowerCase()} distribution
+            </p>
+            <div className="mt-0.5 text-sm font-semibold text-brand">
+              <BalanceAmount value={projection.amount} />
             </div>
           </div>
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <CalendarDays className="size-3.5 text-brand" />
-          Acquired {formatDate(ownership.createdAt)} · {ownership.status === 'COMPLETED' ? `Completed ${formatDate(ownership.completedAt)}` : `Matures ${formatDate(ownership.maturityAt)}`}
-        </p>
       </div>
       <ChevronRight className="hidden size-5 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-brand sm:block" />
     </Link>
