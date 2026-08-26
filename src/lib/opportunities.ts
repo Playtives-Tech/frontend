@@ -152,9 +152,16 @@ export function formatProjectedDistribution(
   const maximum = opportunity.projectedDistributionPerUnitMaximumMinorUnits;
   if (minimum != null && maximum != null)
     return `${formatOpportunityMoney(minimum * quantity)}–${formatOpportunityMoney(maximum * quantity)}`;
+  if (minimum != null) return formatOpportunityMoney(minimum * quantity);
+  if (maximum != null) return formatOpportunityMoney(maximum * quantity);
   if (opportunity.projectedDistributionPerUnitMinorUnits != null)
     return formatOpportunityMoney(opportunity.projectedDistributionPerUnitMinorUnits * quantity);
-  return 'Not projected as a cash distribution';
+  const rate = opportunity.equivalentProjectedPercentage ?? opportunity.projectedReturnRatePercent;
+  if (rate > 0)
+    return formatOpportunityMoney(
+      Math.round((opportunity.pricePerUnitMinorUnits * quantity * rate) / 100),
+    );
+  return '—';
 }
 
 export function isVariableDistribution(opportunity: Opportunity): boolean {
