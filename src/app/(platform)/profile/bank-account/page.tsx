@@ -105,7 +105,7 @@ export default function BankAccountPage(): React.JSX.Element {
       </p>
 
       <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-xs leading-5 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-        <strong>Account ownership requirement:</strong> The bank account name must closely match
+        <strong>Account ownership requirement:</strong> The bank account name must reasonably match
         your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>. Accounts
         with a different holder name will not be linked. Apply for a full name change on your
         Account page to correct your credentials.
@@ -237,15 +237,21 @@ export default function BankAccountPage(): React.JSX.Element {
                     loadingLabel="Linking account"
                     icon={<CheckCircle2 className="size-4" />}
                   >
-                    Link this account
+                    {resolved.nameMatchPercentage < 85 ? 'Verify anyway' : 'Link this account'}
                   </ButtonLoadingContent>
                 </button>
               </>
             ) : (
-              <p className="mt-4 text-sm font-medium text-red-700 dark:text-red-300">
-                This name has a {resolved.nameMatchPercentage}% match with your registered name,
-                {' '}{user?.name}. A minimum 80% match is required to link this account.
-              </p>
+              <>
+                <p className="mt-4 text-sm font-medium text-red-700 dark:text-red-300">
+                  This name has a {resolved.nameMatchPercentage}% match with your registered name,
+                  {' '}{user?.name}. A minimum 50% match is required to link this account.
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  If this is your account, please contact support to review your profile name before
+                  trying again.
+                </p>
+              </>
             )}
           </div>
         ) : null}
