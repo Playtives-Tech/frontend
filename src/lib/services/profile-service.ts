@@ -19,6 +19,7 @@ export type ResolvedBankAccount = Readonly<{
   bankName: string;
   accountName: string;
   accountNumberLast4: string;
+  nameMatchPercentage: number;
   nameMatches: boolean;
 }>;
 
