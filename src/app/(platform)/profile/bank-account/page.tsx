@@ -31,6 +31,7 @@ export default function BankAccountPage(): React.JSX.Element {
   const [resolving, setResolving] = useState(false);
   const [linking, setLinking] = useState(false);
   const [resolved, setResolved] = useState<ResolvedBankAccount | null>(null);
+  const [lowMatchConfirmed, setLowMatchConfirmed] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const filteredBanks = banks.filter((bank) =>
@@ -53,6 +54,7 @@ export default function BankAccountPage(): React.JSX.Element {
     event.preventDefault();
     setError(null);
     setResolved(null);
+    setLowMatchConfirmed(false);
     setResolving(true);
     try {
       setResolved(await resolveBankAccount(bankCode, number));
@@ -65,6 +67,7 @@ export default function BankAccountPage(): React.JSX.Element {
 
   async function link(): Promise<void> {
     if (!resolved?.nameMatches) return;
+    if (resolved.nameMatchPercentage < 85 && !lowMatchConfirmed) return;
     setError(null);
     setLinking(true);
     try {
@@ -74,6 +77,7 @@ export default function BankAccountPage(): React.JSX.Element {
       setBankCode('');
       setBankQuery('');
       setResolved(null);
+      setLowMatchConfirmed(false);
       notify.success('Bank account verified and linked');
     } catch (reason: unknown) {
       setError(reason instanceof ApiError ? reason.message : 'Could not link this account.');
@@ -209,7 +213,9 @@ export default function BankAccountPage(): React.JSX.Element {
           <div
             className={`mt-4 rounded-xl border p-4 ${
               resolved.nameMatches
-                ? 'border-emerald-500/30 bg-emerald-500/10'
+                ? resolved.nameMatchPercentage < 85
+                  ? 'border-amber-500/30 bg-amber-500/10'
+                  : 'border-emerald-500/30 bg-emerald-500/10'
                 : 'border-red-500/30 bg-red-500/10'
             }`}
           >
@@ -222,14 +228,38 @@ export default function BankAccountPage(): React.JSX.Element {
             </p>
             {resolved.nameMatches ? (
               <>
-                <p className="mt-4 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                  This account name has a {resolved.nameMatchPercentage}% match with your Playtives
-                  profile. Confirm below to link it.
-                </p>
+                {resolved.nameMatchPercentage < 85 ? (
+                  <>
+                    <p className="mt-4 text-sm font-medium leading-6 text-amber-800 dark:text-amber-200">
+                      This account name has a {resolved.nameMatchPercentage}% match with your
+                      Playtives profile and is below our standard verification threshold. Please
+                      confirm that the bank, account number and account name are correct before
+                      linking this account.
+                    </p>
+                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/20 bg-background/60 p-3 text-sm leading-5 text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={lowMatchConfirmed}
+                        onChange={(event) => setLowMatchConfirmed(event.target.checked)}
+                        className="mt-0.5 size-4 shrink-0 accent-brand"
+                      />
+                      <span>
+                        I confirm that this account belongs to me and that the details above are
+                        correct. I understand that Playtives will not be responsible for losses
+                        arising from incorrect account details that I personally confirm.
+                      </span>
+                    </label>
+                  </>
+                ) : (
+                  <p className="mt-4 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                    This account name has a {resolved.nameMatchPercentage}% match with your
+                    Playtives profile. Confirm below to link it.
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={() => void link()}
-                  disabled={linking}
+                  disabled={linking || (resolved.nameMatchPercentage < 85 && !lowMatchConfirmed)}
                   className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-40"
                 >
                   <ButtonLoadingContent
@@ -237,7 +267,7 @@ export default function BankAccountPage(): React.JSX.Element {
                     loadingLabel="Linking account"
                     icon={<CheckCircle2 className="size-4" />}
                   >
-                    {resolved.nameMatchPercentage < 85 ? 'Verify anyway' : 'Link this account'}
+                    {resolved.nameMatchPercentage < 85 ? 'Confirm & Link Account' : 'Link this account'}
                   </ButtonLoadingContent>
                 </button>
               </>
