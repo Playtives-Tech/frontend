@@ -5,8 +5,8 @@ export type NavigationItem = Readonly<{ href: string; label: string; icon: Lucid
 
 export const navigationItems = [
   { href: '/', label: 'Home', icon: House },
-  { href: '/discover', label: 'Discover', icon: Compass },
-  { href: '/ownership', label: 'My Ownership', icon: PieChart },
+  { href: '/discover', label: 'Opportunities', icon: Compass },
+  { href: '/ownership', label: 'My Portfolio', icon: PieChart },
   { href: '/learn', label: 'Learn', icon: BookOpen },
   { href: '/profile', label: 'Account', icon: UserRound },
 ] as const satisfies readonly NavigationItem[];

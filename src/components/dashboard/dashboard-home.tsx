@@ -6,7 +6,12 @@ import { FeaturedOpportunities } from '@/components/dashboard/featured-opportuni
 // KYC is temporarily paused: import { VerificationCard } from '@/components/dashboard/verification-card';
 import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
-import { getActivityLogs, getWallet, type ActivityLog, type WalletSummary } from '@/lib/services/wallet-service';
+import {
+  getActivityLogs,
+  getWallet,
+  type ActivityLog,
+  type WalletSummary,
+} from '@/lib/services/wallet-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
@@ -68,7 +73,7 @@ export function DashboardHome(): React.JSX.Element {
             {isGuest ? 'Welcome to Playtives.' : `${greeting}, ${firstName}.`}
           </h1>
           <p className="text-[.8rem] font-medium text-muted-foreground">
-            Continue your ownership journey.
+            Keep building your portfolio.
           </p>
         </div>
 
@@ -152,11 +157,16 @@ export function DashboardHome(): React.JSX.Element {
 }
 
 function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX.Element {
-  const amount = typeof item.metadata?.amountMinorUnits === 'number' ? item.metadata.amountMinorUnits / 100 : null;
+  const amount =
+    typeof item.metadata?.amountMinorUnits === 'number'
+      ? item.metadata.amountMinorUnits / 100
+      : null;
   const presentation = activityPresentation(item.action);
   return (
     <Link href="/wallet/activity" className="flex items-center gap-3 py-3.5">
-      <span className={`grid size-9 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}>
+      <span
+        className={`grid size-9 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
+      >
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
@@ -173,7 +183,8 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
       </span>
       {amount !== null ? (
         <strong className={`text-xs font-semibold ${presentation.amountClass}`}>
-          {presentation.prefix}{formatAmount(amount)}
+          {presentation.prefix}
+          {formatAmount(amount)}
         </strong>
       ) : null}
     </Link>
@@ -188,7 +199,12 @@ function formatAmount(amount: number): string {
   }).format(amount);
 }
 
-function activityPresentation(action: string): { label: string; prefix: string; iconClass: string; amountClass: string } {
+function activityPresentation(action: string): {
+  label: string;
+  prefix: string;
+  iconClass: string;
+  amountClass: string;
+} {
   const labels: Record<string, string> = {
     ACCOUNT_CREATED: 'Account setup completed',
     PASSWORD_CHANGED: 'Password updated',
@@ -204,13 +220,23 @@ function activityPresentation(action: string): { label: string; prefix: string; 
     EARNINGS_CREDITED: 'Investment return credited',
     OPPORTUNITY_ACQUIRED: 'Opportunity purchase completed',
   };
-  const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(action);
-  const outgoing = ['WITHDRAWAL_COMPLETED', 'WITHDRAWAL_FEE_CHARGED', 'OPPORTUNITY_ACQUIRED'].includes(action);
+  const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(
+    action,
+  );
+  const outgoing = [
+    'WITHDRAWAL_COMPLETED',
+    'WITHDRAWAL_FEE_CHARGED',
+    'OPPORTUNITY_ACQUIRED',
+  ].includes(action);
   const label = labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
   return {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
     prefix: incoming ? '+ ' : outgoing ? '- ' : '',
-    iconClass: incoming ? 'bg-emerald-500/10 text-emerald-600' : outgoing ? 'bg-amber-500/10 text-amber-700' : 'bg-brand/10 text-brand',
+    iconClass: incoming
+      ? 'bg-emerald-500/10 text-emerald-600'
+      : outgoing
+        ? 'bg-amber-500/10 text-amber-700'
+        : 'bg-brand/10 text-brand',
     amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
   };
 }

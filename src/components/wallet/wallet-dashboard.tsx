@@ -30,7 +30,7 @@ export function WalletDashboard(): React.JSX.Element {
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-      <BackButton label="Profile" />
+      <BackButton label="" />
 
       {walletError && (
         <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">

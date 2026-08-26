@@ -27,7 +27,7 @@ export function PortfolioSummaryCard({
   const portfolioBalance = formatNaira(portfolioMinorUnits / 100);
   const walletBalance = formatNaira(walletMinorUnits / 100);
   const ownershipBalance = formatNaira(ownershipBalanceMinorUnits / 100);
-  const ownershipAction = activeOwnershipCount > 0 ? 'View my ownership' : 'Co own now';
+  const ownershipAction = activeOwnershipCount > 0 ? 'View my ownership' : 'Co-own now';
   const ownershipHref = isGuest ? '/sign-up' : activeOwnershipCount > 0 ? '/ownership' : '/discover';
 
   return (
@@ -42,7 +42,7 @@ export function PortfolioSummaryCard({
               <BalanceAmount value={portfolioBalance} toggle />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Your wallet funds and active ownership contributions.
+             Your wallet plus active co-funded and co-owned positions.
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -63,7 +63,7 @@ export function PortfolioSummaryCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/wallet/deposit" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:brightness-110">
               <Plus className="size-3.5" />
-              Quick top up
+              Add funds
             </Link>
             <Link href={ownershipHref} className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold text-foreground transition hover:bg-muted">
               <Building2 className="size-3.5 text-brand" />
@@ -91,7 +91,7 @@ export function PortfolioSummaryCard({
           <section className="w-full max-w-xl rounded-2xl border bg-background p-6 shadow-xl sm:p-8">
             <header className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand">Portfolio balance</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand">Portfolio value</p>
                 {/* <h2 id="portfolio-breakdown-title" className="mt-1 text-lg font-semibold">Your balance breakdown</h2> */}
               </div>
               <button type="button" onClick={() => setShowBreakdown(false)} className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground" aria-label="Close portfolio breakdown">
