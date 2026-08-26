@@ -27,7 +27,7 @@ export function PortfolioSummaryCard({
   const portfolioBalance = formatNaira(portfolioMinorUnits / 100);
   const walletBalance = formatNaira(walletMinorUnits / 100);
   const ownershipBalance = formatNaira(ownershipBalanceMinorUnits / 100);
-  const ownershipAction = activeOwnershipCount > 0 ? 'View my ownership' : 'Explore opportunities';
+  const ownershipAction = activeOwnershipCount > 0 ? 'View my ownership' : 'Co own now';
   const ownershipHref = isGuest ? '/sign-up' : activeOwnershipCount > 0 ? '/ownership' : '/discover';
 
   return (
@@ -46,9 +46,16 @@ export function PortfolioSummaryCard({
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+            <Link
+              href="/wallet"
+              className="group relative grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand transition hover:bg-brand hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              aria-label="Go to wallet"
+            >
               <Wallet className="size-5" />
-            </span>
+              <span className="pointer-events-none absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-semibold text-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                Wallet
+              </span>
+            </Link>
           </div>
         </div>
 
@@ -73,7 +80,7 @@ export function PortfolioSummaryCard({
             onClick={() => setShowBreakdown(true)}
             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand/20 px-3 text-xs font-semibold text-brand transition hover:bg-brand/5"
           >
-            View
+            Portfolio breakdown
             <ArrowRight className="size-3.5" />
           </button>
         </div>
