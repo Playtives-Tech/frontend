@@ -105,9 +105,10 @@ export default function BankAccountPage(): React.JSX.Element {
       </p>
 
       <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-xs leading-5 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-        <strong>Account ownership requirement:</strong> The bank account must be registered in the
-        same name as your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>
-        . Accounts with a different holder name will not be linked. Apply for full name change on your Account page to correct your credentials
+        <strong>Account ownership requirement:</strong> The bank account name must closely match
+        your Playtives profile, <strong>{user?.name ?? 'your registered name'}</strong>. Accounts
+        with a different holder name will not be linked. Apply for a full name change on your
+        Account page to correct your credentials.
       </div>
 
       {error ? (
