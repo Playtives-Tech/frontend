@@ -150,12 +150,12 @@ export function OwnershipPositionDetail({
                     }
                     supportingText={
                       ownership.termType === 'LIFE_OF_ASSET'
-                        ? 'Any distribution is calculated from realised performance and credited after allocation.'
-                        : 'Returns are credited to your earnings balance automatically.'
+                        ? 'Any distribution is based on realised performance and credited after administrator approval.'
+                        : 'Actual returns are credited to your earnings balance after administrator approval.'
                     }
                   />
                   <DetailMetric
-                    label="Returns credited"
+                    label="Actual returns credited"
                     value={<BalanceAmount value={formatNaira(ownership.totalAccruedReturnMinorUnits / 100)} />}
                   />
                   <DetailMetric label="Ownership model" value={opportunity.ownershipModel} />
