@@ -121,8 +121,8 @@ export function DepositRequest(): React.JSX.Element {
             <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
             <p>
               Enter the exact amount you intend to deposit. Confirm any applicable charge shown by
-              Paystack before continuing, and complete transfers for the exact checkout amount to
-              avoid a delay or reversal.
+              Paystack before continuing. Your wallet is credited with the deposit amount entered
+              here; any checkout charge is shown separately before you confirm.
             </p>
           </div>
           <button
