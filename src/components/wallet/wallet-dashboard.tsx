@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUpRight, ChevronRight, Package } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, Package, Plus, TrendingUp, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { BalanceAmount } from '@/components/ui/balance-amount';
@@ -38,28 +38,34 @@ export function WalletDashboard(): React.JSX.Element {
         </p>
       )}
 
-      <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80">
-          Available balance
-        </p>
-        <div className="mt-2 font-sans text-3xl font-semibold">
-          <BalanceAmount value={formatNaira(balance)} toggle />
+      <section className="playtives-gold-card mt-6 overflow-hidden rounded-2xl p-5 text-white shadow-[0_20px_45px_-30px_rgba(5,92,66,0.8)] sm:p-7">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+              Available balance
+            </p>
+            <div className="mt-2 font-sans text-3xl font-semibold tracking-tight sm:text-4xl">
+              <BalanceAmount value={formatNaira(balance)} toggle />
+            </div>
+          </div>
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 text-white/90">
+            <WalletCards className="size-5" />
+          </span>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 border-t border-brand-foreground/20 pt-5 sm:flex-row">
-          <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-foreground/70">
-              Deposited Funds
-            </p>
-            <p className="mt-1 font-sans text-lg font-medium">
+        <div className="mt-6 grid gap-3 border-t border-white/15 pt-5 sm:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-white/[0.08] p-4">
+            <p className="text-xs font-medium text-white/70">Deposited funds</p>
+            <p className="mt-1.5 font-sans text-xl font-semibold">
               <BalanceAmount value={formatNaira(walletBalance)} />
             </p>
           </div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-foreground/70">
-              Investment Returns
-            </p>
-            <p className="mt-1 font-sans text-lg font-medium">
+          <div className="rounded-xl border border-white/10 bg-white/[0.08] p-4">
+            <div className="flex items-center gap-1.5 text-white/70">
+              <TrendingUp className="size-3.5" />
+              <p className="text-xs font-medium">Investment returns</p>
+            </div>
+            <p className="mt-1.5 font-sans text-xl font-semibold">
               <BalanceAmount value={formatNaira(earningsBalance)} />
             </p>
           </div>
@@ -68,14 +74,15 @@ export function WalletDashboard(): React.JSX.Element {
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <Link
             href="/wallet/deposit"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-brand transition hover:bg-white/90"
           >
-            Fund wallet
+            <Plus className="size-4" />
+            Deposit funds
           </Link>
 
           <Link
             href="/wallet/withdraw"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-r from-emerald-600 to-teal-500 px-4 text-sm font-semibold text-white transition hover:brightness-110"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
           >
             <ArrowUpRight className="size-5" />
             Withdraw funds
