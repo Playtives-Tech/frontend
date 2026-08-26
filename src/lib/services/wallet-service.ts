@@ -29,6 +29,30 @@ export function getWalletFundingDetails(): Promise<WalletFundingDetails> {
   return api<WalletFundingDetails>('/v1/wallet/funding-details');
 }
 
+export type PaystackCheckout = Readonly<{
+  reference: string;
+  authorizationUrl: string;
+  accessCode: string;
+}>;
+
+export type PaystackFundingVerification = Readonly<{
+  reference: string;
+  status: string;
+  credited: boolean;
+  wallet?: WalletSummary;
+}>;
+
+export function initializePaystackWalletFunding(amountMinorUnits: number): Promise<PaystackCheckout> {
+  return api<PaystackCheckout>('/v1/wallet/paystack/initialize', {
+    method: 'POST',
+    body: JSON.stringify({ amountMinorUnits }),
+  });
+}
+
+export function verifyPaystackWalletFunding(reference: string): Promise<PaystackFundingVerification> {
+  return api<PaystackFundingVerification>(`/v1/wallet/paystack/verify/${encodeURIComponent(reference)}`);
+}
+
 export type ActivityLog = Readonly<{
   _id: string;
   action: string;
