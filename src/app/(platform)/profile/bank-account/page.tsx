@@ -223,7 +223,8 @@ export default function BankAccountPage(): React.JSX.Element {
             {resolved.nameMatches ? (
               <>
                 <p className="mt-4 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                  This account name matches your Playtives profile. Confirm below to link it.
+                  This account name has a {resolved.nameMatchPercentage}% match with your Playtives
+                  profile. Confirm below to link it.
                 </p>
                 <button
                   type="button"
@@ -242,8 +243,8 @@ export default function BankAccountPage(): React.JSX.Element {
               </>
             ) : (
               <p className="mt-4 text-sm font-medium text-red-700 dark:text-red-300">
-                This name does not match your registered name, {user?.name}. You cannot link this
-                account.
+                This name has a {resolved.nameMatchPercentage}% match with your registered name,
+                {' '}{user?.name}. A minimum 80% match is required to link this account.
               </p>
             )}
           </div>
