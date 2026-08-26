@@ -60,6 +60,17 @@ export type MemberMaturityPayout = Readonly<{
   reviewedAt: string | null;
 }>;
 
+export type MemberOwnershipDistribution = Readonly<{
+  _id: string;
+  cycleNumber: number;
+  scheduledFor: string;
+  principalBeforeMinorUnits: number;
+  returnMinorUnits: number;
+  principalAfterMinorUnits: number;
+  rolledOver: boolean;
+  status: 'PENDING_ADMIN' | 'CREDITED' | 'ROLLED_OVER' | 'PENDING_MATURITY';
+}>;
+
 export function acquireOpportunity(
   opportunity: Opportunity,
   units: number,
@@ -95,6 +106,12 @@ export function getOwnership(id: string): Promise<Ownership> {
 
 export function getMaturityPayouts(): Promise<MemberMaturityPayout[]> {
   return api<MemberMaturityPayout[]>('/v1/ownership/payouts', { cache: 'no-store' });
+}
+
+export function getOwnershipDistributions(id: string): Promise<MemberOwnershipDistribution[]> {
+  return api<MemberOwnershipDistribution[]>(`/v1/ownership/${encodeURIComponent(id)}/distributions`, {
+    cache: 'no-store',
+  });
 }
 
 export function getOwnershipProjection(ownership: Ownership): Readonly<{

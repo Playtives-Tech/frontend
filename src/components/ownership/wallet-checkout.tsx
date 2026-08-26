@@ -130,8 +130,8 @@ export function WalletCheckout({
       </section>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">
         {isVariableDistribution(opportunity)
-          ? 'This is a variable distribution based on the opportunity’s realised performance. It is projected, not guaranteed.'
-          : 'Projected distributions are estimates and are not guaranteed.'}
+          ? 'The displayed amount is the projected monthly distribution for your selected units.'
+          : 'The displayed amount is the projected return for your selected units.'}
       </p>
       <section className="mt-5 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

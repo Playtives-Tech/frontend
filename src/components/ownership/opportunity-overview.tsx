@@ -109,7 +109,7 @@ export function OpportunityOverview({
             />
             <Highlight
               label="Return type"
-              value={isVariableDistribution(opportunity) ? 'Variable — based on realised performance' : 'Projected — not guaranteed'}
+              value={isVariableDistribution(opportunity) ? 'Variable monthly distribution' : 'Projected monthly distribution'}
             />
           </div>
 
@@ -125,10 +125,7 @@ export function OpportunityOverview({
             <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
           </div> */}
 
-          <p className="mt-5 rounded-xl border border-brand/25 bg-brand/10 px-4 py-3 text-sm leading-6 text-brand dark:border-brand/35 dark:bg-brand/15">
-            {opportunity.projectionDisclaimer ||
-              'Projected distribution figures are provided for planning only and are not guaranteed.'}
-          </p>
+          {opportunity.projectionDisclaimer ? <p className="mt-5 rounded-xl border border-brand/25 bg-brand/10 px-4 py-3 text-sm leading-6 text-brand dark:border-brand/35 dark:bg-brand/15">{opportunity.projectionDisclaimer}</p> : null}
 
           <div className="mt-8 space-y-7">
             <ContentSection title="About the opportunity" text={opportunity.about} />

@@ -2,9 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   formatOpportunityMoney,
-  formatProjectedReturnRate,
+  formatProjectedDistribution,
   formatReturnSchedule,
-  isVariableDistribution,
   type Opportunity,
 } from '@/lib/opportunities';
 
@@ -92,7 +91,5 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
 
 function projectionLabel(opportunity: Opportunity): string {
   const schedule = formatReturnSchedule(opportunity.returnSchedule).toLowerCase();
-  if (opportunity.projectionType === 'NOT_APPLICABLE') return 'No periodic distribution projected';
-  const qualifier = isVariableDistribution(opportunity) ? 'variable projected distribution' : 'projected return';
-  return `${formatProjectedReturnRate(opportunity)} ${qualifier} · ${schedule}`;
+  return `${formatProjectedDistribution(opportunity)} projected return · ${schedule}`;
 }
