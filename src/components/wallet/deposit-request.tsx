@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Copy, ShieldCheck, Upload } from 'lucide-react';
+import { Check, CircleAlert, Copy, ShieldCheck, Upload } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
@@ -108,7 +108,7 @@ export function DepositRequest(): React.JSX.Element {
         </div>
         <div className="p-5 sm:p-6">
           <label className="block text-sm font-medium">
-            Amount (NGN)
+            Deposit amount (NGN)
             <input
               inputMode="numeric"
               value={cardAmount}
@@ -117,6 +117,14 @@ export function DepositRequest(): React.JSX.Element {
               className="mt-2 h-12 w-full rounded-xl border bg-background px-4 text-base outline-none transition focus:ring-2 focus:ring-brand"
             />
           </label>
+          <div className="mt-3 flex gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs leading-5 text-muted-foreground">
+            <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
+            <p>
+              Enter the exact amount you intend to deposit. Confirm any applicable charge shown by
+              Paystack before continuing, and complete transfers for the exact checkout amount to
+              avoid a delay or reversal.
+            </p>
+          </div>
           <button
             type="submit"
             disabled={!cardAmount || isStartingCardPayment}
