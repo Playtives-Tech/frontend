@@ -216,15 +216,16 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
     typeof item.metadata?.amountMinorUnits === 'number'
       ? item.metadata.amountMinorUnits / 100
       : null;
+  const presentation = activityPresentation(item.action);
 
   return (
     <Link href="/wallet/activity" className="flex items-center gap-3 py-4">
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
+      <span className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}>
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
         <strong className="block truncate font-sans text-[.8rem] font-semibold tracking-tight">
-          {formatActivityAction(item.action)}
+          {presentation.label}
         </strong>
         <small className="block text-[.7rem] text-muted-foreground">
           {new Date(item.createdAt).toLocaleDateString('en-NG', {
@@ -235,19 +236,23 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
         </small>
       </span>
       {amount !== null ? (
-        <strong className="text-xs text-brand">
-          {new Intl.NumberFormat('en-NG', {
-            style: 'currency',
-            currency: 'NGN',
-            maximumFractionDigits: 0,
-          }).format(amount)}
+        <strong className={`text-xs ${presentation.amountClass}`}>
+          {presentation.prefix}{formatAmount(amount)}
         </strong>
       ) : null}
     </Link>
   );
 }
 
-function formatActivityAction(action: string): string {
+function formatAmount(amount: number): string {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function activityPresentation(action: string): { label: string; prefix: string; iconClass: string; amountClass: string } {
   const labels: Record<string, string> = {
     ACCOUNT_CREATED: 'account setup completed',
     USER_LOGIN: 'User login completed',
@@ -256,14 +261,25 @@ function formatActivityAction(action: string): string {
     BANK_ACCOUNT_LINKED: 'bank account linked',
     BANK_ACCOUNT_REMOVED: 'bank account removed',
     WALLET_CREATED: 'wallet setup completed',
-    DEPOSIT_REQUESTED: 'wallet deposit requested',
-    WITHDRAWAL_REQUESTED: 'wallet withdrawal requested',
-    EARNINGS_CREDITED: 'earnings payment credited',
+    DEPOSIT_REQUESTED: 'Cash deposit pending',
+    DEPOSIT_APPROVED: 'Cash Deposit',
+    WALLET_FUNDED_BY_CARD: 'Cash Deposit',
+    WITHDRAWAL_REQUESTED: 'Cash withdrawal pending',
+    WITHDRAWAL_COMPLETED: 'Cash Withdrawal',
+    WITHDRAWAL_FEE_CHARGED: 'Transaction fee',
+    EARNINGS_CREDITED: 'Investment return credited',
     PHONE_OTP_SENT: 'verification code sent',
     PHONE_VERIFIED: 'phone verification completed',
     OPPORTUNITY_ACQUIRED: 'opportunity purchase completed',
   };
 
+  const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(action);
+  const outgoing = ['WITHDRAWAL_COMPLETED', 'WITHDRAWAL_FEE_CHARGED', 'OPPORTUNITY_ACQUIRED'].includes(action);
   const label = labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
-  return `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
+  return {
+    label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
+    prefix: incoming ? '+ ' : outgoing ? '- ' : '',
+    iconClass: incoming ? 'bg-emerald-500/10 text-emerald-600' : outgoing ? 'bg-amber-500/10 text-amber-700' : 'bg-brand/10 text-brand',
+    amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
+  };
 }

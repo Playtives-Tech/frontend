@@ -53,7 +53,7 @@ export default function WithdrawPage(): React.JSX.Element {
   }, [setAccounts]);
 
   const parsedAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
-  const fee = 50; // Fixed fee for example
+  const fee = 50;
   const totalDeduction = parsedAmount + fee;
 
   const handleAccountSelect = (account: LinkedAccount) => {
@@ -85,7 +85,7 @@ export default function WithdrawPage(): React.JSX.Element {
 
     try {
       const request = await createWithdrawalRequest(
-        { amountMinorUnits: totalDeduction * 100, linkedBankAccountId: selectedAccount.id },
+        { amountMinorUnits: parsedAmount * 100, linkedBankAccountId: selectedAccount.id },
         idempotencyKey,
       );
       const updatedWallet = await getWallet();
@@ -207,6 +207,9 @@ export default function WithdrawPage(): React.JSX.Element {
                 />
               </div>
             </label>
+            <p className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+              A ₦50 transaction fee is included. This fee is non-refundable.
+            </p>
 
             <button className="h-10 w-full rounded-lg bg-brand text-sm font-semibold text-brand-foreground transition hover:brightness-110">
               Continue
@@ -228,8 +231,8 @@ export default function WithdrawPage(): React.JSX.Element {
               <dt className="text-muted-foreground">Transaction fee</dt>
               <dd className="font-semibold">{formatNaira(fee)}</dd>
             </div>
-            <div className="flex justify-between py-3 text-sm">
-              <dt className="font-semibold">Total deduction</dt>
+            <div className="flex justify-between py-3">
+              <dt className="font-semibold">Total wallet deduction</dt>
               <dd className="font-bold text-brand">{formatNaira(totalDeduction)}</dd>
             </div>
             <div className="flex justify-between py-3">
@@ -245,6 +248,10 @@ export default function WithdrawPage(): React.JSX.Element {
               <dd className="font-semibold">Within 5 minutes</dd>
             </div>
           </dl>
+          <p className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+            {formatNaira(totalDeduction)} is reserved from your wallet. The amount sent to your bank
+            account is {formatNaira(parsedAmount)}. Any external bank or payment-provider charge is separate.
+          </p>
 
           <button
             onClick={handleConfirm}
