@@ -59,6 +59,15 @@ export function DashboardHome(): React.JSX.Element {
     (total, ownership) => total + ownership.amountMinorUnits,
     0,
   );
+  const coOwnedContributionMinorUnits = activeOwnerships
+    .filter((ownership) => ownershipStructure(ownership) === 'CO_OWNERSHIP')
+    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
+  const coFundedContributionMinorUnits = activeOwnerships
+    .filter((ownership) => ownershipStructure(ownership) === 'CO_FUNDING')
+    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
+  const fullOwnershipContributionMinorUnits = activeOwnerships
+    .filter((ownership) => ownershipStructure(ownership) === 'FULL_OWNERSHIP')
+    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
 
   return (
     <div className="w-full px-4 py-4 sm:px-8 lg:py-6">
@@ -79,17 +88,20 @@ export function DashboardHome(): React.JSX.Element {
 
         <a
           href="/notifications"
-          className="mt-8 grid size-10 shrink-0 place-items-center rounded-full border bg-background shadow-sm"
+          className="mt-1 grid size-10 shrink-0 place-items-center rounded-full border bg-background shadow-sm"
           aria-label="Notifications"
         >
           <Bell className="size-5" />
         </a>
       </header>
 
-      <div className="mt-7">
+      <div className="mt-5 sm:mt-7">
         <PortfolioSummaryCard
           walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
           ownershipBalanceMinorUnits={activeContributionMinorUnits}
+          coOwnedContributionMinorUnits={coOwnedContributionMinorUnits}
+          coFundedContributionMinorUnits={coFundedContributionMinorUnits}
+          fullOwnershipContributionMinorUnits={fullOwnershipContributionMinorUnits}
           activeOwnershipCount={activeOwnerships.length}
           isGuest={isGuest}
         />
@@ -105,7 +117,7 @@ export function DashboardHome(): React.JSX.Element {
 
       <FeaturedOpportunities />
 
-      <section className="mt-7 lg:hidden">
+      <section className="mt-6 lg:hidden">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-base font-semibold tracking-tight">Recent activities</h2>
           <Link
@@ -127,7 +139,7 @@ export function DashboardHome(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="relative mt-7 overflow-hidden rounded-xl border border-[#25D366]/20 bg-[linear-gradient(120deg,rgb(37_211_102_/_0.10),rgb(255_255_255_/_0.96)_52%)] p-4 dark:border-[#25D366]/15 dark:bg-[linear-gradient(120deg,rgb(37_211_102_/_0.16),rgb(20_32_27_/_0.96)_52%)] sm:p-5">
+      <section className="relative mt-6 overflow-hidden rounded-xl border border-[#25D366]/20 bg-[linear-gradient(120deg,rgb(37_211_102_/_0.10),rgb(255_255_255_/_0.96)_52%)] p-4 dark:border-[#25D366]/15 dark:bg-[linear-gradient(120deg,rgb(37_211_102_/_0.16),rgb(20_32_27_/_0.96)_52%)] sm:mt-7 sm:p-5">
         <div className="pointer-events-none absolute -right-8 -top-10 size-32 rounded-full bg-[#25D366]/10 blur-2xl" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -145,7 +157,7 @@ export function DashboardHome(): React.JSX.Element {
             href={whatsappCommunityUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#20bd5a]"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#20bd5a]"
           >
             Join community
             <ArrowUpRight className="size-3.5" />
@@ -156,6 +168,10 @@ export function DashboardHome(): React.JSX.Element {
   );
 }
 
+function ownershipStructure(ownership: Ownership): Ownership['opportunityStructure'] {
+  return ownership.opportunityId.opportunityStructure ?? ownership.opportunityStructure;
+}
+
 function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX.Element {
   const amount =
     typeof item.metadata?.amountMinorUnits === 'number'
@@ -163,7 +179,7 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
       : null;
   const presentation = activityPresentation(item.action);
   return (
-    <Link href="/wallet/activity" className="flex items-center gap-3 py-3.5">
+    <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-3.5">
       <span
         className={`grid size-9 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
       >

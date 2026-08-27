@@ -6,6 +6,12 @@
     font-size: 15px;
   }
 
+  @media (max-width: 639px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 224 31% 12%;
@@ -57,8 +63,8 @@
 
   .playtives-gold-card {
     background:
-      radial-gradient(circle at 88% 16%, rgb(219 170 55 / 0.18), transparent 28%),
-      linear-gradient(135deg, #064b37 0%, #075d42 58%, #356f38 100%);
+      radial-gradient(circle at 88% 16%, rgba(208, 162, 55, 0.18), transparent 28%),
+      linear-gradient(135deg, #064b37 0%, #075d42 58%, #336336 100%);
     box-shadow: 0 22px 55px rgb(8 68 49 / 0.16);
   }
 

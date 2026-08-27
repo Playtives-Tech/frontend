@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { LayoutGrid, LockKeyhole, Search, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -9,10 +9,12 @@ import {
   type Opportunity,
 } from '@/lib/opportunities';
 import { OpportunityCard } from './opportunity-card';
+import { LoadingSpinner } from '@/components/ui/loading-indicator';
 
 export function OpportunityCatalogue(): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [sector, setSector] = useState('All');
+  const [availability, setAvailability] = useState<'OPEN' | 'COMMENCED'>('OPEN');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,13 +42,14 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     return opportunities.filter(
       (opportunity) =>
+        opportunity.acquisitionStatus === availability &&
         (sector === 'All' || opportunity.category === sector) &&
         (!normalizedQuery ||
           `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
-  }, [sector, opportunities, query]);
+  }, [availability, sector, opportunities, query]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
@@ -88,15 +91,72 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mt-7 flex items-center justify-between gap-4">
-        <h2 className="font-sans text-[.9rem] font-semibold leading-7 sm:text-[19px]">
-          Available now
-        </h2>
-        <p className="text-sm text-muted-foreground">{visibleOpportunities.length} opportunities</p>
+      <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div>
+          <h2 className="font-sans text-xl font-semibold leading-7 sm:text-[19px]">
+            {availability === 'OPEN' ? 'Open opportunities' : 'Closed opportunities'}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            {availability === 'OPEN'
+              ? 'Explore opportunities that are open for you to own.'
+              : 'These opportunities have started and are closed to new owners.'}
+          </p>
+        </div>
+        <p className="shrink-0 text-sm text-muted-foreground">
+          {visibleOpportunities.length} opportunities
+        </p>
+      </div>
+
+      <div
+        className="mt-5 grid w-full grid-cols-2 rounded-xl border border-border bg-surface p-1"
+        role="tablist"
+        aria-label="Opportunity availability"
+      >
+        <button
+          type="button"
+          onClick={() => setAvailability('OPEN')}
+          role="tab"
+          aria-selected={availability === 'OPEN'}
+          className={cn(
+            'flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:flex-none',
+            availability === 'OPEN'
+              ? 'bg-background text-brand shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <LayoutGrid className="size-4" aria-hidden="true" />
+          <span className="font-semibold">Open opportunities</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setAvailability('COMMENCED')}
+          role="tab"
+          aria-selected={availability === 'COMMENCED'}
+          className={cn(
+            'flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:flex-none',
+            availability === 'COMMENCED'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <LockKeyhole className="size-4" aria-hidden="true" />
+          <span className="font-semibold">Closed opportunities</span>
+        </button>
       </div>
 
       {loading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Loading opportunities…</p>
+        <section
+          className="mt-5 grid min-h-56 place-items-center rounded-2xl border border-dashed border-brand/20 bg-brand/[0.025] px-5 py-10 text-center"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center">
+            <span className="grid size-12 place-items-center rounded-2xl bg-brand/10 text-brand">
+              <LoadingSpinner className="size-5" label="Loading opportunities" />
+            </span>
+            <p className="mt-3 text-sm font-semibold text-foreground">Loading opportunities</p>
+            <p className="mt-1 text-xs text-muted-foreground">Finding opportunities you can own.</p>
+          </div>
+        </section>
       ) : error ? (
         <p className="text-destructive mt-8 text-sm">{error}</p>
       ) : visibleOpportunities.length > 0 ? (
@@ -107,7 +167,9 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       ) : (
         <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
-          <h2 className="font-sans text-xl font-semibold">No matching opportunities</h2>
+          <h2 className="font-sans text-xl font-semibold">
+            {availability === 'OPEN' ? 'No open opportunities' : 'No closed opportunities'}
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Try another search or select a different sector or industry.
           </p>

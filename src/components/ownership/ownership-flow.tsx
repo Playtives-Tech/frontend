@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Opportunity } from '@/lib/opportunities';
+import { isOpportunityOpenForAcquisition } from '@/lib/opportunities';
 import { OpportunityOverview } from './opportunity-overview';
 import { PositionSelector } from './position-selector';
 import { WalletCheckout } from './wallet-checkout';
@@ -13,7 +14,8 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
   const [step, setStep] = useState<OwnershipStep>('overview');
   const [quantity, setQuantity] = useState(1);
   const [agreementAccepted, setAgreementAccepted] = useState(false);
-  if (step === 'positions')
+  const canAcquire = isOpportunityOpenForAcquisition(opportunity);
+  if (step === 'positions' && canAcquire)
     return (
       <PositionSelector
         opportunity={opportunity}
@@ -23,7 +25,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         onBack={() => setStep('overview')}
       />
     );
-  if (step === 'checkout')
+  if (step === 'checkout' && canAcquire)
     return (
       <WalletCheckout
         opportunity={opportunity}
@@ -37,7 +39,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
       opportunity={opportunity}
       agreementAccepted={agreementAccepted}
       onAgreementAccepted={() => setAgreementAccepted(true)}
-      onContinue={() => setStep('positions')}
+      onContinue={canAcquire ? () => setStep('positions') : undefined}
     />
   );
 }

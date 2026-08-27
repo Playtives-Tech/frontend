@@ -33,11 +33,11 @@ function NavigationLink({
     <Link
       href={href}
       className={cn(
-        'group flex items-center gap-3 rounded-[.6rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+        'group flex items-center gap-3 rounded-[.5rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
         compact ? 'flex-col gap-1 px-2 py-2 text-[10px]' : 'h-12 px-3.5 text-[.85rem]',
         inverse
           ? active
-            ? 'border border-l-4 border-white/15 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
+            ? 'border border-l-[2px] border-white/15 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
             : 'text-white/70 hover:bg-white/10 hover:text-white'
           : active
             ? compact
@@ -122,7 +122,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </nav>
       </aside>
 
-      <main className="w-full pb-24 pt-6 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
+      <main className="w-full pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
@@ -219,8 +219,10 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
   const presentation = activityPresentation(item.action);
 
   return (
-    <Link href="/wallet/activity" className="flex items-center gap-3 py-4">
-      <span className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}>
+    <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-4">
+      <span
+        className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
+      >
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
@@ -237,7 +239,8 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
       </span>
       {amount !== null ? (
         <strong className={`text-xs ${presentation.amountClass}`}>
-          {presentation.prefix}{formatAmount(amount)}
+          {presentation.prefix}
+          {formatAmount(amount)}
         </strong>
       ) : null}
     </Link>
@@ -252,7 +255,12 @@ function formatAmount(amount: number): string {
   }).format(amount);
 }
 
-function activityPresentation(action: string): { label: string; prefix: string; iconClass: string; amountClass: string } {
+function activityPresentation(action: string): {
+  label: string;
+  prefix: string;
+  iconClass: string;
+  amountClass: string;
+} {
   const labels: Record<string, string> = {
     ACCOUNT_CREATED: 'account setup completed',
     USER_LOGIN: 'User login completed',
@@ -273,13 +281,23 @@ function activityPresentation(action: string): { label: string; prefix: string; 
     OPPORTUNITY_ACQUIRED: 'opportunity purchase completed',
   };
 
-  const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(action);
-  const outgoing = ['WITHDRAWAL_COMPLETED', 'WITHDRAWAL_FEE_CHARGED', 'OPPORTUNITY_ACQUIRED'].includes(action);
+  const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(
+    action,
+  );
+  const outgoing = [
+    'WITHDRAWAL_COMPLETED',
+    'WITHDRAWAL_FEE_CHARGED',
+    'OPPORTUNITY_ACQUIRED',
+  ].includes(action);
   const label = labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
   return {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
     prefix: incoming ? '+ ' : outgoing ? '- ' : '',
-    iconClass: incoming ? 'bg-emerald-500/10 text-emerald-600' : outgoing ? 'bg-amber-500/10 text-amber-700' : 'bg-brand/10 text-brand',
+    iconClass: incoming
+      ? 'bg-emerald-500/10 text-emerald-600'
+      : outgoing
+        ? 'bg-amber-500/10 text-amber-700'
+        : 'bg-brand/10 text-brand',
     amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
   };
 }

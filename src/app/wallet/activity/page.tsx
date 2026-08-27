@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, WalletCards } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import {
@@ -120,29 +121,42 @@ function ActivityRow({ log }: Readonly<{ log: ActivityLog }>): React.JSX.Element
   const presentation = activityPresentation(log.action);
 
   return (
-    <article className="flex items-center gap-3 py-4">
-      <span className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}>
+    <Link
+      href={`/wallet/activity/${log._id}`}
+      className="group flex items-center gap-3 py-4 transition hover:bg-muted/40"
+      aria-label={`View details for ${presentation.label}`}
+    >
+      <span
+        className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
+      >
         <WalletCards className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <strong className="block truncate font-sans text-[.8rem]">
-          {presentation.label}
-        </strong>
+        <strong className="block truncate font-sans text-[.8rem]">{presentation.label}</strong>
         <small className="mt-0.5 block font-sans text-[.7rem] text-muted-foreground">
-          {new Date(log.createdAt).toLocaleDateString('en-NG', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {formatActivityTimestamp(log.createdAt)}
         </small>
       </span>
       {amount !== null ? (
         <strong className={`font-sans text-xs ${presentation.amountClass}`}>
-          {presentation.prefix}{formatAmount(amount)}
+          {presentation.prefix}
+          {formatAmount(amount)}
         </strong>
       ) : null}
-    </article>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
+    </Link>
   );
+}
+
+function formatActivityTimestamp(value: string): string {
+  return new Intl.DateTimeFormat('en-NG', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
 }
 
 function formatAmount(amount: number): string {
@@ -153,9 +167,12 @@ function formatAmount(amount: number): string {
   }).format(amount);
 }
 
-function activityPresentation(
-  action: string,
-): { label: string; prefix: string; iconClass: string; amountClass: string } {
+function activityPresentation(action: string): {
+  label: string;
+  prefix: string;
+  iconClass: string;
+  amountClass: string;
+} {
   const labels: Record<string, string> = {
     ACCOUNT_CREATED: 'Account setup completed',
     USER_LOGIN: 'User login completed',
@@ -179,9 +196,11 @@ function activityPresentation(
   const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(
     action,
   );
-  const outgoing = ['WITHDRAWAL_COMPLETED', 'WITHDRAWAL_FEE_CHARGED', 'OPPORTUNITY_ACQUIRED'].includes(
-    action,
-  );
+  const outgoing = [
+    'WITHDRAWAL_COMPLETED',
+    'WITHDRAWAL_FEE_CHARGED',
+    'OPPORTUNITY_ACQUIRED',
+  ].includes(action);
   const label = labels[action] ?? action.replaceAll('_', ' ').toLowerCase();
   return {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,

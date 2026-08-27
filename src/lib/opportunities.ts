@@ -3,8 +3,7 @@ import { env } from './env';
 
 export type OpportunityStatus = 'PUBLISHED';
 export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
-export type OwnershipModel = 'CO_OWNERSHIP' | 'FULL_OWNERSHIP';
-export type OpportunityStructure = OwnershipModel | 'CO_FUNDING';
+export type OpportunityStructure = 'CO_OWNERSHIP' | 'CO_FUNDING' | 'FULL_OWNERSHIP';
 export type TermType = 'FIXED_TERM' | 'LIFE_OF_ASSET';
 export type DurationUnit = 'DAYS' | 'MONTHS' | 'YEARS';
 
@@ -48,13 +47,14 @@ export type Opportunity = Readonly<{
   projectedProfitMinorUnits: number;
   projectedMonthlyProfitMinorUnits: number | null;
   returnSchedule: ReturnSchedule;
-  ownershipModel: OwnershipModel;
   rolloverAllowed: boolean;
   rolloverCompoundsReturns: boolean;
   rolloverNextPrincipalMinorUnits: number | null;
   rolloverNextProjectedProfitMinorUnits: number | null;
   location: string;
   memberAvailabilityDate: string | null;
+  commencementDate: string | null;
+  acquisitionStatus: 'OPEN' | 'COMMENCED';
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
@@ -109,8 +109,13 @@ export function formatReturnSchedule(schedule: ReturnSchedule): string {
   return 'At maturity';
 }
 
-export function formatOwnershipModel(model: OwnershipModel): string {
-  return model === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership';
+export function formatOwnershipModel(structure: OpportunityStructure): string {
+  if (structure === 'CO_FUNDING') return 'Co-funding';
+  return structure === 'FULL_OWNERSHIP' ? 'Full ownership' : 'Co-ownership';
+}
+
+export function isOpportunityOpenForAcquisition(opportunity: Opportunity): boolean {
+  return opportunity.acquisitionStatus === 'OPEN';
 }
 
 export function formatOpportunityTerm(opportunity: Opportunity): string {
@@ -124,10 +129,7 @@ export function formatOpportunityTerm(opportunity: Opportunity): string {
 
 export function formatCapitalReturn(opportunity: Opportunity): string {
   if (opportunity.termType === 'LIFE_OF_ASSET')
-    return (
-      opportunity.capitalExitDescription ||
-      'Upon asset sale or another qualifying exit event'
-    );
+    return opportunity.capitalExitDescription || 'Upon asset sale or another qualifying exit event';
 
   return `At the end of the ${formatOpportunityTerm(opportunity)} term`;
 }
@@ -144,10 +146,7 @@ export function formatProjectedReturnRate(opportunity: Opportunity): string {
   return 'Variable';
 }
 
-export function formatProjectedDistribution(
-  opportunity: Opportunity,
-  quantity = 1,
-): string {
+export function formatProjectedDistribution(opportunity: Opportunity, quantity = 1): string {
   const minimum = opportunity.projectedDistributionPerUnitMinimumMinorUnits;
   const maximum = opportunity.projectedDistributionPerUnitMaximumMinorUnits;
   if (minimum != null && maximum != null)
@@ -174,5 +173,8 @@ export function isVariableDistribution(opportunity: Opportunity): boolean {
 }
 
 function formatPercentage(value: number): string {
-  return `${value.toFixed(4).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
+  return `${value
+    .toFixed(4)
+    .replace(/\.0+$/, '')
+    .replace(/(\.\d*?)0+$/, '$1')}%`;
 }

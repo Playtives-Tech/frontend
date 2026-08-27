@@ -1,76 +1,15 @@
 'use client';
 
-import { Check, CircleAlert, Copy, ShieldCheck, Upload } from 'lucide-react';
-import { type FormEvent, useEffect, useState } from 'react';
+import { CircleAlert } from 'lucide-react';
+import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
-import {
-  createDepositRequest,
-  getDepositRequests,
-  getWalletFundingDetails,
-  initializePaystackWalletFunding,
-  type DepositRequestRecord,
-  type WalletFundingDetails,
-} from '@/lib/services/wallet-service';
+import { initializePaystackWalletFunding } from '@/lib/services/wallet-service';
 
 export function DepositRequest(): React.JSX.Element {
-  const [copied, setCopied] = useState(false);
-  const [receipt, setReceipt] = useState<File | null>(null);
-  const [amount, setAmount] = useState('');
-  const [narration, setNarration] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cardAmount, setCardAmount] = useState('');
   const [isStartingCardPayment, setIsStartingCardPayment] = useState(false);
-  const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
-  const [fundingDetails, setFundingDetails] = useState<WalletFundingDetails | null>(null);
-  useEffect(() => {
-    void getDepositRequests()
-      .then(setRequests)
-      .catch(() => undefined);
-    void getWalletFundingDetails()
-      .then(setFundingDetails)
-      .catch(() => notify.error('Wallet funding details could not be loaded.'));
-  }, []);
-  async function copyAccountNumber(): Promise<void> {
-    if (!fundingDetails) return;
-    await navigator.clipboard.writeText(fundingDetails.accountNumber);
-    setCopied(true);
-    notify.success('Account number copied');
-  }
-  async function submit(event: FormEvent): Promise<void> {
-    event.preventDefault();
-    const amountInNaira = Number(amount.replace(/,/g, ''));
-    if (!Number.isInteger(amountInNaira) || amountInNaira < 1) {
-      notify.error('Enter a valid whole-naira deposit amount.');
-      return;
-    }
-    if (!narration.trim()) {
-      notify.error('Enter the payment narration used for this transfer.');
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const request = await createDepositRequest({
-        amountMinorUnits: amountInNaira * 100,
-        narration: narration.trim(),
-        receipt: receipt!,
-      });
-      setAmount('');
-      setNarration('');
-      setReceipt(null);
-      setRequests((current) => [request, ...current]);
-      notify.success('Deposit request submitted', {
-        description: 'Your receipt is awaiting admin review.',
-      });
-    } catch (error: unknown) {
-      notify.error(
-        error instanceof Error ? error.message : 'Deposit request could not be submitted.',
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
   async function startCardPayment(event: FormEvent): Promise<void> {
     event.preventDefault();
     const amountInNaira = Number(cardAmount.replace(/,/g, ''));
@@ -94,9 +33,12 @@ export function DepositRequest(): React.JSX.Element {
       <p className="text-sm leading-6 text-muted-foreground">
         Make an instant online deposit, or use a bank transfer and submit your receipt.
       </p>
-      <form onSubmit={(event) => void startCardPayment(event)} className="mt-6 overflow-hidden rounded-2xl border border-brand/20 bg-background shadow-sm">
+      <form
+        onSubmit={(event) => void startCardPayment(event)}
+        className="mt-6 overflow-hidden rounded-2xl border border-brand/20 bg-background shadow-sm"
+      >
         <div className="border-b border-brand/10 bg-brand/[0.045] px-5 py-6 sm:px-6">
-          <div className="flex flex-col ">
+          <div className="flex flex-col">
             {/* <span className="grid size-11 place-items-center rounded-xl bg-brand text-white shadow-sm">
               <ShieldCheck className="size-5" />
             </span> */}
@@ -186,19 +128,6 @@ export function DepositRequest(): React.JSX.Element {
           />
         </label>
         <label className="mt-4 block text-sm font-medium">
-          Transfer narration
-          <input
-            value={narration}
-            onChange={(event) => setNarration(event.target.value.toUpperCase())}
-            placeholder="e.g. PLAYTIVES-WALLET-FUNDING"
-            maxLength={160}
-            className="mt-2 h-11 w-full rounded-xl border bg-background px-4 text-sm outline-none focus:ring-2 focus:ring-brand"
-          />
-          <span className="mt-1 block text-xs font-normal leading-5 text-muted-foreground">
-            Required. Enter the narration you used when making this wallet funding transfer.
-          </span>
-        </label>
-        <label className="mt-4 block text-sm font-medium">
           Payment receipt
           <span className="mt-2 flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed bg-background p-4 text-center text-sm text-muted-foreground hover:border-brand">
             <Upload className="mb-2 size-5 text-brand" />
@@ -213,7 +142,7 @@ export function DepositRequest(): React.JSX.Element {
         </label>
         <button
           type="submit"
-          disabled={!receipt || !amount || !narration.trim() || isSubmitting}
+          disabled={!receipt || !amount || isSubmitting}
           className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:cursor-not-allowed disabled:opacity-45"
         >
           <ButtonLoadingContent loading={isSubmitting} loadingLabel="Submitting">
@@ -232,9 +161,6 @@ export function DepositRequest(): React.JSX.Element {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {new Date(request.createdAt).toLocaleString('en-NG')}
-                </p>
-                <p className="mt-1 max-w-56 truncate font-mono text-[11px] text-muted-foreground" title={request.narration}>
-                  {request.narration}
                 </p>
               </div>
               <span className="rounded-full bg-muted px-5 py-1 text-[11px] font-semibold uppercase">

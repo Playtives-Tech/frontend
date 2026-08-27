@@ -51,7 +51,13 @@ export function OwnershipPositionDetail({
   const completed = ownership.status === 'COMPLETED';
   const projection = getOwnershipProjection(ownership);
   const formatDate = (value: string | null) =>
-    value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not set';
+    value
+      ? new Date(value).toLocaleDateString('en-NG', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : 'Not set';
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 sm:px-8 lg:px-10">
       <Link
@@ -142,7 +148,11 @@ export function OwnershipPositionDetail({
                     }
                   />
                   <DetailMetric
-                    label={ownership.termType === 'LIFE_OF_ASSET' ? 'Distribution timing' : 'Next return date'}
+                    label={
+                      ownership.termType === 'LIFE_OF_ASSET'
+                        ? 'Distribution timing'
+                        : 'Next return date'
+                    }
                     value={
                       ownership.termType === 'LIFE_OF_ASSET'
                         ? `${formatReturnSchedule(ownership.returnSchedule)} allocation`
@@ -156,9 +166,16 @@ export function OwnershipPositionDetail({
                   />
                   <DetailMetric
                     label="Actual returns credited"
-                    value={<BalanceAmount value={formatNaira(ownership.totalAccruedReturnMinorUnits / 100)} />}
+                    value={
+                      <BalanceAmount
+                        value={formatNaira(ownership.totalAccruedReturnMinorUnits / 100)}
+                      />
+                    }
                   />
-                  <DetailMetric label="Ownership model" value={opportunity.ownershipModel} />
+                  <DetailMetric
+                    label="Opportunity structure"
+                    value={opportunity.opportunityStructure.replaceAll('_', '-')}
+                  />
                 </div>
               </section>
             </>
@@ -169,7 +186,7 @@ export function OwnershipPositionDetail({
                 {payout?.status === 'APPROVED'
                   ? 'Payout credited to your wallet'
                   : payout?.status === 'REJECTED'
-                  ? 'Payout requires attention'
+                    ? 'Payout requires attention'
                     : 'Payout awaiting admin approval'}
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
