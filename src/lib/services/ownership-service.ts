@@ -11,7 +11,6 @@ export type Ownership = Readonly<{
     units: number;
     unitPriceMinorUnits: number;
     amountMinorUnits: number;
-    narration: string;
     createdAt: string;
   }>;
   units: number;
@@ -74,7 +73,6 @@ export type MemberOwnershipDistribution = Readonly<{
 export function acquireOpportunity(
   opportunity: Opportunity,
   units: number,
-  narration: string,
   agreementVersion: string,
   idempotencyKey: string,
 ): Promise<Ownership> {
@@ -84,16 +82,8 @@ export function acquireOpportunity(
       'Idempotency-Key': idempotencyKey,
       'If-Match': String(opportunity.revision),
     },
-    body: JSON.stringify({ units, narration, agreementVersion, agreementAccepted: true }),
+    body: JSON.stringify({ units, agreementVersion, agreementAccepted: true }),
   });
-}
-
-export function createOwnershipPaymentNarration(slug: string, units: number): string {
-  const offer = slug
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `PLAYTIVES-${offer}-${units}U`;
 }
 
 export function getOwnerships(): Promise<Ownership[]> {
@@ -109,9 +99,12 @@ export function getMaturityPayouts(): Promise<MemberMaturityPayout[]> {
 }
 
 export function getOwnershipDistributions(id: string): Promise<MemberOwnershipDistribution[]> {
-  return api<MemberOwnershipDistribution[]>(`/v1/ownership/${encodeURIComponent(id)}/distributions`, {
-    cache: 'no-store',
-  });
+  return api<MemberOwnershipDistribution[]>(
+    `/v1/ownership/${encodeURIComponent(id)}/distributions`,
+    {
+      cache: 'no-store',
+    },
+  );
 }
 
 export function getOwnershipProjection(ownership: Ownership): Readonly<{
@@ -179,5 +172,8 @@ export function getOwnershipCapitalReturn(ownership: Ownership): string {
 }
 
 function formatPercentage(value: number): string {
-  return `${value.toFixed(4).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
+  return `${value
+    .toFixed(4)
+    .replace(/\.0+$/, '')
+    .replace(/(\.\d*?)0+$/, '$1')}%`;
 }

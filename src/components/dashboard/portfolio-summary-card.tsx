@@ -9,6 +9,9 @@ import { BalanceAmount } from '@/components/ui/balance-amount';
 type PortfolioSummaryCardProps = Readonly<{
   walletBalanceMinorUnits: number | null;
   ownershipBalanceMinorUnits: number;
+  coOwnedContributionMinorUnits: number;
+  coFundedContributionMinorUnits: number;
+  fullOwnershipContributionMinorUnits: number;
   activeOwnershipCount: number;
   isGuest: boolean;
 }>;
@@ -16,19 +19,38 @@ type PortfolioSummaryCardProps = Readonly<{
 export function PortfolioSummaryCard({
   walletBalanceMinorUnits,
   ownershipBalanceMinorUnits,
+  coOwnedContributionMinorUnits,
+  coFundedContributionMinorUnits,
+  fullOwnershipContributionMinorUnits,
   activeOwnershipCount,
   isGuest,
 }: PortfolioSummaryCardProps): React.JSX.Element {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const walletMinorUnits = walletBalanceMinorUnits ?? 0;
   const portfolioMinorUnits = walletMinorUnits + ownershipBalanceMinorUnits;
-  const walletPercentage = portfolioMinorUnits > 0 ? (walletMinorUnits / portfolioMinorUnits) * 100 : 0;
-  const ownershipPercentage = portfolioMinorUnits > 0 ? 100 - walletPercentage : 0;
+  const walletPercentage =
+    portfolioMinorUnits > 0 ? (walletMinorUnits / portfolioMinorUnits) * 100 : 0;
+  const coOwnedPercentage =
+    portfolioMinorUnits > 0 ? (coOwnedContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
+  const coFundedPercentage =
+    portfolioMinorUnits > 0 ? (coFundedContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
+  const fullOwnershipPercentage =
+    portfolioMinorUnits > 0 ? (fullOwnershipContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
   const portfolioBalance = formatNaira(portfolioMinorUnits / 100);
   const walletBalance = formatNaira(walletMinorUnits / 100);
-  const ownershipBalance = formatNaira(ownershipBalanceMinorUnits / 100);
-  const ownershipAction = activeOwnershipCount > 0 ? 'View my ownership' : 'Co-own now';
-  const ownershipHref = isGuest ? '/sign-up' : activeOwnershipCount > 0 ? '/ownership' : '/discover';
+  const coOwnedBalance = formatNaira(coOwnedContributionMinorUnits / 100);
+  const coFundedBalance = formatNaira(coFundedContributionMinorUnits / 100);
+  const fullOwnershipBalance = formatNaira(fullOwnershipContributionMinorUnits / 100);
+  const ownershipAction = activeOwnershipCount > 0 ? 'My ownership' : 'Co-own now';
+  const ownershipHref = isGuest
+    ? '/sign-up'
+    : activeOwnershipCount > 0
+      ? '/ownership'
+      : '/discover';
+  const walletEnd = walletPercentage * 3.6;
+  const coOwnedEnd = walletEnd + coOwnedPercentage * 3.6;
+  const coFundedEnd = coOwnedEnd + coFundedPercentage * 3.6;
+  const hasFullOwnership = fullOwnershipContributionMinorUnits > 0;
 
   return (
     <>
@@ -42,7 +64,7 @@ export function PortfolioSummaryCard({
               <BalanceAmount value={portfolioBalance} toggle />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-             Your wallet plus active co-funded and co-owned positions.
+              Your wallet plus active co-funded and co-owned positions.
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -59,14 +81,20 @@ export function PortfolioSummaryCard({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-t-brand/5 pt-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/wallet/deposit" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:brightness-110">
-              <Plus className="size-3.5" />
+        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-t-brand/5 pt-4 sm:flex sm:items-center sm:justify-between">
+          <div className="contents sm:flex sm:items-center sm:gap-2">
+            <Link
+              href="/wallet/deposit"
+              className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-2 text-[11px] font-semibold text-white transition hover:brightness-110 sm:px-3 sm:text-xs"
+            >
+              <Plus className="size-3.5 shrink-0" />
               Add funds
             </Link>
-            <Link href={ownershipHref} className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold text-foreground transition hover:bg-muted">
-              <Building2 className="size-3.5 text-brand" />
+            <Link
+              href={ownershipHref}
+              className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2 text-[11px] font-semibold text-foreground transition hover:bg-muted sm:px-3 sm:text-xs"
+            >
+              <Building2 className="size-3.5 shrink-0 text-brand" />
               {ownershipAction}
             </Link>
           </div>
@@ -78,37 +106,87 @@ export function PortfolioSummaryCard({
           <button
             type="button"
             onClick={() => setShowBreakdown(true)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand/20 px-3 text-xs font-semibold text-brand transition hover:bg-brand/5"
+            className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-brand/20 px-2 text-[11px] font-semibold text-brand transition hover:bg-brand/5 sm:px-3 sm:text-xs"
           >
-            Portfolio breakdown
-            <ArrowRight className="size-3.5" />
+            <span className="sm:hidden">Breakdown</span>
+            <span className="hidden sm:inline">Portfolio breakdown</span>
+            <ArrowRight className="size-3.5 shrink-0" />
           </button>
         </div>
       </section>
 
       {showBreakdown ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="portfolio-breakdown-title">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="portfolio-breakdown-title"
+        >
           <section className="w-full max-w-xl rounded-2xl border bg-background p-6 shadow-xl sm:p-8">
             <header className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand">Portfolio value</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand">
+                  Portfolio value
+                </p>
                 {/* <h2 id="portfolio-breakdown-title" className="mt-1 text-lg font-semibold">Your balance breakdown</h2> */}
               </div>
-              <button type="button" onClick={() => setShowBreakdown(false)} className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground" aria-label="Close portfolio breakdown">
+              <button
+                type="button"
+                onClick={() => setShowBreakdown(false)}
+                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground"
+                aria-label="Close portfolio breakdown"
+              >
                 <X className="size-4" />
               </button>
             </header>
 
-            <div className="mx-auto mt-7 grid size-56 place-items-center rounded-full p-5 sm:size-60" style={{ background: `conic-gradient(#19795a 0deg ${walletPercentage * 3.6}deg, #65dfae ${walletPercentage * 3.6}deg 360deg)` }}>
+            <div
+              className="mx-auto mt-7 grid size-56 place-items-center rounded-full p-5 sm:size-60"
+              style={{
+                background: `conic-gradient(#19795a 0deg ${walletEnd}deg, #65dfae ${walletEnd}deg ${coOwnedEnd}deg, #38bdf8 ${coOwnedEnd}deg ${coFundedEnd}deg, #a78bfa ${coFundedEnd}deg 360deg)`,
+              }}
+            >
               <div className="flex size-full flex-col items-center justify-center rounded-full bg-background px-3 text-center">
                 <span className="text-xs text-muted-foreground">Total balance</span>
-                <BalanceAmount value={portfolioBalance} className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base" />
+                <BalanceAmount
+                  value={portfolioBalance}
+                  toggle
+                  className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base"
+                />
               </div>
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <BreakdownRow color="bg-brand" accentClass="border-l-brand bg-brand/5" label="Wallet" value={walletBalance} percentage={walletPercentage} />
-              <BreakdownRow color="bg-emerald-300" accentClass="border-l-emerald-300 bg-emerald-50 dark:bg-emerald-950/20" label="Ownership" value={ownershipBalance} percentage={ownershipPercentage} />
+              <BreakdownRow
+                color="bg-brand"
+                accentClass="border-l-brand bg-brand/5"
+                label="Wallet"
+                value={walletBalance}
+                percentage={walletPercentage}
+              />
+              <BreakdownRow
+                color="bg-emerald-300"
+                accentClass="border-l-emerald-300 bg-emerald-50 dark:bg-emerald-950/20"
+                label="Co-owned"
+                value={coOwnedBalance}
+                percentage={coOwnedPercentage}
+              />
+              <BreakdownRow
+                color="bg-sky-400"
+                accentClass="border-l-sky-400 bg-sky-50 dark:bg-sky-950/20"
+                label="Co-funded"
+                value={coFundedBalance}
+                percentage={coFundedPercentage}
+              />
+              {hasFullOwnership ? (
+                <BreakdownRow
+                  color="bg-violet-400"
+                  accentClass="border-l-violet-400 bg-violet-50 dark:bg-violet-950/20"
+                  label="Full ownership"
+                  value={fullOwnershipBalance}
+                  percentage={fullOwnershipPercentage}
+                />
+              ) : null}
             </div>
           </section>
         </div>
@@ -117,7 +195,19 @@ export function PortfolioSummaryCard({
   );
 }
 
-function BreakdownRow({ color, accentClass, label, value, percentage }: Readonly<{ color: string; accentClass: string; label: string; value: string; percentage: number }>): React.JSX.Element {
+function BreakdownRow({
+  color,
+  accentClass,
+  label,
+  value,
+  percentage,
+}: Readonly<{
+  color: string;
+  accentClass: string;
+  label: string;
+  value: string;
+  percentage: number;
+}>): React.JSX.Element {
   return (
     <div className={`rounded-xl border border-l-4 p-4 ${accentClass}`}>
       <div className="flex items-center gap-2">

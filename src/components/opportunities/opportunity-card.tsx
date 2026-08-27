@@ -36,6 +36,11 @@ export function OpportunityCard({
         )}
       </div>
       <div className="px-4 py-3 sm:flex sm:flex-1 sm:flex-col sm:p-2.5">
+        <span
+          className={`mb-2 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold ${opportunity.acquisitionStatus === 'OPEN' ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'}`}
+        >
+          {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
+        </span>
         <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-5 tracking-normal sm:leading-6">
           {opportunity.title}
         </h2>
@@ -72,6 +77,9 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
       </div>
 
       <div className="flex flex-1 flex-col p-2.5">
+        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">
+          {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
+        </span>
         <h3 className="line-clamp-1 font-sans text-sm font-bold leading-5 tracking-normal">
           {opportunity.title}
         </h3>

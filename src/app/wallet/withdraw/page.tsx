@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, CheckCircle2, ChevronRight, Landmark } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronRight, Info, Landmark } from 'lucide-react';
 import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
@@ -53,7 +53,7 @@ export default function WithdrawPage(): React.JSX.Element {
   }, [setAccounts]);
 
   const parsedAmount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
-  const fee = 50;
+  const fee = 200;
   const totalDeduction = parsedAmount + fee;
 
   const handleAccountSelect = (account: LinkedAccount) => {
@@ -207,8 +207,12 @@ export default function WithdrawPage(): React.JSX.Element {
                 />
               </div>
             </label>
-            <p className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-              A ₦50 transaction fee is included. This fee is non-refundable.
+            <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+              <Info className="mt-0.5 size-3.5 shrink-0 text-brand" aria-hidden="true" />
+              <span>
+                A ₦200 transaction fee is included. External bank or payment-provider charges, if
+                any, are separate.
+              </span>
             </p>
 
             <button className="h-10 w-full rounded-lg bg-brand text-sm font-semibold text-brand-foreground transition hover:brightness-110">
@@ -250,7 +254,8 @@ export default function WithdrawPage(): React.JSX.Element {
           </dl>
           <p className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
             {formatNaira(totalDeduction)} is reserved from your wallet. The amount sent to your bank
-            account is {formatNaira(parsedAmount)}. Any external bank or payment-provider charge is separate.
+            account is {formatNaira(parsedAmount)}. Any external bank or payment-provider charge is
+            separate.
           </p>
 
           <button

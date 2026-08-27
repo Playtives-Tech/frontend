@@ -141,9 +141,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <FilePenLine className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-sans text-[15.5px] font-semibold">Full name change</h2>
+            <h2 className="font-sans text-[14px] font-semibold">Change your full name</h2>
             {nameChangeRequest?.status === 'LINK_SENT' ? (
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              <p className="text-xs leading-3 text-muted-foreground">
                 Support reviewed your request and sent a secure name-change link to your email.
               </p>
             ) : nameChangeRequest?.status === 'PENDING' ? (
@@ -162,7 +162,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               onClick={() => setShowNameRequestForm((visible) => !visible)}
               className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border px-2.5 text-xs font-semibold transition hover:bg-muted"
             >
-              Request change
+              Request now
             </button>
           ) : null}
         </div>

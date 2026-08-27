@@ -42,15 +42,21 @@ export type PaystackFundingVerification = Readonly<{
   wallet?: WalletSummary;
 }>;
 
-export function initializePaystackWalletFunding(amountMinorUnits: number): Promise<PaystackCheckout> {
+export function initializePaystackWalletFunding(
+  amountMinorUnits: number,
+): Promise<PaystackCheckout> {
   return api<PaystackCheckout>('/v1/wallet/paystack/initialize', {
     method: 'POST',
     body: JSON.stringify({ amountMinorUnits }),
   });
 }
 
-export function verifyPaystackWalletFunding(reference: string): Promise<PaystackFundingVerification> {
-  return api<PaystackFundingVerification>(`/v1/wallet/paystack/verify/${encodeURIComponent(reference)}`);
+export function verifyPaystackWalletFunding(
+  reference: string,
+): Promise<PaystackFundingVerification> {
+  return api<PaystackFundingVerification>(
+    `/v1/wallet/paystack/verify/${encodeURIComponent(reference)}`,
+  );
 }
 
 export type ActivityLog = Readonly<{
@@ -78,10 +84,13 @@ export function getActivityLogPage(page: number, limit = 8): Promise<ActivityLog
   return api<ActivityLogPage>(`/v1/activity-logs/me/page?page=${page}&limit=${limit}`);
 }
 
+export function getActivityLog(id: string): Promise<ActivityLog> {
+  return api<ActivityLog>(`/v1/activity-logs/me/${encodeURIComponent(id)}`, { cache: 'no-store' });
+}
+
 export type DepositRequestRecord = Readonly<{
   _id: string;
   amountMinorUnits: number;
-  narration: string;
   receiptImageUrl: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
@@ -89,12 +98,10 @@ export type DepositRequestRecord = Readonly<{
 
 export function createDepositRequest(input: {
   amountMinorUnits: number;
-  narration: string;
   receipt: File;
 }): Promise<DepositRequestRecord> {
   const body = new FormData();
   body.append('amountMinorUnits', String(input.amountMinorUnits));
-  body.append('narration', input.narration);
   body.append('receipt', input.receipt);
   return api<DepositRequestRecord>('/v1/wallet/deposits', {
     method: 'POST',
