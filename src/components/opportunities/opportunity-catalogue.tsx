@@ -97,18 +97,18 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h2 className="font-sans text-xl font-semibold leading-7 sm:text-[19px]">
+          <h2 className="font-sans text-[15px] font-semibold leading-7 sm:text-[19px]">
             {availability === 'OPEN' ? 'All opportunities' : 'Closed opportunities'}
           </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          <p className="text-[12px] leading-6 text-muted-foreground">
             {availability === 'OPEN'
               ? 'Explore open opportunities and review opportunities that are already closed.'
               : 'These opportunities have started and are closed to new owners.'}
           </p>
         </div>
-        <p className="shrink-0 text-sm text-muted-foreground">
+        <p className="shrink-0 text-[12px] font-semibold text-muted-foreground">
           {visibleOpportunities.length} opportunities
         </p>
       </div>
