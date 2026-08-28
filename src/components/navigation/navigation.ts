@@ -18,5 +18,5 @@ export const sidebarNavigationItems = [
   // { href: '/wallet', label: 'Wallet', icon: WalletCards },
   { href: '/learn', label: 'Learn', icon: BookOpen },
   { href: '/profile', label: 'Account', icon: UserRound },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
+  // { href: '/notifications', label: 'Notifications', icon: Bell },
 ] as const satisfies readonly NavigationItem[];
