@@ -40,15 +40,21 @@ export function OpportunityCatalogue(): React.JSX.Element {
   );
   const visibleOpportunities = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return opportunities.filter(
+    const filtered = opportunities.filter(
       (opportunity) =>
-        opportunity.acquisitionStatus === availability &&
+        (availability === 'OPEN' || opportunity.acquisitionStatus === 'COMMENCED') &&
         (sector === 'All' || opportunity.category === sector) &&
         (!normalizedQuery ||
           `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
+    return availability === 'OPEN'
+      ? [...filtered].sort((left, right) => {
+          if (left.acquisitionStatus === right.acquisitionStatus) return 0;
+          return left.acquisitionStatus === 'OPEN' ? -1 : 1;
+        })
+      : filtered;
   }, [availability, sector, opportunities, query]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
@@ -94,11 +100,11 @@ export function OpportunityCatalogue(): React.JSX.Element {
       <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h2 className="font-sans text-xl font-semibold leading-7 sm:text-[19px]">
-            {availability === 'OPEN' ? 'Open opportunities' : 'Closed opportunities'}
+            {availability === 'OPEN' ? 'All opportunities' : 'Closed opportunities'}
           </h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {availability === 'OPEN'
-              ? 'Explore opportunities that are open for you to own.'
+              ? 'Explore open opportunities and review opportunities that are already closed.'
               : 'These opportunities have started and are closed to new owners.'}
           </p>
         </div>
@@ -125,7 +131,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
           )}
         >
           <LayoutGrid className="size-4" aria-hidden="true" />
-          <span className="font-semibold">Open opportunities</span>
+          <span className="font-semibold">All opportunities</span>
         </button>
         <button
           type="button"
@@ -168,7 +174,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       ) : (
         <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
           <h2 className="font-sans text-xl font-semibold">
-            {availability === 'OPEN' ? 'No open opportunities' : 'No closed opportunities'}
+            {availability === 'OPEN' ? 'No opportunities' : 'No closed opportunities'}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Try another search or select a different sector or industry.

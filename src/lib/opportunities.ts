@@ -175,7 +175,7 @@ export function isVariableDistribution(opportunity: Opportunity): boolean {
 
 function formatPercentage(value: number): string {
   return `${value
-    .toFixed(4)
+    .toFixed(1)
     .replace(/\.0+$/, '')
     .replace(/(\.\d*?)0+$/, '$1')}%`;
 }
