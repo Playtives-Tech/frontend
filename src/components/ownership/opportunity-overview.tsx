@@ -77,18 +77,44 @@ export function OpportunityOverview({
             </span>
           </div>
 
-          <h1 className="mt-4 max-w-5xl font-sans text-[18px] font-semibold leading-tight tracking-tight sm:mt-5 sm:text-[18px]">
-            {opportunity.title}
-          </h1>
-          <p className="mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5">
-            {opportunity.summary}
-          </p>
+          <div className="mt-4 flex items-start justify-between gap-4 sm:mt-5">
+            <div className="min-w-0">
+              <h1 className="max-w-5xl font-sans text-[18px] font-semibold leading-tight tracking-tight sm:text-[18px]">
+                {opportunity.title}
+              </h1>
+              <p className="mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5">
+                {opportunity.summary}
+              </p>
+            </div>
+            <p className="shrink-0 text-right text-[15px] font-bold tracking-tight text-foreground sm:text-base">
+              {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)}
+              <span className="mt-0.5 block text-[11px] font-medium text-muted-foreground">
+                / unit
+              </span>
+            </p>
+          </div>
+
+          {onContinue ? (
+            <div className="mt-4 sm:mt-5">
+              <button
+                type="button"
+                disabled={!canContinue}
+                onClick={onContinue}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
+              >
+                {opportunity.availableUnits < opportunity.minimumUnits
+                  ? 'Currently unavailable'
+                  : agreementRequired && !agreementAccepted
+                    ? 'Accept agreement to continue'
+                    : isCoFunded
+                      ? 'Co-fund now'
+                      : 'Co own now'}
+                <ArrowRight className="size-5" />
+              </button>
+            </div>
+          ) : null}
 
           <dl className="mt-5 grid gap-4 border-y border-border/80 py-4 sm:mt-7 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:py-6 lg:grid-cols-4">
-            <Metric
-              label="Price per unit"
-              value={formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)}
-            />
             <Metric label="Term" value={formatOpportunityTerm(opportunity)} />
             <Metric
               label="Location"
@@ -139,11 +165,11 @@ export function OpportunityOverview({
             <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
           </div> */}
 
-          {opportunity.projectionDisclaimer ? (
+          {/* {opportunity.projectionDisclaimer ? (
             <p className="mt-4 rounded-xl border border-brand/25 bg-brand/10 px-3 py-2.5 text-sm leading-5 text-brand dark:border-brand/35 dark:bg-brand/15 sm:mt-5 sm:px-4 sm:py-3 sm:leading-6">
               {opportunity.projectionDisclaimer}
             </p>
-          ) : null}
+          ) : null} */}
 
           <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-7">
             <ContentSection title="About the opportunity" text={opportunity.about} />
@@ -171,26 +197,6 @@ export function OpportunityOverview({
           </div>
         </div>
       </article>
-
-      {onContinue ? (
-        <div className="sticky bottom-[4.75rem] z-10 mt-4 border-t border-border/70 bg-background/95 py-2.5 backdrop-blur lg:bottom-0 lg:mt-5 lg:py-3">
-          <button
-            type="button"
-            disabled={!canContinue}
-            onClick={onContinue}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
-          >
-            {opportunity.availableUnits < opportunity.minimumUnits
-              ? 'Currently unavailable'
-              : agreementRequired && !agreementAccepted
-                ? 'Accept agreement to continue'
-                : isCoFunded
-                  ? 'Co-fund now'
-                  : 'Co own now'}
-            <ArrowRight className="size-5" />
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

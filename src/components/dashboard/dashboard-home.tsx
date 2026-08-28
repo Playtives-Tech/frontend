@@ -139,11 +139,11 @@ export function DashboardHome(): React.JSX.Element {
         </div>
       </section>
 
-      <section className="relative mt-6 overflow-hidden rounded-xl border border-[#25D366]/20 bg-[linear-gradient(120deg,rgb(37_211_102_/_0.10),rgb(255_255_255_/_0.96)_52%)] p-4 dark:border-[#25D366]/15 dark:bg-[linear-gradient(120deg,rgb(37_211_102_/_0.16),rgb(20_32_27_/_0.96)_52%)] sm:mt-7 sm:p-5">
-        <div className="pointer-events-none absolute -right-8 -top-10 size-32 rounded-full bg-[#25D366]/10 blur-2xl" />
+      <section className="relative mt-6 overflow-hidden rounded-xl border border-[#22c967]/20 bg-[linear-gradient(120deg,rgb(34_201_103_/_0.09),rgb(255_255_255_/_0.96)_52%)] p-4 dark:border-[#22c967]/15 dark:bg-[linear-gradient(120deg,rgb(34_201_103_/_0.14),rgb(20_32_27_/_0.96)_52%)] sm:mt-7 sm:p-5">
+        <div className="pointer-events-none absolute -right-8 -top-10 size-32 rounded-full bg-[#22c967]/10 blur-2xl" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#25D366] text-white">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#22c967] text-white">
               <WhatsAppIcon className="size-5" />
             </span>
             <div>
@@ -157,7 +157,7 @@ export function DashboardHome(): React.JSX.Element {
             href={whatsappCommunityUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#20bd5a]"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#22c967] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#1cad59]"
           >
             Join community
             <ArrowUpRight className="size-3.5" />

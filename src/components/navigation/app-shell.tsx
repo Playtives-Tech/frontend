@@ -33,7 +33,7 @@ function NavigationLink({
     <Link
       href={href}
       className={cn(
-        'group flex items-center gap-3 rounded-[.5rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+        'group flex items-center gap-3 rounded-[.5rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
         compact ? 'flex-col gap-1 px-2 py-2 text-[10px]' : 'h-12 px-3.5 text-[.85rem]',
         inverse
           ? active
@@ -122,7 +122,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </nav>
       </aside>
 
-      <main className="w-full pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
+      <main className="w-full pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+10vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
@@ -134,7 +134,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         rel="noreferrer"
         aria-label="Join the Playtives WhatsApp community"
         title="Join our WhatsApp community"
-        className="fixed bottom-24 right-4 z-30 grid size-11 place-items-center rounded-full bg-[#25D366] text-white shadow-sm transition-colors hover:bg-[#20bd5a] lg:bottom-6 lg:right-6"
+        className="fixed bottom-24 right-4 z-30 grid size-11 place-items-center rounded-full bg-[#22c967] text-white shadow-sm transition-colors hover:bg-[#1cad59] lg:bottom-6 lg:right-6"
       >
         <WhatsAppIcon className="size-5" />
       </a>
@@ -179,7 +179,7 @@ function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.
   const signedIn = Boolean(userKey);
 
   return (
-    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+5vw)]">
+    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+10vw)]">
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold tracking-tight">Recent Activities</h2>

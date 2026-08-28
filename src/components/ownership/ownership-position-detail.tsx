@@ -176,6 +176,19 @@ export function OwnershipPositionDetail({
                     label="Opportunity structure"
                     value={opportunity.opportunityStructure.replaceAll('_', '-')}
                   />
+                  <DetailMetric
+                    label="Monthly profit preference"
+                    value={
+                      ownership.rolloverElection === 'COMPOUND'
+                        ? 'Rolled into contribution'
+                        : 'Paid to earnings wallet'
+                    }
+                    supportingText={
+                      ownership.rolloverElection === 'COMPOUND'
+                        ? 'Approved profit increases the capital used for the next calculation.'
+                        : 'Approved profit is credited to your wallet each month.'
+                    }
+                  />
                 </div>
               </section>
             </>

@@ -25,6 +25,7 @@ export type Ownership = Readonly<{
   ownershipPercentageAtPurchase: number | null;
   totalEconomicUnitsAtPurchase: number;
   opportunityStructure: 'CO_OWNERSHIP' | 'CO_FUNDING' | 'FULL_OWNERSHIP';
+  rolloverElection: 'PAYOUT' | 'COMPOUND' | null;
   returnModel: string;
   projectionType: string;
   termType: 'FIXED_TERM' | 'LIFE_OF_ASSET';
@@ -75,6 +76,7 @@ export function acquireOpportunity(
   units: number,
   agreementVersion: string,
   idempotencyKey: string,
+  rolloverElection: 'PAYOUT' | 'COMPOUND',
 ): Promise<Ownership> {
   return api<Ownership>(`/v1/opportunities/${opportunity._id}/acquire`, {
     method: 'POST',
@@ -82,7 +84,7 @@ export function acquireOpportunity(
       'Idempotency-Key': idempotencyKey,
       'If-Match': String(opportunity.revision),
     },
-    body: JSON.stringify({ units, agreementVersion, agreementAccepted: true }),
+    body: JSON.stringify({ units, agreementVersion, agreementAccepted: true, rolloverElection }),
   });
 }
 
