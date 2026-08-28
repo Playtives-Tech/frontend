@@ -109,8 +109,8 @@ export function WalletCheckout({
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Projected distribution rate</dt>
             <dd className="text-sm font-semibold text-brand">
-              {formatProjectedReturnRate(opportunity)} ·{' '}
-              {formatReturnSchedule(opportunity.returnSchedule)}
+              {formatProjectedReturnRate(opportunity)}{' '}
+              {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
