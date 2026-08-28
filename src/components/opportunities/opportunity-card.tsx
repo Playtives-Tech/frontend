@@ -41,13 +41,13 @@ export function OpportunityCard({
         >
           {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
         </span> */}
-        <h2 className="line-clamp-2 font-sans text-[13px] font-bold leading-4 tracking-normal sm:leading-4">
+        <h2 className="line-clamp-2 font-sans text-[13px] font-semibold leading-5 tracking-normal sm:leading-5">
           {opportunity.title}
         </h2>
         <p className="mt-2 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
-        <p className="mt-1 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600 sm:mt-1.5">
+        <p className="mt-1 line-clamp-1 text-xs font-semibold leading-5 text-muted-foreground text-yellow-600 sm:mt-1.5">
           {projectionLabel(opportunity)}
         </p>
       </div>
@@ -63,7 +63,7 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
       href={`/discover/${opportunity.slug}`}
       className="group flex w-[12rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[14rem] lg:w-[14rem]"
     >
-      <div className="relative h-20 overflow-hidden bg-muted sm:h-24">
+      <div className="relative h-30 overflow-hidden bg-muted sm:h-32">
         {opportunity.imageUrl && (
           <Image
             src={opportunity.imageUrl}
@@ -80,14 +80,14 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
         {/* <span className="mb-1 text-[10px] font-semibold text-muted-foreground">
           {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
         </span> */}
-        <h3 className="line-clamp-2 font-sans text-sm font-bold leading-5 tracking-normal">
+        <h3 className="line-clamp-2 font-sans text-sm font-semibold leading-5 tracking-normal">
           {opportunity.title}
         </h3>
-        <p className="mt-1 text-xs leading-4 text-muted-foreground">
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
         <p
-          className="mt-1 truncate text-xs font-medium leading-4 text-amber-700 dark:text-amber-300"
+          className="mt-1 truncate text-xs font-medium leading-5 text-amber-700 dark:text-amber-300"
           title={projectedReturn}
         >
           {projectedReturn}

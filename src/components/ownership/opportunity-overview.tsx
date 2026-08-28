@@ -227,8 +227,8 @@ function Metric({
 }): React.JSX.Element {
   return (
     <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 flex items-center gap-1.5 text-base font-bold tracking-tight">
+      <dt className="text-[13px] font-bold text-muted-foreground">{label}</dt>
+      <dd className="mt-1 flex items-center gap-1.5 text-[12px] font-medium tracking-tight">
         {icon}
         {value}
       </dd>
