@@ -85,7 +85,7 @@ export function OwnershipDashboard(): React.JSX.Element {
           My ownership
         </h1>
         <p className="font-sans text-[14px] text-muted-foreground">
-          Follow every unit and completed cycle.
+          Co-own/co-fund and share profit monthly
         </p>
       </header>
       <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">

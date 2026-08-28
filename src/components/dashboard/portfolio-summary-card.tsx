@@ -58,7 +58,7 @@ export function PortfolioSummaryCard({
         <div className="flex flex-wrap items-start gap-4">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand">
-              Portfolio balance
+              Portfolio value
             </p>
             <div className="mt-2 text-[clamp(1.8rem,5vw,2.55rem)] font-bold leading-tight tracking-tight text-foreground">
               <BalanceAmount value={portfolioBalance} toggle />

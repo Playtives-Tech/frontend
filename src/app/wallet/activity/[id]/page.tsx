@@ -153,7 +153,7 @@ function getActivityDetails(activity: ActivityLog) {
     status:
       activity.action.includes('PENDING') || activity.action.includes('REQUESTED')
         ? 'Pending review'
-        : 'Recorded',
+        : 'Approved',
     description: descriptionFor(activity.action),
   };
 }

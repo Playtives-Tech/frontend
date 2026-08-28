@@ -1,6 +1,9 @@
-import { ArrowLeft, ArrowRight, Check, MapPin } from 'lucide-react';
+'use client';
+
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { AgreementPreview } from './agreement-preview';
 import {
   formatOpportunityMoney,
@@ -27,6 +30,7 @@ export function OpportunityOverview({
   agreementAccepted = false,
   onAgreementAccepted,
 }: OpportunityOverviewProps): React.JSX.Element {
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const filledUnits = Math.max(0, opportunity.totalUnits - opportunity.availableUnits);
   const progress =
     opportunity.totalUnits > 0 ? Math.min(100, (filledUnits / opportunity.totalUnits) * 100) : 0;
@@ -40,9 +44,10 @@ export function OpportunityOverview({
       ? 'Currently unavailable'
       : agreementRequired && !agreementAccepted
         ? 'Accept agreement to continue'
-        : isCoFunded
+          : isCoFunded
           ? 'Co-fund now'
           : 'Co own now';
+  const canExpandSummary = opportunity.summary.trim().length > 140;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-8 sm:py-6 lg:px-10 lg:py-8">
@@ -90,9 +95,22 @@ export function OpportunityOverview({
               <h1 className="max-w-5xl font-sans text-[18px] font-semibold leading-tight tracking-tight sm:text-[18px]">
                 {opportunity.title}
               </h1>
-              <p className="mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5">
+              <p
+                className={`mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5 ${summaryExpanded ? '' : 'line-clamp-2'}`}
+              >
                 {opportunity.summary}
               </p>
+              {canExpandSummary ? (
+                <button
+                  type="button"
+                  onClick={() => setSummaryExpanded((expanded) => !expanded)}
+                  aria-expanded={summaryExpanded}
+                  className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand transition hover:opacity-75"
+                >
+                  {summaryExpanded ? 'See less' : 'See more'}
+                  {summaryExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                </button>
+              ) : null}
             </div>
             <p className="shrink-0 text-right text-[15px] font-bold tracking-tight text-foreground sm:text-base">
               {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)}
