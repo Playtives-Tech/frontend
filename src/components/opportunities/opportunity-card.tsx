@@ -83,8 +83,8 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
   return (
     <>
       <div className="h-4">
-          <p className="flex items-center gap-1 text-[10px] font-semibold text-[#bab9b9]">
-            {memberLabel}: <span className="text-[10px] font-bold text-[#a0a0a0]">{memberCount}</span>
+          <p className="flex items-center gap-1 text-[9px] font-normal text-[#bab9b9]">
+            {memberLabel}: {memberCount}
           </p>
       </div>
       <h3 className="mt-1 line-clamp-1 font-sans text-[12.5px] font-semibold leading-5 tracking-normal">
