@@ -276,7 +276,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             rel="noreferrer"
             className="flex items-center gap-3 py-3 transition hover:text-brand"
           >
-            <WhatsAppIcon className="size-4 shrink-0 text-[#178b42]" />
+            <WhatsAppIcon className="size-4 shrink-0 text-[#22a85d]" />
             <span className="min-w-0 flex-1">
               <strong className="block text-sm">Join our community on WhatsApp</strong>
               <small className="mt-0.5 block text-xs text-muted-foreground">

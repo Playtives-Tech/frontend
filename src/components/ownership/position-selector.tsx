@@ -1,4 +1,4 @@
-import { ArrowLeft, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Minus, Plus, WalletCards } from 'lucide-react';
 import {
   formatCapitalReturn,
   formatOpportunityTerm,
@@ -12,6 +12,8 @@ type PositionSelectorProps = Readonly<{
   opportunity: Opportunity;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
+  rolloverElection: 'PAYOUT' | 'COMPOUND';
+  onRolloverElectionChange: (election: 'PAYOUT' | 'COMPOUND') => void;
   onContinue: () => void;
   onBack: () => void;
 }>;
@@ -20,6 +22,8 @@ export function PositionSelector({
   opportunity,
   quantity,
   onQuantityChange,
+  rolloverElection,
+  onRolloverElectionChange,
   onContinue,
   onBack,
 }: PositionSelectorProps): React.JSX.Element {
@@ -121,6 +125,47 @@ export function PositionSelector({
           </div>
         </div>
       </section>
+      {opportunity.rolloverAllowed ? (
+        <section className="mt-4 rounded-xl border bg-background p-4 sm:mt-5 sm:rounded-2xl sm:p-6">
+          <div>
+            <h2 className="font-sans text-base font-semibold">
+              How should monthly profit be handled?
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              You can receive approved profit in your wallet each month or add it to your
+              contribution for the next month&apos;s calculation.
+            </p>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => onRolloverElectionChange('PAYOUT')}
+              className={`rounded-xl border p-3 text-left transition ${rolloverElection === 'PAYOUT' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:bg-muted/50'}`}
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <WalletCards className="size-4 text-brand" />
+                Pay to wallet
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                Approved profit is credited to your earnings wallet each month.
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onRolloverElectionChange('COMPOUND')}
+              className={`rounded-xl border p-3 text-left transition ${rolloverElection === 'COMPOUND' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:bg-muted/50'}`}
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Check className="size-4 text-brand" />
+                Roll into contribution
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                Approved profit increases your capital for the next monthly calculation.
+              </span>
+            </button>
+          </div>
+        </section>
+      ) : null}
       <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:mt-6 sm:px-8 sm:py-4 lg:-mx-10 lg:px-10">
         <button
           type="button"

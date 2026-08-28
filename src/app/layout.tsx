@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Inter, Playfair_Display, Geist } from 'next/font/google';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { AppProviders } from '@/components/providers/app-providers';
 import { AppShell } from '@/components/navigation/app-shell';
 
 import '@/styles/globals.css';
 
-const sans = Inter({
-  variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-});
+// const sans = Inter({
+//   variable: '--font-sans',
+//   subsets: ['latin'],
+//   weight: ['400', '500', '600', '700', '800'],
+// });
+
+const sans = Geist({ variable: '--font-sans', subsets: ['latin'] });
 
 const wordmark = Playfair_Display({
   variable: '--font-wordmark',

@@ -13,6 +13,7 @@ type OwnershipFlowProps = Readonly<{ opportunity: Opportunity }>;
 export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.Element {
   const [step, setStep] = useState<OwnershipStep>('overview');
   const [quantity, setQuantity] = useState(1);
+  const [rolloverElection, setRolloverElection] = useState<'PAYOUT' | 'COMPOUND'>('PAYOUT');
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const canAcquire = isOpportunityOpenForAcquisition(opportunity);
   if (step === 'positions' && canAcquire)
@@ -21,6 +22,8 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         opportunity={opportunity}
         quantity={quantity}
         onQuantityChange={setQuantity}
+        rolloverElection={rolloverElection}
+        onRolloverElectionChange={setRolloverElection}
         onContinue={() => setStep('checkout')}
         onBack={() => setStep('overview')}
       />
@@ -31,6 +34,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         opportunity={opportunity}
         quantity={quantity}
         agreementAccepted={agreementAccepted}
+        rolloverElection={rolloverElection}
         onBack={() => setStep('positions')}
       />
     );

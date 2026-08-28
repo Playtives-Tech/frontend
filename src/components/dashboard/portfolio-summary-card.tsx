@@ -156,24 +156,21 @@ export function PortfolioSummaryCard({
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-8 overflow-hidden rounded-xl border bg-background">
               <BreakdownRow
                 color="bg-brand"
-                accentClass="border-l-brand bg-brand/5"
                 label="Wallet"
                 value={walletBalance}
                 percentage={walletPercentage}
               />
               <BreakdownRow
                 color="bg-emerald-300"
-                accentClass="border-l-emerald-300 bg-emerald-50 dark:bg-emerald-950/20"
                 label="Co-owned"
                 value={coOwnedBalance}
                 percentage={coOwnedPercentage}
               />
               <BreakdownRow
                 color="bg-sky-400"
-                accentClass="border-l-sky-400 bg-sky-50 dark:bg-sky-950/20"
                 label="Co-funded"
                 value={coFundedBalance}
                 percentage={coFundedPercentage}
@@ -181,7 +178,6 @@ export function PortfolioSummaryCard({
               {hasFullOwnership ? (
                 <BreakdownRow
                   color="bg-violet-400"
-                  accentClass="border-l-violet-400 bg-violet-50 dark:bg-violet-950/20"
                   label="Full ownership"
                   value={fullOwnershipBalance}
                   percentage={fullOwnershipPercentage}
@@ -197,25 +193,28 @@ export function PortfolioSummaryCard({
 
 function BreakdownRow({
   color,
-  accentClass,
   label,
   value,
   percentage,
 }: Readonly<{
   color: string;
-  accentClass: string;
   label: string;
   value: string;
   percentage: number;
 }>): React.JSX.Element {
   return (
-    <div className={`rounded-xl border border-l-4 p-4 ${accentClass}`}>
-      <div className="flex items-center gap-2">
-        <span className={`size-2.5 shrink-0 rounded-full ${color}`} />
-        <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
-        <span className="text-xs text-muted-foreground">{formatPercentage(percentage)}</span>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-b px-4 py-3.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,1fr)_auto] sm:gap-y-0">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className={`size-2 shrink-0 rounded-full ${color}`} />
+        <span className="truncate text-sm font-medium text-foreground">{label}</span>
       </div>
-      <BalanceAmount value={value} className="mt-3 text-base font-bold" />
+      <BalanceAmount
+        value={value}
+        className="col-start-1 text-sm font-semibold sm:col-start-auto sm:justify-self-end"
+      />
+      <span className="col-start-2 row-span-2 row-start-1 self-center text-right text-xs tabular-nums text-muted-foreground sm:col-start-auto sm:row-span-1">
+        {formatPercentage(percentage)}
+      </span>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { ArrowUpRight, ChevronRight, Package, Plus, TrendingUp, WalletCards } from 'lucide-react';
 import Link from 'next/link';
-import { BackButton } from '@/components/ui/back-button';
 import { BalanceAmount } from '@/components/ui/balance-amount';
 import { formatNaira } from '@/components/ownership/formatters';
 import { useProfileStore } from '@/stores/use-profile-store';
@@ -29,52 +28,55 @@ export function WalletDashboard(): React.JSX.Element {
   const account = accounts[0];
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-      <BackButton label="" />
+    <div className="mx-auto max-w-3xl px-4 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Your money</p>
+        <h1 className="mt-1 font-sans text-xl font-semibold tracking-tight sm:text-2xl">Wallet</h1>
+      </header>
 
       {walletError && (
-        <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">
+        <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600">
           {walletError}
         </p>
       )}
 
-      <section className="playtives-gold-card mt-6 overflow-hidden rounded-2xl p-5 text-white shadow-[0_20px_45px_-30px_rgba(5,92,66,0.8)] sm:p-7">
+      <section className="mt-5 overflow-hidden rounded-2xl border border-brand/15 bg-background p-4 shadow-[0_18px_35px_-30px_rgba(7,82,59,0.35)] sm:mt-6 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand">
               Available balance
             </p>
-            <div className="mt-2 font-sans text-3xl font-semibold tracking-tight sm:text-4xl">
+            <div className="mt-1.5 font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               <BalanceAmount value={formatNaira(balance)} toggle />
             </div>
           </div>
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 text-white/90">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
             <WalletCards className="size-5" />
           </span>
         </div>
 
-        <div className="mt-6 grid gap-3 border-t border-white/15 pt-5 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-white/[0.08] p-4">
-            <p className="text-xs font-medium text-white/70">Deposited funds</p>
-            <p className="mt-1.5 font-sans text-xl font-semibold">
+        <div className="mt-5 grid grid-cols-2 divide-x divide-brand/10 border-t border-brand/10 pt-4">
+          <div className="pr-3">
+            <p className="text-[11px] font-medium text-muted-foreground">Deposited funds</p>
+            <p className="mt-1 font-sans text-base font-semibold text-foreground sm:text-lg">
               <BalanceAmount value={formatNaira(walletBalance)} />
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.08] p-4">
-            <div className="flex items-center gap-1.5 text-white/70">
-              <TrendingUp className="size-3.5" />
-              <p className="text-xs font-medium">Investment returns</p>
+          <div className="pl-3">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <TrendingUp className="size-3.5 text-brand" />
+              <p className="text-[11px] font-medium">Investment returns</p>
             </div>
-            <p className="mt-1.5 font-sans text-xl font-semibold">
+            <p className="mt-1 font-sans text-base font-semibold text-foreground sm:text-lg">
               <BalanceAmount value={formatNaira(earningsBalance)} />
             </p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
           <Link
             href="/wallet/deposit"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-brand transition hover:bg-white/90"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
           >
             <Plus className="size-4" />
             Deposit funds
@@ -82,7 +84,7 @@ export function WalletDashboard(): React.JSX.Element {
 
           <Link
             href="/wallet/withdraw"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand/20 px-3 text-sm font-semibold text-brand transition hover:bg-brand/5"
           >
             <ArrowUpRight className="size-5" />
             Withdraw funds
@@ -95,11 +97,22 @@ export function WalletDashboard(): React.JSX.Element {
         distributions, and request withdrawals.
       </p> */}
 
-      <section className="mt-7">
-        <h2 className="font-sans text-[1px] font-semibold">Linked bank accounts</h2>
+      <section className="mt-6 sm:mt-7">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-sans text-base font-semibold">Withdrawal account</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">Where your withdrawals are sent</p>
+          </div>
+          <Link
+            href="/wallet/activity"
+            className="text-xs font-semibold text-brand hover:underline"
+          >
+            Activity
+          </Link>
+        </div>
         <Link
           href="/profile/bank-account"
-          className="mt-3 flex items-center gap-3 rounded-xl border bg-background p-4 transition hover:border-brand/30 hover:shadow-sm"
+          className="mt-3 flex items-center gap-3 rounded-xl border bg-background p-3.5 transition hover:border-brand/30 hover:shadow-sm"
         >
           <span className="grid size-10 place-items-center rounded-xl bg-brand/10 text-brand">
             <Package className="size-4" />

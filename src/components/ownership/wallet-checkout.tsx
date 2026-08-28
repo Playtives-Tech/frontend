@@ -20,6 +20,7 @@ type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
   quantity: number;
   agreementAccepted: boolean;
+  rolloverElection: 'PAYOUT' | 'COMPOUND';
   onBack: () => void;
 }>;
 
@@ -27,6 +28,7 @@ export function WalletCheckout({
   opportunity,
   quantity,
   agreementAccepted,
+  rolloverElection,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
@@ -51,6 +53,7 @@ export function WalletCheckout({
         quantity,
         opportunity.agreementVersion ?? '1.0',
         idempotencyKey.current,
+        rolloverElection,
       );
       router.replace(`/ownership/${ownership._id}`);
       router.refresh();
@@ -92,6 +95,14 @@ export function WalletCheckout({
             <dt className="text-sm font-semibold">Units</dt>
             <dd className="text-sm font-semibold">{quantity}</dd>
           </div>
+          {opportunity.rolloverAllowed ? (
+            <div className="flex items-center justify-between gap-4 py-3">
+              <dt className="text-sm font-semibold">Monthly profit preference</dt>
+              <dd className="max-w-[55%] text-right text-sm font-semibold leading-5 text-brand">
+                {rolloverElection === 'COMPOUND' ? 'Roll into contribution' : 'Pay to wallet'}
+              </dd>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Projected distribution rate</dt>
             <dd className="text-sm font-semibold text-brand">
