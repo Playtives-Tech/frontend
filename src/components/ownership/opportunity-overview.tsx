@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, Info, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -22,11 +22,19 @@ type OpportunityOverviewProps = Readonly<{
   onContinue?: () => void;
 }>;
 
+type HighlightDetail = Readonly<{
+  label: string;
+  value: string;
+  description: string;
+}>;
+
 export function OpportunityOverview({
   opportunity,
   onContinue,
 }: OpportunityOverviewProps): React.JSX.Element {
   const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [selectedHighlight, setSelectedHighlight] = useState<HighlightDetail | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const availablePercentage =
     opportunity.totalUnits > 0
       ? Math.max(0, Math.min(100, (opportunity.availableUnits / opportunity.totalUnits) * 100))
@@ -118,15 +126,24 @@ export function OpportunityOverview({
 
           {onContinue ? (
             <div className="mt-4 sm:mt-5">
-              <button
-                type="button"
-                disabled={!canContinue}
-                onClick={onContinue}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
-              >
-                {continueLabel}
-                <ArrowRight className="size-5" />
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={!canContinue}
+                  onClick={onContinue}
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
+                >
+                  {continueLabel}
+                  <ArrowRight className="size-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAboutOpen(true)}
+                  className="flex h-12 items-center justify-center rounded-xl border border-brand/40 bg-background px-4 text-sm font-bold text-brand transition hover:bg-brand/5 sm:h-14 sm:rounded-2xl"
+                >
+                  About
+                </button>
+              </div>
               <div className="mt-2 border-t border-border/80 pt-4 text-center">
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
                   <div
@@ -134,49 +151,69 @@ export function OpportunityOverview({
                     style={{ width: `${availablePercentage}%` }}
                   />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground mt-3">
-                  {availablePercentage.toFixed(0)}% of units are available to own
+                <p className="mt-5 text-xs font-medium text-muted-foreground">
+                  {availablePercentage.toFixed(0)}% of co-own units are available
                 </p>
               </div>
             </div>
           ) : null}
 
-          <dl className="mt-5 grid grid-cols-2 gap-4 border-y border-border/80 py-4 sm:mt-7 sm:gap-x-8 sm:gap-y-5 sm:py-6">
-            <Metric label="Term" value={formatOpportunityTerm(opportunity)} />
-            <Metric
-              label="Location"
-              value={opportunity.location || 'Not specified'}
-              icon={<MapPin className="size-4 text-brand" />}
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
+            <Highlight
+              label="Projected Earnings (%)"
+              value={`${formatProjectedReturnRate(opportunity)} ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}`}
+              description="This is the projected distribution rate for one return cycle. It is an estimate; actual monthly distributions are reviewed and credited by Playtives after each cycle."
+              onClick={setSelectedHighlight}
             />
-            <Metric label="Capital return" value={formatCapitalReturn(opportunity)} />
+            <Highlight
+              label="Return Type"
+              value={
+                isVariableDistribution(opportunity)
+                  ? 'Variable monthly distribution'
+                  : 'Projected monthly distribution'
+              }
+              description={
+                isVariableDistribution(opportunity)
+                  ? 'The monthly distribution may change based on the opportunity’s realised performance. Each distribution is reviewed before it is credited.'
+                  : 'The displayed monthly distribution is a projection. Actual distributions are reviewed and credited based on the opportunity’s performance.'
+              }
+              onClick={setSelectedHighlight}
+            />
+            <Highlight
+              label={`Projected earnings per unit`}
+              value={formatProjectedDistribution(opportunity)}
+              description="This is the projected amount for each unit you own in one distribution cycle. It is not an automatic or guaranteed wallet credit."
+              onClick={setSelectedHighlight}
+            />
+            <Highlight
+              label="Term"
+              value={formatOpportunityTerm(opportunity)}
+              description="This is the expected period for the opportunity. For fixed-term opportunities, capital is considered for return at the end of this term."
+              onClick={setSelectedHighlight}
+            />
             {opportunity.commencementDate ? (
-              <Metric
+              <Highlight
                 label="Start Date"
                 value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                 })}
+                description="This is when the opportunity commences. New ownership contributions close from this date, and the monthly distribution cycle starts from this point."
+                onClick={setSelectedHighlight}
               />
             ) : null}
-          </dl>
-
-          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
-              label="Projected distribution rate"
-              value={`${formatProjectedReturnRate(opportunity)} · ${formatReturnSchedule(opportunity.returnSchedule)}`}
+              label="Capital Return"
+              value={formatCapitalReturn(opportunity)}
+              description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
+              onClick={setSelectedHighlight}
             />
             <Highlight
-              label={`Projected ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()} distribution per unit`}
-              value={formatProjectedDistribution(opportunity)}
-            />
-            <Highlight
-              label="Return type"
-              value={
-                isVariableDistribution(opportunity)
-                  ? 'Variable monthly distribution'
-                  : 'Projected monthly distribution'
-              }
+              label="Deal Location"
+              value={opportunity.location || 'Not specified'}
+              description="This is the primary location associated with the opportunity or underlying asset."
+              onClick={setSelectedHighlight}
             />
           </div>
 
@@ -199,7 +236,7 @@ export function OpportunityOverview({
           ) : null} */}
 
           <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-7">
-            <ContentSection title="About the opportunity" text={opportunity.about} />
+            <ContentSection title="" text={opportunity.about} />
             {opportunity.agreement ? (
               <AgreementPreview
                 agreement={opportunity.agreement}
@@ -235,35 +272,133 @@ export function OpportunityOverview({
           ) : null}
         </div>
       </article>
+      {selectedHighlight ? (
+        <HighlightModal detail={selectedHighlight} onClose={() => setSelectedHighlight(null)} />
+      ) : null}
+      {aboutOpen ? (
+        <AboutOpportunityModal opportunity={opportunity} onClose={() => setAboutOpen(false)} />
+      ) : null}
     </div>
   );
 }
 
-function Metric({
+function AboutOpportunityModal({
+  opportunity,
+  onClose,
+}: Readonly<{
+  opportunity: Opportunity;
+  onClose: () => void;
+}>): React.JSX.Element {
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="about-opportunity-title"
+    >
+      <section className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-background shadow-xl">
+        <header className="flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6 sm:py-5">
+          <div>
+            {/* <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">About</p> */}
+            <h2 id="about-opportunity-title" className="mt-1 text-lg font-semibold">
+              {opportunity.title}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid size-9 shrink-0 place-items-center rounded-lg border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            aria-label="Close opportunity details"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+        <div className="overflow-y-auto px-5 py-5 sm:px-6">
+          <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+            {opportunity.about}
+          </p>
+        </div>
+        {/* <footer className="border-t px-5 py-4 sm:px-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-10 w-full rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
+          >
+            Done
+          </button>
+        </footer> */}
+      </section>
+    </div>
+  );
+}
+
+function Highlight({
   label,
   value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}): React.JSX.Element {
+  description,
+  onClick,
+}: HighlightDetail & { onClick: (detail: HighlightDetail) => void }): React.JSX.Element {
   return (
-    <div>
-      <dt className="text-[13px] font-bold text-muted-foreground">{label}</dt>
-      <dd className="mt-1 flex items-center gap-1.5 text-[12px] font-medium tracking-tight">
-        {icon}
+    <button
+      type="button"
+      onClick={() => onClick({ label, value, description })}
+      className="group rounded-xl border border-brand/10 bg-brand/5 px-3 py-2.5 text-left transition hover:border-brand/30 hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:py-3"
+    >
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 flex items-center gap-1.5 text-[14px] font-bold tracking-tight text-brand">
         {value}
-      </dd>
-    </div>
+        <Info className="size-3 shrink-0 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100" />
+      </p>
+    </button>
   );
 }
 
-function Highlight({ label, value }: { label: string; value: string }): React.JSX.Element {
+function HighlightModal({
+  detail,
+  onClose,
+}: Readonly<{
+  detail: HighlightDetail;
+  onClose: () => void;
+}>): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-brand/10 bg-brand/5 px-3 py-2.5 sm:py-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-[14px] font-bold tracking-tight text-brand">{value}</p>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="highlight-detail-title"
+    >
+      <section className="w-full max-w-md rounded-2xl border bg-background p-5 shadow-xl sm:p-6">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            {/* <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+              Opportunity detail
+            </p> */}
+            <h2 id="highlight-detail-title" className="mt-1 text-lg font-semibold">
+              {detail.label}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid size-9 shrink-0 place-items-center rounded-lg border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            aria-label="Close detail"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+        <div className="mt-5 rounded-xl bg-brand/5 p-4">
+          <p className="text-xs text-muted-foreground">Current value</p>
+          <p className="mt-1 text-lg font-semibold text-brand">{detail.value}</p>
+        </div>
+        {/* <p className="mt-5 text-sm leading-6 text-muted-foreground">{detail.description}</p> */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-6 h-10 w-full rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
+        >
+          Done
+        </button>
+      </section>
     </div>
   );
 }

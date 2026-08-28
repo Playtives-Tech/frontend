@@ -79,6 +79,7 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
   const projectedRate = formatProjectedReturnRate(opportunity);
   const memberCount = opportunity.memberCount ?? 0;
   const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
+  const title = truncateCardTitle(opportunity.title);
 
   return (
     <>
@@ -87,8 +88,8 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
             {memberLabel}: {memberCount}
           </p>
       </div>
-      <h3 className="mt-1 line-clamp-1 font-sans text-[12.5px] font-semibold leading-5 tracking-normal">
-        {opportunity.title}
+      <h3 className="mt-1 whitespace-nowrap font-sans text-[11px] font-semibold leading-5 tracking-normal">
+        {title}
       </h3>
       <div className="pt-1 line-clamp-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
@@ -97,6 +98,19 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
       </div>
     </>
   );
+}
+
+function truncateCardTitle(title: string): string {
+  const maximumCharacters = 25;
+  const normalizedTitle = title.trim();
+
+  if (Array.from(normalizedTitle).length <= maximumCharacters) return normalizedTitle;
+
+  const preview = Array.from(normalizedTitle).slice(0, maximumCharacters).join('');
+  const lastWordBoundary = preview.lastIndexOf(' ');
+  const readablePreview = lastWordBoundary > 10 ? preview.slice(0, lastWordBoundary) : preview;
+
+  return `${readablePreview.trimEnd()}..`;
 }
 
 function formatCompactNaira(minorUnits: number): string {
