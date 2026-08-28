@@ -1,11 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  formatOpportunityMoney,
-  formatProjectedDistribution,
-  formatReturnSchedule,
-  type Opportunity,
-} from '@/lib/opportunities';
+import { UsersRound } from 'lucide-react';
+import { formatProjectedReturnRate, type Opportunity } from '@/lib/opportunities';
 
 type OpportunityCardProps = Readonly<{
   opportunity: Opportunity;
@@ -21,83 +17,97 @@ export function OpportunityCard({
   return (
     <Link
       href={`/discover/${opportunity.slug}`}
-      className="group flex w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:min-h-[10.75rem]"
+      className="group flex h-[13rem] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30"
     >
-      <div className="relative aspect-video shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:h-32">
-        {opportunity.imageUrl && (
-          <Image
-            src={opportunity.imageUrl}
-            unoptimized
-            alt={opportunity.imageAlt}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            className="object-cover"
-          />
-        )}
-      </div>
-      <div className="px-3 py-3 sm:flex sm:flex-1 sm:flex-col sm:p-2.5">
-        {/* <span
-          className={`mb-2 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold ${opportunity.acquisitionStatus === 'OPEN' ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'}`}
-        >
-          {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
-        </span> */}
-        <h2 className="line-clamp-2 font-sans text-[13px] font-semibold leading-5 tracking-normal sm:leading-5">
-          {opportunity.title}
-        </h2>
-        <p className="mt-2 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
-          {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
-        </p>
-        <p className="mt-1 line-clamp-1 text-xs font-semibold leading-5 text-muted-foreground text-yellow-600 sm:mt-1.5">
-          {projectionLabel(opportunity)}
-        </p>
+      <OpportunityCardImage
+        opportunity={opportunity}
+        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+      />
+      <div className="flex flex-1 flex-col py-2 px-3">
+        <OpportunityCardDetails opportunity={opportunity} />
       </div>
     </Link>
   );
 }
 
 function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): React.JSX.Element {
-  const projectedReturn = projectionLabel(opportunity);
-
   return (
     <Link
       href={`/discover/${opportunity.slug}`}
-      className="group flex w-[12rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[14rem] lg:w-[14rem]"
+      className="group flex h-[13rem] w-[12.125rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[13rem] lg:w-[14.125rem]"
     >
-      <div className="relative h-30 overflow-hidden bg-muted sm:h-32">
-        {opportunity.imageUrl && (
-          <Image
-            src={opportunity.imageUrl}
-            unoptimized
-            alt={opportunity.imageAlt}
-            fill
-            sizes="(min-width: 1024px) 16vw, 60vw"
-            className="object-cover"
-          />
-        )}
-      </div>
+      <OpportunityCardImage opportunity={opportunity} sizes="(min-width: 1024px) 16vw, 60vw" />
 
-      <div className="flex flex-1 flex-col p-2.5">
-        {/* <span className="mb-1 text-[10px] font-semibold text-muted-foreground">
-          {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
-        </span> */}
-        <h3 className="line-clamp-2 font-sans text-sm font-semibold leading-5 tracking-normal">
-          {opportunity.title}
-        </h3>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
-        </p>
-        <p
-          className="mt-1 truncate text-xs font-medium leading-5 text-amber-700 dark:text-amber-300"
-          title={projectedReturn}
-        >
-          {projectedReturn}
-        </p>
+      <div className="flex flex-1 flex-col py-2 px-3">
+        <OpportunityCardDetails opportunity={opportunity} />
       </div>
     </Link>
   );
 }
 
-function projectionLabel(opportunity: Opportunity): string {
-  const schedule = formatReturnSchedule(opportunity.returnSchedule).toLowerCase();
-  return `${formatProjectedDistribution(opportunity)} projected return · ${schedule}`;
+function OpportunityCardImage({
+  opportunity,
+  sizes,
+}: Readonly<{
+  opportunity: Opportunity;
+  sizes: string;
+}>): React.JSX.Element {
+  return (
+    <div className="relative h-32 shrink-0 overflow-hidden bg-muted">
+      {opportunity.imageUrl ? (
+        <Image
+          src={opportunity.imageUrl}
+          unoptimized
+          alt={opportunity.imageAlt}
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
+      ) : null}
+      <span className="absolute right-2 top-2 rounded-[200px] border border-brand/80 bg-brand px-4 py-1 text-[9px] font-bold tracking-wide text-brand-foreground shadow-md">
+        {formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · {structureLabel(opportunity)}
+      </span>
+    </div>
+  );
+}
+
+function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportunity }>): React.JSX.Element {
+  const projectedRate = formatProjectedReturnRate(opportunity);
+  const memberCount = opportunity.memberCount ?? 0;
+  const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FOUNDERS' : 'CO-OWNERS';
+
+  return (
+    <>
+      <div className="h-4">
+          <p className="flex items-center gap-1 text-[10px] font-semibold text-[#bab9b9]">
+            {memberLabel}: <span className="text-[10px] font-bold text-[#a0a0a0]">{memberCount}</span>
+          </p>
+      </div>
+      <h3 className="mt-1 line-clamp-1 font-sans text-[12.5px] font-semibold leading-5 tracking-normal">
+        {opportunity.title}
+      </h3>
+      <div className="pt-1">
+        <p className="text-[10.5px] font-semibold leading-4 text-brand">
+          {projectedRate} <span className="font-medium text-muted-foreground">monthly profit share</span>
+        </p>
+      </div>
+    </>
+  );
+}
+
+function formatCompactNaira(minorUnits: number): string {
+  const amount = minorUnits / 100;
+  if (amount >= 1_000_000) return `₦${compactNumber(amount / 1_000_000)}M`;
+  if (amount >= 1_000) return `₦${compactNumber(amount / 1_000)}K`;
+  return `₦${Math.round(amount).toLocaleString('en-NG')}`;
+}
+
+function compactNumber(value: number): string {
+  return value % 1 === 0 ? String(value) : value.toFixed(1).replace(/\.0$/, '');
+}
+
+function structureLabel(opportunity: Opportunity): string {
+  if (opportunity.opportunityStructure === 'CO_FUNDING') return 'CO-FUND';
+  if (opportunity.opportunityStructure === 'FULL_OWNERSHIP') return 'OWN';
+  return 'CO-OWN';
 }

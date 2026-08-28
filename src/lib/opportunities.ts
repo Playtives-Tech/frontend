@@ -31,6 +31,7 @@ export type Opportunity = Readonly<{
   fundingTargetMinorUnits: number;
   ownershipPerUnitPercent: number | null;
   availableUnits: number;
+  memberCount?: number;
   durationMonths: number | null;
   termType: TermType;
   durationValue: number | null;
