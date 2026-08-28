@@ -35,6 +35,14 @@ export function OpportunityOverview({
   const canContinue =
     opportunity.availableUnits >= opportunity.minimumUnits &&
     (!agreementRequired || agreementAccepted);
+  const continueLabel =
+    opportunity.availableUnits < opportunity.minimumUnits
+      ? 'Currently unavailable'
+      : agreementRequired && !agreementAccepted
+        ? 'Accept agreement to continue'
+        : isCoFunded
+          ? 'Co-fund now'
+          : 'Co own now';
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-8 sm:py-6 lg:px-10 lg:py-8">
@@ -102,19 +110,13 @@ export function OpportunityOverview({
                 onClick={onContinue}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
               >
-                {opportunity.availableUnits < opportunity.minimumUnits
-                  ? 'Currently unavailable'
-                  : agreementRequired && !agreementAccepted
-                    ? 'Accept agreement to continue'
-                    : isCoFunded
-                      ? 'Co-fund now'
-                      : 'Co own now'}
+                {continueLabel}
                 <ArrowRight className="size-5" />
               </button>
             </div>
           ) : null}
 
-          <dl className="mt-5 grid gap-4 border-y border-border/80 py-4 sm:mt-7 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:py-6 lg:grid-cols-4">
+          <dl className="mt-5 grid grid-cols-2 gap-4 border-y border-border/80 py-4 sm:mt-7 sm:gap-x-8 sm:gap-y-5 sm:py-6">
             <Metric label="Term" value={formatOpportunityTerm(opportunity)} />
             <Metric
               label="Location"
@@ -124,7 +126,7 @@ export function OpportunityOverview({
             <Metric label="Capital return" value={formatCapitalReturn(opportunity)} />
             {opportunity.commencementDate ? (
               <Metric
-                label="Commencement"
+                label="Start Date"
                 value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
                   day: 'numeric',
                   month: 'long',
@@ -134,7 +136,7 @@ export function OpportunityOverview({
             ) : null}
           </dl>
 
-          <div className="mt-5 grid gap-2.5 sm:mt-6 sm:grid-cols-3 sm:gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
               label="Projected distribution rate"
               value={`${formatProjectedReturnRate(opportunity)} · ${formatReturnSchedule(opportunity.returnSchedule)}`}
@@ -176,10 +178,9 @@ export function OpportunityOverview({
             {opportunity.agreement ? (
               <AgreementPreview
                 agreement={opportunity.agreement}
-                version={opportunity.agreementVersion}
-                effectiveDate={opportunity.agreementEffectiveDate}
                 resourceUrl={opportunity.agreementResourceUrl}
                 accepted={agreementAccepted}
+                allowAcceptance={opportunity.acquisitionStatus === 'OPEN'}
                 onAccept={onAgreementAccepted}
               />
             ) : null}
@@ -195,6 +196,20 @@ export function OpportunityOverview({
               </p>
             </div>
           </div>
+
+          {onContinue ? (
+            <div className="mt-7 border-t border-border/80 pt-5 sm:mt-9 sm:pt-6">
+              <button
+                type="button"
+                disabled={!canContinue}
+                onClick={onContinue}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-foreground shadow-[0_12px_28px_rgb(8_68_49/0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 sm:h-14 sm:rounded-2xl"
+              >
+                {continueLabel}
+                <ArrowRight className="size-5" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </article>
     </div>

@@ -23,7 +23,7 @@ export function OpportunityCard({
       href={`/discover/${opportunity.slug}`}
       className="group flex w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:min-h-[10.75rem]"
     >
-      <div className="relative aspect-video shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:h-24">
+      <div className="relative aspect-video shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:h-32">
         {opportunity.imageUrl && (
           <Image
             src={opportunity.imageUrl}
@@ -35,16 +35,16 @@ export function OpportunityCard({
           />
         )}
       </div>
-      <div className="px-4 py-3 sm:flex sm:flex-1 sm:flex-col sm:p-2.5">
-        <span
+      <div className="px-3 py-3 sm:flex sm:flex-1 sm:flex-col sm:p-2.5">
+        {/* <span
           className={`mb-2 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold ${opportunity.acquisitionStatus === 'OPEN' ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'}`}
         >
           {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
-        </span>
-        <h2 className="line-clamp-2 font-sans text-[14px] font-bold leading-5 tracking-normal sm:leading-6">
+        </span> */}
+        <h2 className="line-clamp-2 font-sans text-[13px] font-bold leading-4 tracking-normal sm:leading-4">
           {opportunity.title}
         </h2>
-        <p className="mt-1 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
+        <p className="mt-2 line-clamp-1 text-xs font-medium leading-3 text-muted-foreground">
           {formatOpportunityMoney(opportunity.pricePerUnitMinorUnits)} per unit
         </p>
         <p className="mt-1 line-clamp-1 text-xs font-semibold leading-4 text-muted-foreground text-yellow-600 sm:mt-1.5">
@@ -61,7 +61,7 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
   return (
     <Link
       href={`/discover/${opportunity.slug}`}
-      className="group flex w-[12rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[13rem] lg:w-[14rem]"
+      className="group flex w-[12rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[14rem] lg:w-[14rem]"
     >
       <div className="relative h-20 overflow-hidden bg-muted sm:h-24">
         {opportunity.imageUrl && (
@@ -77,10 +77,10 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
       </div>
 
       <div className="flex flex-1 flex-col p-2.5">
-        <span className="mb-1 text-[10px] font-semibold text-muted-foreground">
+        {/* <span className="mb-1 text-[10px] font-semibold text-muted-foreground">
           {opportunity.acquisitionStatus === 'OPEN' ? 'Open' : 'Closed'}
-        </span>
-        <h3 className="line-clamp-1 font-sans text-sm font-bold leading-5 tracking-normal">
+        </span> */}
+        <h3 className="line-clamp-2 font-sans text-sm font-bold leading-5 tracking-normal">
           {opportunity.title}
         </h3>
         <p className="mt-1 text-xs leading-4 text-muted-foreground">

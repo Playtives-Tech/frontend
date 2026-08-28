@@ -78,7 +78,7 @@ export function DashboardHome(): React.JSX.Element {
             alt="Playtives logo mark"
             className="h-6 w-6 object-contain"
           />
-          <h1 className="mt-3 font-sans text-[1rem] font-bold leading-8 tracking-normal text-foreground sm:text-[1.3rem]">
+          <h1 className="mt-3 font-sans text-[1.1rem] font-bold leading-8 tracking-normal text-foreground sm:text-[1.3rem]">
             {isGuest ? 'Welcome to Playtives.' : `${greeting}, ${firstName}.`}
           </h1>
           <p className="text-[.8rem] font-medium text-muted-foreground">

@@ -1,21 +1,19 @@
 'use client';
 
-import { Check, Download, FileText, X } from 'lucide-react';
+import { ArrowRight, Check, Download, FileText, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export function AgreementPreview({
   agreement,
-  version = '1.0',
-  effectiveDate,
   resourceUrl,
   accepted,
+  allowAcceptance = true,
   onAccept,
 }: Readonly<{
   agreement: string;
-  version?: string;
-  effectiveDate?: string | null;
   resourceUrl?: string;
   accepted?: boolean;
+  allowAcceptance?: boolean;
   onAccept?: () => void;
 }>): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,12 +31,7 @@ export function AgreementPreview({
     <section>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-[16px] font-semibold tracking-tight">Opportunity agreement</h2>
-        <div className="flex shrink-0 items-center gap-3">
-          {accepted ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand"><Check className="size-3.5" /> Accepted</span> : null}
-          <button type="button" onClick={() => setIsOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75">
-            <FileText className="size-4" /> Read full agreement
-          </button>
-        </div>
+        {accepted ? <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand"><Check className="size-3.5" /> Accepted</span> : null}
       </div>
       <div className="mt-2 border-l-2 border-brand/25 pl-3 text-sm leading-6 text-muted-foreground">
         {preview.map((line, index) => (
@@ -47,6 +40,15 @@ export function AgreementPreview({
           </p>
         ))}
       </div>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-brand-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:w-auto"
+      >
+        <FileText className="size-4" />
+        Read full agreement
+        <ArrowRight className="size-4" />
+      </button>
       {isOpen ? (
         <div
           role="dialog"
@@ -57,9 +59,7 @@ export function AgreementPreview({
           <article className="flex h-[min(82vh,760px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border bg-background">
             <header className="flex shrink-0 items-center justify-between border-b px-5 py-4 sm:px-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">Before you continue</p>
                 <h2 className="mt-1 text-lg font-semibold">Opportunity agreement</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Version {version}{effectiveDate ? ` · Effective ${new Date(effectiveDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}</p>
               </div>
               <button
                 type="button"
@@ -75,13 +75,19 @@ export function AgreementPreview({
             </div>
             <footer className="flex shrink-0 items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
               {resourceUrl ? <a href={resourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"><Download className="size-4" /> Download copy</a> : <span />}
-              <button
-                type="button"
-                onClick={() => { onAccept?.(); setIsOpen(false); }}
-                className="h-10 rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
-              >
-                {accepted ? 'Agreement accepted' : 'I agree to this agreement'}
-              </button>
+              {allowAcceptance ? (
+                <button
+                  type="button"
+                  onClick={() => { onAccept?.(); setIsOpen(false); }}
+                  className="h-10 rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
+                >
+                  {accepted ? 'Agreement accepted' : 'I agree to this agreement'}
+                </button>
+              ) : (
+                <span className="text-right text-xs font-medium text-muted-foreground">
+                  This opportunity is closed to new owners.
+                </span>
+              )}
             </footer>
           </article>
         </div>
