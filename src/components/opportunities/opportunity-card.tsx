@@ -39,7 +39,7 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
       <OpportunityCardImage opportunity={opportunity} sizes="(min-width: 1024px) 16vw, 60vw" />
 
       <div className="flex flex-1 flex-col py-2 px-3">
-        <OpportunityCardDetails opportunity={opportunity} />
+        <OpportunityCardDetails opportunity={opportunity} compact />
       </div>
     </Link>
   );
@@ -75,11 +75,15 @@ function OpportunityCardImage({
   );
 }
 
-function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportunity }>): React.JSX.Element {
+function OpportunityCardDetails({
+  opportunity,
+  compact = false,
+}: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
   const projectedRate = formatProjectedReturnRate(opportunity);
   const memberCount = opportunity.memberCount ?? 0;
   const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
-  const title = truncateCardTitle(opportunity.title);
+  const mobileTitle = truncateCardTitle(opportunity.title, 25);
+  const desktopTitle = truncateCardTitle(opportunity.title, compact ? 26 : 30);
 
   return (
     <>
@@ -88,8 +92,9 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
             {memberLabel}: {memberCount}
           </p>
       </div>
-      <h3 className="mt-1 whitespace-nowrap font-sans text-[11px] font-semibold leading-5 tracking-normal">
-        {title}
+      <h3 className="mt-1 max-w-full whitespace-nowrap font-sans text-[11px] font-semibold leading-5 tracking-normal">
+        <span className="sm:hidden">{mobileTitle}</span>
+        <span className="hidden sm:inline">{desktopTitle}</span>
       </h3>
       <div className="pt-1 line-clamp-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
@@ -100,8 +105,7 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
   );
 }
 
-function truncateCardTitle(title: string): string {
-  const maximumCharacters = 25;
+function truncateCardTitle(title: string, maximumCharacters: number): string {
   const normalizedTitle = title.trim();
 
   if (Array.from(normalizedTitle).length <= maximumCharacters) return normalizedTitle;

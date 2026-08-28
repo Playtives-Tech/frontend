@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronDown, ChevronUp, Info, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -75,18 +75,21 @@ export function OpportunityOverview({
         </div>
 
         <div className="relative -mt-4 rounded-2xl border border-border/70 bg-background px-4 py-5 shadow-[0_18px_45px_rgb(31_47_40/0.08)] dark:shadow-none sm:-mt-8 sm:rounded-[1.75rem] sm:px-8 sm:py-8 lg:px-10">
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
-              <Check className="size-3.5" />
-              {opportunity.acquisitionStatus === 'OPEN'
-                ? 'Open for acquisition'
-                : 'Closed to new owners'}
-            </span>
-            <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-              {opportunity.category}
-            </span>
-            <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-              {formatOwnershipModel(opportunity.opportunityStructure)}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
+                <Check className="size-3.5" />
+                {opportunity.acquisitionStatus === 'OPEN'
+                  ? 'Open for acquisition'
+                  : 'Closed to new owners'}
+              </span>
+              <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                {opportunity.category}
+              </span>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-brand">
+              Verified opportunity
+              <BadgeCheck className="size-5" />
             </span>
           </div>
 
@@ -160,13 +163,19 @@ export function OpportunityOverview({
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
-              label="Projected Earnings (%)"
+              label="Projected earnings (%)"
               value={`${formatProjectedReturnRate(opportunity)} ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}`}
               description="This is the projected distribution rate for one return cycle. It is an estimate; actual monthly distributions are reviewed and credited by Playtives after each cycle."
               onClick={setSelectedHighlight}
             />
             <Highlight
-              label="Return Type"
+              label="Deal type"
+              value={formatOwnershipModel(opportunity.opportunityStructure)}
+              description=""
+              onClick={setSelectedHighlight}
+            />
+            <Highlight
+              label="Return type"
               value={
                 isVariableDistribution(opportunity)
                   ? 'Variable monthly distribution'
@@ -193,7 +202,7 @@ export function OpportunityOverview({
             />
             {opportunity.commencementDate ? (
               <Highlight
-                label="Start Date"
+                label="Start date"
                 value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
                   day: 'numeric',
                   month: 'long',
@@ -204,13 +213,14 @@ export function OpportunityOverview({
               />
             ) : null}
             <Highlight
-              label="Capital Return"
+              label="Capital return"
               value={formatCapitalReturn(opportunity)}
               description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
               onClick={setSelectedHighlight}
             />
+
             <Highlight
-              label="Deal Location"
+              label="Deal location"
               value={opportunity.location || 'Not specified'}
               description="This is the primary location associated with the opportunity or underlying asset."
               onClick={setSelectedHighlight}
@@ -344,8 +354,8 @@ function Highlight({
       onClick={() => onClick({ label, value, description })}
       className="group rounded-xl border border-brand/10 bg-brand/5 px-3 py-2.5 text-left transition hover:border-brand/30 hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:py-3"
     >
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 flex items-center gap-1.5 text-[14px] font-bold tracking-tight text-brand">
+      <p className="line-clamp-1 text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 line-clamp-1 flex items-center gap-1.5 text-[14px] font-bold tracking-tight text-brand">
         {value}
         <Info className="size-3 shrink-0 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100" />
       </p>
@@ -391,13 +401,13 @@ function HighlightModal({
           <p className="mt-1 text-lg font-semibold text-brand">{detail.value}</p>
         </div>
         {/* <p className="mt-5 text-sm leading-6 text-muted-foreground">{detail.description}</p> */}
-        <button
+        {/* <button
           type="button"
           onClick={onClose}
           className="mt-6 h-10 w-full rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
         >
           Done
-        </button>
+        </button> */}
       </section>
     </div>
   );
