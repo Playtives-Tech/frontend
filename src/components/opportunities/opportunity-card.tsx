@@ -86,7 +86,7 @@ function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportu
       <h3 className="mt-1 line-clamp-1 font-sans text-[12.5px] font-semibold leading-5 tracking-normal">
         {opportunity.title}
       </h3>
-      <div className="pt-1">
+      <div className="pt-1 line-clamp-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
           {projectedRate} <span className="font-medium text-muted-foreground">monthly profit share</span>
         </p>
