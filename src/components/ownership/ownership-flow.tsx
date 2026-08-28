@@ -42,7 +42,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
     <OpportunityOverview
       opportunity={opportunity}
       agreementAccepted={agreementAccepted}
-      onAgreementAccepted={() => setAgreementAccepted(true)}
+      onAgreementAccepted={canAcquire ? () => setAgreementAccepted(true) : undefined}
       onContinue={canAcquire ? () => setStep('positions') : undefined}
     />
   );

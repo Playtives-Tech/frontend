@@ -59,7 +59,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       </header>
 
       <div className="mt-3">
-        <label className="flex h-12 items-center gap-3 rounded-xl bg-surface px-4 text-muted-foreground focus-within:ring-2 focus-within:ring-brand/30">
+        <label className="flex h-14 items-center gap-3 rounded-xl bg-surface px-4 text-muted-foreground focus-within:ring-2 focus-within:ring-brand/30">
           <Search className="size-5" />
 
           <input

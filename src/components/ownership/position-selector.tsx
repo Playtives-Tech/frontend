@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Minus, Plus, WalletCards } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Minus, Plus, TrendingUp, Wallet } from 'lucide-react';
 import {
   formatCapitalReturn,
   formatOpportunityTerm,
@@ -30,7 +30,9 @@ export function PositionSelector({
   const maximum = opportunity.availableUnits;
   const unitPrice = opportunity.pricePerUnitMinorUnits / 100;
   const total = unitPrice * quantity;
-  const filledUnits = opportunity.totalUnits - opportunity.availableUnits;
+  const availablePercentage =
+    opportunity.totalUnits > 0 ? (opportunity.availableUnits / opportunity.totalUnits) * 100 : 0;
+  const filledPercentage = 100 - availablePercentage;
   return (
     <div className="mx-auto max-w-3xl px-4 py-5 sm:px-8 sm:py-8 lg:px-10">
       <button
@@ -55,8 +57,8 @@ export function PositionSelector({
             <p className="mt-2 text-[15px] font-semibold">{formatNaira(unitPrice)}</p>
           </div>
           <div className="rounded-xl bg-surface p-3 sm:p-4">
-            <p className="text-sm text-muted-foreground">Available now</p>
-            <p className="mt-2 text-[15px] font-semibold">{opportunity.availableUnits}</p>
+            <p className="text-sm text-muted-foreground">Availability</p>
+            <p className="mt-2 text-[15px] font-semibold">{Math.round(availablePercentage)}% available</p>
           </div>
           <div className="rounded-xl bg-surface p-3 sm:p-4">
             <p className="text-sm text-muted-foreground">Term</p>
@@ -80,17 +82,14 @@ export function PositionSelector({
             <p className="mt-2 text-xl font-semibold">{maximum}</p>
           </div> */}
         </div>
-        <div className="mt-6 flex items-center justify-between gap-4 text-sm">
-          <span className="text-muted-foreground">
-            {filledUnits} of {opportunity.totalUnits} units filled
-          </span>
-          <span className="font-semibold text-brand">{opportunity.availableUnits} left</span>
+        <div className="mt-6 flex items-center justify-end text-sm">
+          <span className="font-semibold text-brand">{Math.round(availablePercentage)}% available</span>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-brand"
             style={{
-              width: `${opportunity.totalUnits > 0 ? (filledUnits / opportunity.totalUnits) * 100 : 0}%`,
+              width: `${filledPercentage}%`,
             }}
           />
         </div>
@@ -127,40 +126,51 @@ export function PositionSelector({
       </section>
       {opportunity.rolloverAllowed ? (
         <section className="mt-4 rounded-xl border bg-background p-4 sm:mt-5 sm:rounded-2xl sm:p-6">
-          <div>
-            <h2 className="font-sans text-base font-semibold">
-              How should monthly profit be handled?
-            </h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              You can receive approved profit in your wallet each month or add it to your
-              contribution for the next month&apos;s calculation.
-            </p>
+          <div className="flex items-start gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+              <TrendingUp className="size-4.5" />
+            </span>
+            <div>
+              <h2 className="font-sans text-base font-semibold">Choose how to receive monthly profit</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Select a monthly cash payout or add approved profit to your contribution for the
+                next calculation.
+              </p>
+            </div>
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => onRolloverElectionChange('PAYOUT')}
-              className={`rounded-xl border p-3 text-left transition ${rolloverElection === 'PAYOUT' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:bg-muted/50'}`}
+              aria-pressed={rolloverElection === 'PAYOUT'}
+              className={`relative rounded-xl border p-4 text-left transition ${rolloverElection === 'PAYOUT' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:border-brand/30 hover:bg-muted/50'}`}
             >
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <WalletCards className="size-4 text-brand" />
-                Pay to wallet
+              {rolloverElection === 'PAYOUT' ? (
+                <CheckCircle2 className="absolute right-3 top-3 size-4 text-brand" />
+              ) : null}
+              <span className="grid size-9 place-items-center rounded-lg bg-brand/10 text-brand">
+                <Wallet className="size-4.5" />
               </span>
+              <span className="mt-3 block text-sm font-semibold">Pay to wallet</span>
               <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                Approved profit is credited to your earnings wallet each month.
+                Receive each approved monthly profit in your earnings wallet.
               </span>
             </button>
             <button
               type="button"
               onClick={() => onRolloverElectionChange('COMPOUND')}
-              className={`rounded-xl border p-3 text-left transition ${rolloverElection === 'COMPOUND' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:bg-muted/50'}`}
+              aria-pressed={rolloverElection === 'COMPOUND'}
+              className={`relative rounded-xl border p-4 text-left transition ${rolloverElection === 'COMPOUND' ? 'border-brand bg-brand/5 ring-1 ring-brand/20' : 'hover:border-brand/30 hover:bg-muted/50'}`}
             >
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <Check className="size-4 text-brand" />
-                Roll into contribution
+              {rolloverElection === 'COMPOUND' ? (
+                <CheckCircle2 className="absolute right-3 top-3 size-4 text-brand" />
+              ) : null}
+              <span className="grid size-9 place-items-center rounded-lg bg-brand/10 text-brand">
+                <TrendingUp className="size-4.5" />
               </span>
+              <span className="mt-3 block text-sm font-semibold">Grow my contribution</span>
               <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                Approved profit increases your capital for the next monthly calculation.
+                Add approved profit to capital for the next monthly calculation.
               </span>
             </button>
           </div>

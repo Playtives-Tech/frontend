@@ -43,7 +43,7 @@ export function WalletDashboard(): React.JSX.Element {
       <section className="mt-5 overflow-hidden rounded-2xl border border-brand/15 bg-background p-4 shadow-[0_18px_35px_-30px_rgba(7,82,59,0.35)] sm:mt-6 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">
               Available balance
             </p>
             <div className="mt-1.5 font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
