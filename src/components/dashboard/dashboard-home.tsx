@@ -148,7 +148,7 @@ export function DashboardHome(): React.JSX.Element {
             </span>
             <div>
               <h2 className="mt-1 text-sm font-semibold">Join us on WhatsApp</h2>
-              <p className="text-xs leading-5 text-muted-foreground">
+              <p className="text-xs leading-5 text-muted-foreground w-[70%]">
                 Receive helpful ownership updates and connect with the Playtives community.
               </p>
             </div>
