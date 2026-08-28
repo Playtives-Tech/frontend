@@ -6,13 +6,11 @@ import { AppShell } from '@/components/navigation/app-shell';
 
 import '@/styles/globals.css';
 
-// const sans = Inter({
-//   variable: '--font-sans',
-//   subsets: ['latin'],
-//   weight: ['400', '500', '600', '700', '800'],
-// });
-
-const sans = Geist({ variable: '--font-sans', subsets: ['latin'] });
+const sans = Inter({
+  variable: '--font-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 const wordmark = Playfair_Display({
   variable: '--font-wordmark',
