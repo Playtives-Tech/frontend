@@ -77,13 +77,11 @@ function OpportunityCardImage({
 
 function OpportunityCardDetails({
   opportunity,
-  compact = false,
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
   const projectedRate = formatProjectedReturnRate(opportunity);
   const memberCount = opportunity.memberCount ?? 0;
   const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
-  const mobileTitle = truncateCardTitle(opportunity.title, 25);
-  const desktopTitle = truncateCardTitle(opportunity.title, compact ? 26 : 30);
+  const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
   return (
     <>
@@ -92,9 +90,13 @@ function OpportunityCardDetails({
             {memberLabel}: {memberCount}
           </p>
       </div>
-      <h3 className="mt-1 max-w-full whitespace-nowrap font-sans text-[11px] font-semibold leading-5 tracking-normal">
-        <span className="sm:hidden">{mobileTitle}</span>
-        <span className="hidden sm:inline">{desktopTitle}</span>
+      <h3 className="relative mt-1 max-w-full overflow-hidden whitespace-nowrap pr-4 font-sans text-[11px] font-semibold leading-5 tracking-normal">
+        <span className="block overflow-hidden text-clip">{opportunity.title}</span>
+        {showTitleSuffix ? (
+          <span className="absolute right-0 top-0 bg-background pl-0.5" aria-hidden="true">
+            ..
+          </span>
+        ) : null}
       </h3>
       <div className="pt-1 line-clamp-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
@@ -103,18 +105,6 @@ function OpportunityCardDetails({
       </div>
     </>
   );
-}
-
-function truncateCardTitle(title: string, maximumCharacters: number): string {
-  const normalizedTitle = title.trim();
-
-  if (Array.from(normalizedTitle).length <= maximumCharacters) return normalizedTitle;
-
-  const preview = Array.from(normalizedTitle).slice(0, maximumCharacters).join('');
-  const lastWordBoundary = preview.lastIndexOf(' ');
-  const readablePreview = lastWordBoundary > 10 ? preview.slice(0, lastWordBoundary) : preview;
-
-  return `${readablePreview.trimEnd()}..`;
 }
 
 function formatCompactNaira(minorUnits: number): string {

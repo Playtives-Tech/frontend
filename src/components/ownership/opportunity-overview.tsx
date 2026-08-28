@@ -1,6 +1,15 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronDown, ChevronUp, Info, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BadgeCheck,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  X,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -88,7 +97,7 @@ export function OpportunityOverview({
               </span>
             </div>
             <span className="inline-flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-brand">
-              Verified opportunity
+              Verified {isCoFunded ? 'co-funding' : 'co-ownership'}
               <BadgeCheck className="size-5" />
             </span>
           </div>
@@ -200,6 +209,12 @@ export function OpportunityOverview({
               description="This is the expected period for the opportunity. For fixed-term opportunities, capital is considered for return at the end of this term."
               onClick={setSelectedHighlight}
             />
+            <Highlight
+              label="Capital return"
+              value={formatCapitalReturn(opportunity)}
+              description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
+              onClick={setSelectedHighlight}
+            />
             {opportunity.commencementDate ? (
               <Highlight
                 label="Start date"
@@ -212,13 +227,6 @@ export function OpportunityOverview({
                 onClick={setSelectedHighlight}
               />
             ) : null}
-            <Highlight
-              label="Capital return"
-              value={formatCapitalReturn(opportunity)}
-              description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
-              onClick={setSelectedHighlight}
-            />
-
             <Highlight
               label="Deal location"
               value={opportunity.location || 'Not specified'}
