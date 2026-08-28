@@ -27,9 +27,10 @@ export function FeaturedOpportunities(): React.JSX.Element {
       window.clearInterval(poll);
     };
   }, []);
-  const openOpportunities = opportunities.filter(
-    (opportunity) => opportunity.acquisitionStatus === 'OPEN',
-  );
+  const featuredOpportunities = [...opportunities].sort((left, right) => {
+    if (left.acquisitionStatus === right.acquisitionStatus) return 0;
+    return left.acquisitionStatus === 'OPEN' ? -1 : 1;
+  });
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between gap-5">
@@ -46,9 +47,9 @@ export function FeaturedOpportunities(): React.JSX.Element {
         </Link>
       </div>
 
-      {openOpportunities.length > 0 ? (
+      {featuredOpportunities.length > 0 ? (
         <div className="scrollbar-none -mx-4 mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 sm:-mx-8 sm:scroll-px-8 sm:px-8">
-          {openOpportunities.slice(0, 8).map((opportunity) => (
+          {featuredOpportunities.slice(0, 8).map((opportunity) => (
             <div key={opportunity.slug} className="snap-start">
               <OpportunityCard opportunity={opportunity} variant="compact" />
             </div>
