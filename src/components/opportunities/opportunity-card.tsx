@@ -64,8 +64,12 @@ function OpportunityCardImage({
           className="object-cover"
         />
       ) : null}
-      <span className="absolute right-2 top-2 rounded-[200px] border border-brand/80 bg-brand px-4 py-1 text-[9px] font-bold tracking-wide text-brand-foreground shadow-md">
-        {formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · {structureLabel(opportunity)}
+      <span
+        className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${opportunity.acquisitionStatus === 'COMMENCED' ? 'border-red-600 bg-red-600' : 'border-[#819f3b] bg-[#819f3b]'}`}
+      >
+        {opportunity.acquisitionStatus === 'COMMENCED'
+          ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · SOLD OUT`
+          : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`}
       </span>
     </div>
   );
@@ -74,7 +78,7 @@ function OpportunityCardImage({
 function OpportunityCardDetails({ opportunity }: Readonly<{ opportunity: Opportunity }>): React.JSX.Element {
   const projectedRate = formatProjectedReturnRate(opportunity);
   const memberCount = opportunity.memberCount ?? 0;
-  const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FOUNDERS' : 'CO-OWNERS';
+  const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
 
   return (
     <>
