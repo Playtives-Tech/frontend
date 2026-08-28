@@ -48,6 +48,7 @@ export function OpportunityOverview({
     opportunity.totalUnits > 0
       ? Math.max(0, Math.min(100, (opportunity.availableUnits / opportunity.totalUnits) * 100))
       : 0;
+  const filledPercentage = 100 - availablePercentage;
   const isCoFunded = opportunity.opportunityStructure === 'CO_FUNDING';
   const canContinue = opportunity.availableUnits >= opportunity.minimumUnits;
   const continueLabel =
@@ -160,7 +161,7 @@ export function OpportunityOverview({
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-brand transition-[width]"
-                    style={{ width: `${availablePercentage}%` }}
+                    style={{ width: `${filledPercentage}%` }}
                   />
                 </div>
                 <p className="mt-5 text-xs font-medium text-muted-foreground">

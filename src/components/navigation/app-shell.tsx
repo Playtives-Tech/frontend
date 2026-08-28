@@ -111,7 +111,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         <Link href="/" className="">
           <span className="font-wordmark text-4xl font-semibold leading-none">playtives</span>
         </Link>
-        <span className="mt-2 text-[.5rem] font-medium leading-5 tracking-normal text-white/65">
+        <span className="mt-2 text-[.85rem] font-medium leading-5 tracking-normal text-white/65">
           Own together. Build forever.
         </span>
 
