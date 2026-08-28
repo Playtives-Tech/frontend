@@ -26,6 +26,7 @@ export function AgreementPreview({
         .slice(0, 5),
     [agreement],
   );
+  const canAccept = allowAcceptance && Boolean(onAccept);
 
   return (
     <section>
@@ -75,7 +76,7 @@ export function AgreementPreview({
             </div>
             <footer className="flex shrink-0 items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
               {resourceUrl ? <a href={resourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"><Download className="size-4" /> Download copy</a> : <span />}
-              {allowAcceptance ? (
+              {canAccept ? (
                 <button
                   type="button"
                   onClick={() => { onAccept?.(); setIsOpen(false); }}
@@ -83,11 +84,11 @@ export function AgreementPreview({
                 >
                   {accepted ? 'Agreement accepted' : 'I agree to this agreement'}
                 </button>
-              ) : (
+              ) : !allowAcceptance ? (
                 <span className="text-right text-xs font-medium text-muted-foreground">
                   This opportunity is closed to new owners.
                 </span>
-              )}
+              ) : null}
             </footer>
           </article>
         </div>

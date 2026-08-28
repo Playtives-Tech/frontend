@@ -20,33 +20,25 @@ import {
 type OpportunityOverviewProps = Readonly<{
   opportunity: Opportunity;
   onContinue?: () => void;
-  agreementAccepted?: boolean;
-  onAgreementAccepted?: () => void;
 }>;
 
 export function OpportunityOverview({
   opportunity,
   onContinue,
-  agreementAccepted = false,
-  onAgreementAccepted,
 }: OpportunityOverviewProps): React.JSX.Element {
   const [summaryExpanded, setSummaryExpanded] = useState(false);
-  const filledUnits = Math.max(0, opportunity.totalUnits - opportunity.availableUnits);
-  const progress =
-    opportunity.totalUnits > 0 ? Math.min(100, (filledUnits / opportunity.totalUnits) * 100) : 0;
+  const availablePercentage =
+    opportunity.totalUnits > 0
+      ? Math.max(0, Math.min(100, (opportunity.availableUnits / opportunity.totalUnits) * 100))
+      : 0;
   const isCoFunded = opportunity.opportunityStructure === 'CO_FUNDING';
-  const agreementRequired = Boolean(opportunity.agreement.trim());
-  const canContinue =
-    opportunity.availableUnits >= opportunity.minimumUnits &&
-    (!agreementRequired || agreementAccepted);
+  const canContinue = opportunity.availableUnits >= opportunity.minimumUnits;
   const continueLabel =
     opportunity.availableUnits < opportunity.minimumUnits
       ? 'Currently unavailable'
-      : agreementRequired && !agreementAccepted
-        ? 'Accept agreement to continue'
-          : isCoFunded
-          ? 'Co-fund now'
-          : 'Co own now';
+      : isCoFunded
+        ? 'Co-fund now'
+        : 'Co own now';
   const canExpandSummary = opportunity.summary.trim().length > 140;
 
   return (
@@ -108,7 +100,11 @@ export function OpportunityOverview({
                   className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand transition hover:opacity-75"
                 >
                   {summaryExpanded ? 'See less' : 'See more'}
-                  {summaryExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                  {summaryExpanded ? (
+                    <ChevronUp className="size-3.5" />
+                  ) : (
+                    <ChevronDown className="size-3.5" />
+                  )}
                 </button>
               ) : null}
             </div>
@@ -131,6 +127,17 @@ export function OpportunityOverview({
                 {continueLabel}
                 <ArrowRight className="size-5" />
               </button>
+              <div className="mt-2 border-t border-border/80 pt-4 text-center">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-brand transition-[width]"
+                    style={{ width: `${availablePercentage}%` }}
+                  />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground mt-3">
+                  {availablePercentage.toFixed(0)}% of units are available to own
+                </p>
+              </div>
             </div>
           ) : null}
 
@@ -197,9 +204,7 @@ export function OpportunityOverview({
               <AgreementPreview
                 agreement={opportunity.agreement}
                 resourceUrl={opportunity.agreementResourceUrl}
-                accepted={agreementAccepted}
                 allowAcceptance={opportunity.acquisitionStatus === 'OPEN'}
-                onAccept={onAgreementAccepted}
               />
             ) : null}
             <div>

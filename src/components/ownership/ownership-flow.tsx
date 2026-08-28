@@ -34,6 +34,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         opportunity={opportunity}
         quantity={quantity}
         agreementAccepted={agreementAccepted}
+        onAgreementAcceptedChange={setAgreementAccepted}
         rolloverElection={rolloverElection}
         onBack={() => setStep('positions')}
       />
@@ -41,8 +42,6 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
   return (
     <OpportunityOverview
       opportunity={opportunity}
-      agreementAccepted={agreementAccepted}
-      onAgreementAccepted={canAcquire ? () => setAgreementAccepted(true) : undefined}
       onContinue={canAcquire ? () => setStep('positions') : undefined}
     />
   );

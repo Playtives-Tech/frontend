@@ -82,8 +82,8 @@ export function PositionSelector({
             <p className="mt-2 text-xl font-semibold">{maximum}</p>
           </div> */}
         </div>
-        <div className="mt-6 flex items-center justify-end text-sm">
-          <span className="font-semibold text-brand">{Math.round(availablePercentage)}% available</span>
+        <div className="mt-6 flex items-center justify-start text-sm">
+          <span className="font-semibold text-brand">{Math.round(availablePercentage)}% of units available</span>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
           <div

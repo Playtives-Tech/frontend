@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, WalletCards } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -20,6 +20,7 @@ type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
   quantity: number;
   agreementAccepted: boolean;
+  onAgreementAcceptedChange: (accepted: boolean) => void;
   rolloverElection: 'PAYOUT' | 'COMPOUND';
   onBack: () => void;
 }>;
@@ -28,6 +29,7 @@ export function WalletCheckout({
   opportunity,
   quantity,
   agreementAccepted,
+  onAgreementAcceptedChange,
   rolloverElection,
   onBack,
 }: WalletCheckoutProps): React.JSX.Element {
@@ -44,6 +46,7 @@ export function WalletCheckout({
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = walletBalance >= total;
+  const agreementRequired = Boolean(opportunity.agreement.trim());
   const confirm = async () => {
     setSubmitting(true);
     setError('');
@@ -165,6 +168,27 @@ export function WalletCheckout({
           )}
         </div>
       </section>
+      {agreementRequired ? (
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border bg-background p-4 transition hover:border-brand/30 sm:mt-6">
+          <input
+            type="checkbox"
+            checked={agreementAccepted}
+            onChange={(event) => onAgreementAcceptedChange(event.target.checked)}
+            className="peer sr-only"
+          />
+          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border border-border bg-background text-white transition peer-checked:border-brand peer-checked:bg-brand">
+            {agreementAccepted ? <Check className="size-3.5" /> : null}
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-foreground">
+              I have read and agree to the opportunity agreement
+            </span>
+            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+              I understand the opportunity details, projected returns, and participation terms.
+            </span>
+          </span>
+        </label>
+      ) : null}
       {error && (
         <p className="border-destructive/30 bg-destructive/5 text-destructive mt-6 rounded-xl border p-4 text-sm">
           {error}
@@ -173,7 +197,7 @@ export function WalletCheckout({
       <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:mt-8 sm:px-8 sm:py-4 lg:-mx-10 lg:px-10">
         <button
           type="button"
-          disabled={!hasFunds || !agreementAccepted || submitting}
+          disabled={!hasFunds || (agreementRequired && !agreementAccepted) || submitting}
           onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >
