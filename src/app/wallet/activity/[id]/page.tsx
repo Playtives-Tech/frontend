@@ -73,13 +73,13 @@ export default function ActivityDetailPage(): React.JSX.Element {
             </dl>
           </section>
 
-          <section className="mt-4 rounded-2xl border bg-background p-5">
+          {/* <section className="mt-4 rounded-2xl border bg-background p-5">
             <div className="flex items-center gap-2">
               <ReceiptText className="size-4 text-brand" />
               <h2 className="font-semibold">What this means</h2>
             </div>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{details.description}</p>
-          </section>
+          </section> */}
         </>
       )}
     </div>
