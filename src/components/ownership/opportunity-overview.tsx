@@ -90,8 +90,10 @@ export function OpportunityOverview({
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
                 <Check className="size-3.5" />
                 {opportunity.acquisitionStatus === 'OPEN'
-                  ? 'Open for acquisition'
-                  : 'Closed to new owners'}
+                  ? 'Open for ownership'
+                  : opportunity.acquisitionStatus === 'CLOSED'
+                    ? 'Offer closed'
+                    : 'Deal in progress'}
               </span>
               <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 {opportunity.category}
@@ -169,7 +171,18 @@ export function OpportunityOverview({
                 </p>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className="mt-4 rounded-xl border border-border bg-muted/45 px-4 py-3 text-sm text-muted-foreground sm:mt-5">
+              <p className="font-semibold text-foreground">
+                {opportunity.acquisitionStatus === 'CLOSED'
+                  ? 'This offer is closed to new owners.'
+                  : 'This deal is already in progress.'}
+              </p>
+              <p className="mt-1 text-xs leading-5">
+                You can still review the opportunity details and agreement, but new ownership contributions are unavailable.
+              </p>
+            </div>
+          )}
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
@@ -216,15 +229,27 @@ export function OpportunityOverview({
               description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
               onClick={setSelectedHighlight}
             />
+            {opportunity.offerClosesAt ? (
+              <Highlight
+                label="Offer closes"
+                value={new Date(opportunity.offerClosesAt).toLocaleDateString('en-NG', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+                description="This is the final date members can own this opportunity."
+                onClick={setSelectedHighlight}
+              />
+            ) : null}
             {opportunity.commencementDate ? (
               <Highlight
-                label="Start date"
+                label="Deal starts"
                 value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                 })}
-                description="This is when the opportunity commences. New ownership contributions close from this date, and the monthly distribution cycle starts from this point."
+                description="This is when the deal begins and the monthly distribution cycle starts."
                 onClick={setSelectedHighlight}
               />
             ) : null}

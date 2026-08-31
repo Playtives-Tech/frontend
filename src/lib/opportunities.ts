@@ -54,8 +54,9 @@ export type Opportunity = Readonly<{
   rolloverNextProjectedProfitMinorUnits: number | null;
   location: string;
   memberAvailabilityDate: string | null;
+  offerClosesAt: string | null;
   commencementDate: string | null;
-  acquisitionStatus: 'OPEN' | 'COMMENCED';
+  acquisitionStatus: 'OPEN' | 'CLOSED' | 'COMMENCED';
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;

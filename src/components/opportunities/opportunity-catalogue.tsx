@@ -14,7 +14,7 @@ import { LoadingSpinner } from '@/components/ui/loading-indicator';
 export function OpportunityCatalogue(): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [sector, setSector] = useState('All');
-  const [availability, setAvailability] = useState<'OPEN' | 'COMMENCED'>('OPEN');
+  const [availability, setAvailability] = useState<'OPEN' | 'CLOSED'>('OPEN');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,19 +42,16 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = opportunities.filter(
       (opportunity) =>
-        (availability === 'OPEN' || opportunity.acquisitionStatus === 'COMMENCED') &&
+        (availability === 'OPEN'
+          ? opportunity.acquisitionStatus === 'OPEN'
+          : opportunity.acquisitionStatus !== 'OPEN') &&
         (sector === 'All' || opportunity.category === sector) &&
         (!normalizedQuery ||
           `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
             .toLowerCase()
             .includes(normalizedQuery)),
     );
-    return availability === 'OPEN'
-      ? [...filtered].sort((left, right) => {
-          if (left.acquisitionStatus === right.acquisitionStatus) return 0;
-          return left.acquisitionStatus === 'OPEN' ? -1 : 1;
-        })
-      : filtered;
+    return filtered;
   }, [availability, sector, opportunities, query]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
@@ -100,12 +97,12 @@ export function OpportunityCatalogue(): React.JSX.Element {
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h2 className="font-sans text-[15px] font-semibold leading-7 sm:text-[19px]">
-            {availability === 'OPEN' ? 'All opportunities' : 'Closed opportunities'}
+            {availability === 'OPEN' ? 'Open opportunities' : 'Closed opportunities'}
           </h2>
           <p className="text-[12px] leading-6 text-muted-foreground">
             {availability === 'OPEN'
-              ? 'Explore open opportunities and review opportunities that are already closed.'
-              : 'These opportunities have started and are closed to new owners.'}
+              ? 'Explore opportunities that are available for you to own.'
+              : 'These opportunities are closed to new owners or already in progress.'}
           </p>
         </div>
         <p className="shrink-0 text-[12px] font-semibold text-muted-foreground">
@@ -135,12 +132,12 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </button>
         <button
           type="button"
-          onClick={() => setAvailability('COMMENCED')}
+          onClick={() => setAvailability('CLOSED')}
           role="tab"
-          aria-selected={availability === 'COMMENCED'}
+          aria-selected={availability === 'CLOSED'}
           className={cn(
             'flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:flex-none',
-            availability === 'COMMENCED'
+            availability === 'CLOSED'
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
           )}
