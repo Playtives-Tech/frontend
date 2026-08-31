@@ -51,7 +51,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     useState<AccountClosureEligibility | null>(null);
   const [isClosingAccount, setIsClosingAccount] = useState(false);
   const [dialog, setDialog] = useState<
-    'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | null
+    'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | 'delete-blocked' | null
   >(null);
   useEffect(() => {
     void getWallet()
@@ -60,11 +60,17 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     void getLatestNameChangeRequest()
       .then(setNameChangeRequest)
       .catch(() => undefined);
-    void getAccountClosureEligibility()
-      .then(setAccountClosureEligibility)
-      .catch(() => undefined);
   }, []);
   const close = (): void => setDialog(null);
+  const openDeleteAccountDialog = async (): Promise<void> => {
+    try {
+      const eligibility = await getAccountClosureEligibility();
+      setAccountClosureEligibility(eligibility);
+      setDialog(eligibility.eligible ? 'delete-first' : 'delete-blocked');
+    } catch {
+      notify.error('Could not check whether your account can be deleted');
+    }
+  };
   const confirm = async (): Promise<void> => {
     if (dialog === 'signout-first') return setDialog('signout-final');
     if (dialog === 'delete-first') return setDialog('delete-final');
@@ -355,29 +361,18 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <span>
                 <strong className="block text-sm text-red-600">Delete account</strong>
                 <small className="mt-0.5 block text-xs text-muted-foreground">
-                  Available after your wallet is withdrawn and active opportunities have closed.
+                  Permanently close your Playtives account
                 </small>
               </span>
             </span>
             <button
               type="button"
-              onClick={() => setDialog('delete-first')}
-              disabled={!accountClosureEligibility?.eligible}
+              onClick={() => void openDeleteAccountDialog()}
               className="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/20"
             >
               Delete account
             </button>
           </div>
-          {accountClosureEligibility && !accountClosureEligibility.eligible ? (
-            <div className="pb-3 text-xs leading-5 text-muted-foreground pt-2">
-              <p className="font-semibold text-foreground">Account deletion is unavailable right now.</p>
-              <ul className="mt-1 list-disc space-y-0.5 pl-4">
-                {accountClosureEligibility.blockers.map((blocker) => (
-                  <li key={blocker}>{blocker}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
       </section>
 
@@ -397,6 +392,23 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         description="This is your final confirmation."
         confirmLabel="Sign out"
       />
+      <ConfirmModal
+        open={dialog === 'delete-blocked'}
+        onClose={close}
+        onConfirm={close}
+        title="Your account cannot be deleted yet"
+        description="Before deleting your account, withdraw all available funds and wait for every active opportunity and pending transaction to be completed."
+        confirmLabel="Close"
+        tone="danger"
+      >
+        {accountClosureEligibility?.blockers.length ? (
+          <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-muted-foreground">
+            {accountClosureEligibility.blockers.map((blocker) => (
+              <li key={blocker}>{blocker}</li>
+            ))}
+          </ul>
+        ) : null}
+      </ConfirmModal>
       <ConfirmModal
         open={dialog === 'delete-first'}
         onClose={close}
