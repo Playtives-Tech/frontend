@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, WalletCards } from 'lucide-react';
+import { ArrowRight, LogOut, WalletCards } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import { navigationItems, sidebarNavigationItems, type NavigationItem } from './
 import { getAccessToken, isAccessTokenExpired } from '@/lib/session';
 import { getActivityLogs, type ActivityLog } from '@/lib/services/wallet-service';
 import { PageLoadingState } from '@/components/ui/loading-indicator';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 
@@ -59,6 +60,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
+  const [signOutDialog, setSignOutDialog] = useState<'first' | 'final' | null>(null);
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
     pathname === '/sign-in' ||
@@ -92,6 +94,20 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const token = getAccessToken();
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
 
+  const completeSignOut = (): void => {
+    signOut();
+    router.replace('/sign-in');
+  };
+
+  const confirmSignOut = (): void => {
+    if (signOutDialog === 'first') {
+      setSignOutDialog('final');
+      return;
+    }
+    completeSignOut();
+    setSignOutDialog(null);
+  };
+
   if (isPublicRoute) {
     if (hasValidSession && !isNameChangeRoute)
       return <PageLoadingState label="Opening your dashboard" />;
@@ -120,6 +136,17 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
             <NavigationLink key={item.href} {...item} inverse />
           ))}
         </nav>
+
+        <div className="mt-auto border-t border-white/15 pt-5">
+          <button
+            type="button"
+            onClick={() => setSignOutDialog('first')}
+            className="flex h-11 w-full items-center gap-3 rounded-xl px-3.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <LogOut className="size-5" />
+            Sign out
+          </button>
+        </div>
       </aside>
 
       <main className="w-full pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+10vw)] lg:w-auto lg:pb-8 lg:pt-0">
@@ -144,6 +171,23 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
           <NavigationLink key={item.href} {...item} compact />
         ))}
       </nav>
+
+      <ConfirmModal
+        open={signOutDialog === 'first'}
+        onClose={() => setSignOutDialog(null)}
+        onConfirm={confirmSignOut}
+        title="Sign out of Playtives?"
+        description="You will need to sign in again to access your account."
+        confirmLabel="Continue"
+      />
+      <ConfirmModal
+        open={signOutDialog === 'final'}
+        onClose={() => setSignOutDialog(null)}
+        onConfirm={confirmSignOut}
+        title="Confirm sign out"
+        description="This is your final confirmation."
+        confirmLabel="Sign out"
+      />
     </div>
   );
 }

@@ -364,8 +364,8 @@ function Highlight({
       className="group rounded-xl border border-brand/10 bg-brand/5 px-3 py-2.5 text-left transition hover:border-brand/30 hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:py-3"
     >
       <p className="line-clamp-1 text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 line-clamp-1 flex items-center gap-1.5 text-[14px] font-bold tracking-tight text-brand">
-        {value}
+      <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[14px] font-bold tracking-tight text-brand">
+        <span className="truncate">{value}</span>
         <Info className="size-3 shrink-0 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100" />
       </p>
     </button>

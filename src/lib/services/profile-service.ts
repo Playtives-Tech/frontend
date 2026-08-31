@@ -100,6 +100,26 @@ export async function changePassword(
   });
 }
 
+export type AccountClosureEligibility = Readonly<{
+  eligible: boolean;
+  availableWalletBalanceMinorUnits: number;
+  pendingWalletBalanceMinorUnits: number;
+  activeOwnershipCount: number;
+  pendingWithdrawalCount: number;
+  pendingDepositCount: number;
+  blockers: readonly string[];
+}>;
+
+export function getAccountClosureEligibility(): Promise<AccountClosureEligibility> {
+  return api<AccountClosureEligibility>('/v1/auth/account-closure-eligibility', {
+    cache: 'no-store',
+  });
+}
+
+export function closeAccount(): Promise<{ message: string }> {
+  return api<{ message: string }>('/v1/auth/account', { method: 'DELETE' });
+}
+
 export type NameChangeRequest = Readonly<{
   id: string;
   reason: string;

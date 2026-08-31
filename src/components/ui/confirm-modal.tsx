@@ -9,6 +9,7 @@ type ConfirmModalProps = Readonly<{
   description: string;
   confirmLabel: string;
   tone?: 'default' | 'danger';
+  isConfirming?: boolean;
   onClose: () => void;
   onConfirm: () => void;
   children?: ReactNode;
@@ -20,6 +21,7 @@ export function ConfirmModal({
   description,
   confirmLabel,
   tone = 'default',
+  isConfirming = false,
   onClose,
   onConfirm,
   children,
@@ -43,6 +45,7 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isConfirming}
             className="grid size-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
             aria-label="Close confirmation"
           >
@@ -54,6 +57,7 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isConfirming}
             className="rounded-lg border px-4 py-2 text-sm font-semibold hover:bg-muted"
           >
             Cancel
@@ -61,9 +65,10 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
+            disabled={isConfirming}
             className={`rounded-lg px-4 py-2 text-sm font-semibold text-brand-foreground ${tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-brand hover:brightness-110'}`}
           >
-            {confirmLabel}
+            {isConfirming ? 'Please wait…' : confirmLabel}
           </button>
         </div>
       </section>

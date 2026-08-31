@@ -258,7 +258,7 @@ function FloatingField({
         id={id}
         type={isPasswordField && isPasswordVisible ? 'text' : inputProps.type}
         placeholder=" "
-        className={`auth-floating-input peer h-14 w-full rounded-xl border bg-background py-0 font-sans text-[12px] outline-none transition focus:border-brand focus:bg-background focus:ring-2 focus:ring-brand/20 ${isPasswordField ? 'pl-4 pr-11' : 'px-4'} ${className ?? ''}`}
+        className={`auth-floating-input peer h-12 w-full rounded-xl border bg-background py-0 font-sans text-[12px] outline-none transition focus:border-brand focus:bg-background focus:ring-2 focus:ring-brand/20 ${isPasswordField ? 'pl-4 pr-11' : 'px-4'} ${className ?? ''}`}
       />
       <label
         htmlFor={id}
@@ -496,7 +496,7 @@ function CountryField({
         onChange={onChange}
         required
         autoComplete="country-name"
-        className="h-14 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+        className="h-12 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
       >
         <option value="" disabled>
           Location (Where do you live)
@@ -525,7 +525,7 @@ function GenderField({
         value={value}
         onChange={onChange}
         required
-        className="h-14 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+        className="h-12 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
       >
         <option value="" disabled>
           Gender
