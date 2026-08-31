@@ -27,8 +27,11 @@ import { supportEmail, whatsappCommunityUrl } from '@/lib/community';
 import { notify } from '@/lib/notify';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import {
+  closeAccount,
+  getAccountClosureEligibility,
   getLatestNameChangeRequest,
   requestNameChange,
+  type AccountClosureEligibility,
   type NameChangeRequest,
 } from '@/lib/services/profile-service';
 
@@ -44,6 +47,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   const [showNameRequestForm, setShowNameRequestForm] = useState(false);
   const [nameChangeReason, setNameChangeReason] = useState('');
   const [isSubmittingNameRequest, setIsSubmittingNameRequest] = useState(false);
+  const [accountClosureEligibility, setAccountClosureEligibility] =
+    useState<AccountClosureEligibility | null>(null);
+  const [isClosingAccount, setIsClosingAccount] = useState(false);
   const [dialog, setDialog] = useState<
     'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | null
   >(null);
@@ -54,12 +60,31 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     void getLatestNameChangeRequest()
       .then(setNameChangeRequest)
       .catch(() => undefined);
+    void getAccountClosureEligibility()
+      .then(setAccountClosureEligibility)
+      .catch(() => undefined);
   }, []);
   const close = (): void => setDialog(null);
-  const confirm = (): void => {
+  const confirm = async (): Promise<void> => {
     if (dialog === 'signout-first') return setDialog('signout-final');
     if (dialog === 'delete-first') return setDialog('delete-final');
-    if (dialog === 'delete-final') resetProfile();
+    if (dialog === 'delete-final') {
+      setIsClosingAccount(true);
+      try {
+        const response = await closeAccount();
+        resetProfile();
+        onSignOut();
+        notify.success(response.message);
+        close();
+      } catch (error) {
+        notify.error(error instanceof Error ? error.message : 'Could not close your account');
+        void getAccountClosureEligibility().then(setAccountClosureEligibility).catch(() => undefined);
+        close();
+      } finally {
+        setIsClosingAccount(false);
+      }
+      return;
+    }
     onSignOut();
     close();
   };
@@ -330,18 +355,29 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <span>
                 <strong className="block text-sm text-red-600">Delete account</strong>
                 <small className="mt-0.5 block text-xs text-muted-foreground">
-                  This action cannot be undone
+                  Available after your wallet is withdrawn and active opportunities have closed.
                 </small>
               </span>
             </span>
             <button
               type="button"
               onClick={() => setDialog('delete-first')}
+              disabled={!accountClosureEligibility?.eligible}
               className="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/20"
             >
               Delete account
             </button>
           </div>
+          {accountClosureEligibility && !accountClosureEligibility.eligible ? (
+            <div className="pb-3 text-xs leading-5 text-muted-foreground pt-2">
+              <p className="font-semibold text-foreground">Account deletion is unavailable right now.</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {accountClosureEligibility.blockers.map((blocker) => (
+                  <li key={blocker}>{blocker}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -366,7 +402,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         onClose={close}
         onConfirm={confirm}
         title="Delete your account?"
-        description="This removes this device session. Financial records may be retained where required by law."
+        description="You can only delete your account once all wallet funds are withdrawn and all active opportunities have closed."
         confirmLabel="Continue"
         tone="danger"
       />
@@ -375,9 +411,10 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         onClose={close}
         onConfirm={confirm}
         title="Are you absolutely sure?"
-        description="Your profile data on this device will be removed immediately."
+        description="Your Playtives account will be closed and you will be signed out. Financial records are retained for audit and legal requirements."
         confirmLabel="Delete account"
         tone="danger"
+        isConfirming={isClosingAccount}
       />
     </div>
   );

@@ -23,7 +23,7 @@ export function OpportunityCard({
         opportunity={opportunity}
         sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
       />
-      <div className="flex flex-1 flex-col py-2 px-3">
+      <div className="flex flex-1 flex-col px-3 py-2">
         <OpportunityCardDetails opportunity={opportunity} />
       </div>
     </Link>
@@ -38,7 +38,7 @@ function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): 
     >
       <OpportunityCardImage opportunity={opportunity} sizes="(min-width: 1024px) 16vw, 60vw" />
 
-      <div className="flex flex-1 flex-col py-2 px-3">
+      <div className="flex flex-1 flex-col px-3 py-2">
         <OpportunityCardDetails opportunity={opportunity} compact />
       </div>
     </Link>
@@ -80,27 +80,29 @@ function OpportunityCardDetails({
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
   const projectedRate = formatProjectedReturnRate(opportunity);
   const memberCount = opportunity.memberCount ?? 0;
-  const memberLabel = opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
+  const memberLabel =
+    opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
   const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
   return (
     <>
       <div className="h-4">
-          <p className="flex items-center gap-1 text-[9px] font-normal text-[#bab9b9]">
-            {memberLabel}: {memberCount}
-          </p>
+        <p className="flex items-center gap-1 text-[9px] font-normal text-[#bab9b9]">
+          {memberLabel}: {memberCount}
+        </p>
       </div>
-      <h3 className="relative mt-1 max-w-full overflow-hidden whitespace-nowrap pr-4 font-sans text-[11px] font-semibold leading-5 tracking-normal">
+      <h3 className="relative mt-1 max-w-full overflow-hidden whitespace-nowrap pr-3 font-sans text-[11px] font-semibold leading-5 tracking-normal">
         <span className="block overflow-hidden text-clip">{opportunity.title}</span>
         {showTitleSuffix ? (
-          <span className="absolute right-0 top-0 bg-background pl-0.5" aria-hidden="true">
-            ..
+          <span className="absolute right-0 top-0 bg-background" aria-hidden="true">
+            ...
           </span>
         ) : null}
       </h3>
-      <div className="pt-1 line-clamp-1">
+      <div className="line-clamp-1 pt-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
-          {projectedRate} <span className="font-medium text-muted-foreground">monthly profit share</span>
+          {projectedRate}{' '}
+          <span className="font-medium text-muted-foreground">monthly profit share</span>
         </p>
       </div>
     </>

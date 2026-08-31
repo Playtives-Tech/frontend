@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, WalletCards } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CircleAlert, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -45,7 +45,8 @@ export function WalletCheckout({
   }, []);
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
-  const hasFunds = walletBalance >= total;
+  const hasFunds = wallet !== null && walletBalance >= total;
+  const shortfall = Math.max(0, total - walletBalance);
   const agreementRequired = Boolean(opportunity.agreement.trim());
   const confirm = async () => {
     setSubmitting(true);
@@ -75,10 +76,10 @@ export function WalletCheckout({
       >
         <ArrowLeft className="size-5" />
       </button>
-      <h1 className="mt-5 font-sans text-xl font-semibold tracking-tight sm:mt-7 sm:text-3xl">
+      <h1 className="mt-5 font-sans text-[20px] font-semibold tracking-tight sm:mt-7 sm:text-[25px]">
         Complete your ownership contribution
       </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
+      <p className="text-[14px] text-muted-foreground">
         Review your units and confirm payment from your wallet.
       </p>
       <section className="mt-5 rounded-xl border bg-background p-3.5 sm:mt-6 sm:p-5">
@@ -153,19 +154,26 @@ export function WalletCheckout({
               </div>
             </div>
           </div>
-          {!hasFunds && (
-            <div className="mt-4 border-t border-brand/15 pt-4">
-              <p className="text-xs leading-5 text-muted-foreground">
-                Your wallet balance is below the contribution amount. Add funds before you continue.
-              </p>
+          {wallet !== null && !hasFunds ? (
+            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5">
+              <div className="flex items-start gap-3">
+                <CircleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <div>
+                  <p className="text-sm font-semibold text-destructive">Insufficient wallet balance</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    You need <strong className="text-foreground">{formatNaira(shortfall)} more</strong>{' '}
+                    to complete this contribution.
+                  </p>
+                </div>
+              </div>
               <Link
-                href="/wallet"
-                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-brand/30 bg-background px-3 py-2 text-xs font-semibold text-brand transition hover:bg-brand/5"
+                href="/wallet/deposit"
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
               >
-                Top up wallet <ArrowRight className="size-4" />
+                Add {formatNaira(shortfall)} <ArrowRight className="size-4" />
               </Link>
             </div>
-          )}
+          ) : null}
         </div>
       </section>
       {agreementRequired ? (
@@ -195,6 +203,12 @@ export function WalletCheckout({
         </p>
       )}
       <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:mt-8 sm:px-8 sm:py-4 lg:-mx-10 lg:px-10">
+        {wallet !== null && !hasFunds ? (
+          <p className="mx-auto mb-2 flex max-w-3xl items-center justify-center gap-1.5 text-xs font-semibold text-destructive">
+            <CircleAlert className="size-3.5" />
+            Add {formatNaira(shortfall)} more to continue
+          </p>
+        ) : null}
         <button
           type="button"
           disabled={!hasFunds || (agreementRequired && !agreementAccepted) || submitting}
@@ -206,7 +220,9 @@ export function WalletCheckout({
             loadingLabel="Securing units"
             icon={<ArrowRight className="size-5" />}
           >
-            Confirm {formatNaira(total)}
+            {wallet !== null && !hasFunds
+              ? `Insufficient balance — ${formatNaira(shortfall)} needed`
+              : `Confirm ${formatNaira(total)}`}
           </ButtonLoadingContent>
         </button>
       </div>
