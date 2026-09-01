@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { navigationItems, sidebarNavigationItems, type NavigationItem } from './navigation';
@@ -15,6 +15,8 @@ import { PageLoadingState } from '@/components/ui/loading-indicator';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
+import { notify } from '@/lib/notify';
+import { useSessionTimeout } from './use-session-timeout';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
 
@@ -66,7 +68,25 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     pathname === '/sign-in' ||
     pathname === '/sign-up' ||
     pathname === '/verify-email' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password' ||
     isNameChangeRoute;
+  const token = getAccessToken();
+  const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
+  const endInactiveSession = useCallback((): void => {
+    signOut();
+    notify.info('You were signed out after 5 minutes of inactivity.');
+    router.replace('/sign-in');
+  }, [router, signOut]);
+  const endPageLeaveSession = useCallback((): void => {
+    signOut();
+  }, [signOut]);
+
+  useSessionTimeout({
+    enabled: hasHydrated && hasValidSession && !isPublicRoute,
+    onInactive: endInactiveSession,
+    onPageLeave: endPageLeaveSession,
+  });
 
   useEffect(() => {
     const validateSession = (): void => {
@@ -81,7 +101,11 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     if (!hasHydrated) return;
     validateSession();
     const timer = window.setInterval(validateSession, 30_000);
-    return () => window.clearInterval(timer);
+    window.addEventListener('pageshow', validateSession);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('pageshow', validateSession);
+    };
   }, [hasHydrated, isPublicRoute, router, signOut, user]);
 
   if (!hasHydrated)
@@ -90,9 +114,6 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         <PageLoadingState label="Loading Playtives" />
       </div>
     );
-
-  const token = getAccessToken();
-  const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
 
   const completeSignOut = (): void => {
     signOut();

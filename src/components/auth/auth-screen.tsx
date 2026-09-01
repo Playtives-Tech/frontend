@@ -1,6 +1,16 @@
 'use client';
 
-import { ArrowRight, ChevronDown, Eye, EyeOff, LogIn, Mail, MapPin, UserPlus, UsersRound } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  LogIn,
+  Mail,
+  MapPin,
+  UserPlus,
+  UsersRound,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ComponentProps, type FormEvent, useState } from 'react';
@@ -178,9 +188,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
             <CountryField value={country} onChange={(event) => setCountry(event.target.value)} />
           ) : null}
 
-          {isSignUp ? (
-            <GenderField value={gender} onChange={(event) => setGender(event.target.value)} />
-          ) : null}
+          {isSignUp ? <GenderField value={gender} onChange={setGender} /> : null}
 
           <FloatingField
             id="password"
@@ -221,6 +229,15 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
             </ButtonLoadingContent>
           </button>
         </form>
+
+        {!isSignUp ? (
+          <Link
+            href="/forgot-password"
+            className="mt-4 inline-block text-[.8rem] font-semibold text-brand hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        ) : null}
 
         <p className="mt-6 text-center text-[.8rem] text-muted-foreground">
           {isSignUp ? 'Already have an account?' : 'New to Playtives?'}{' '}
@@ -515,27 +532,60 @@ function CountryField({
 function GenderField({
   value,
   onChange,
-}: Pick<ComponentProps<'select'>, 'value' | 'onChange'>): React.JSX.Element {
+}: Readonly<{ value: string; onChange: (value: string) => void }>): React.JSX.Element {
+  const [isOpen, setIsOpen] = useState(false);
+  const options = [
+    { value: 'female', label: 'Woman' },
+    { value: 'male', label: 'Man' },
+    { value: 'non_binary', label: 'Non-binary' },
+    { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+  ] as const;
+  const selectedOption = options.find((option) => option.value === value);
+
   return (
     <div className="relative">
-      <UsersRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-brand" />
-      <select
-        id="gender"
-        name="gender"
-        value={value}
-        onChange={onChange}
-        required
-        className="h-12 w-full appearance-none rounded-xl border bg-background py-0 pl-10 pr-10 font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex h-12 w-full items-center gap-3 rounded-xl border bg-background px-4 text-left font-sans text-[12px] text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
-        <option value="" disabled>
-          Gender
-        </option>
-        <option value="female">Woman</option>
-        <option value="male">Man</option>
-        <option value="non_binary">Non-binary</option>
-        <option value="prefer_not_to_say">Prefer not to say</option>
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <UsersRound className="size-4 shrink-0 text-brand" />
+        <span className={selectedOption ? '' : 'text-muted-foreground'}>
+          {selectedOption?.label ?? 'Gender'}
+        </span>
+        <ChevronDown
+          className={`ml-auto size-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen ? (
+        <div
+          role="listbox"
+          aria-label="Gender"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border bg-background p-1 shadow-lg"
+        >
+          {options.map((option) => {
+            const selected = value === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`flex h-10 w-full items-center gap-2 rounded-lg px-3 text-left text-xs font-semibold transition ${selected ? 'bg-brand/10 text-brand' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+              >
+                <UsersRound className="size-3.5" />
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }

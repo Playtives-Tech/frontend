@@ -44,6 +44,20 @@ export function resendVerification(email: string): Promise<{ message: string }> 
   });
 }
 
+export function requestPasswordReset(email: string): Promise<{ message: string }> {
+  return api<{ message: string }>('/v1/auth/password/forgot', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  return api<{ message: string }>('/v1/auth/password/reset', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
 export function login(
   email: string,
   password: string,
