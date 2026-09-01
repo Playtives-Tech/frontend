@@ -9,21 +9,14 @@ const CHECK_INTERVAL_MS = 15 * 1000;
 type SessionTimeoutOptions = Readonly<{
   enabled: boolean;
   onInactive: () => void;
-  onPageLeave: () => void;
 }>;
 
-export function useSessionTimeout({
-  enabled,
-  onInactive,
-  onPageLeave,
-}: SessionTimeoutOptions): void {
+export function useSessionTimeout({ enabled, onInactive }: SessionTimeoutOptions): void {
   const inactiveHandler = useRef(onInactive);
-  const pageLeaveHandler = useRef(onPageLeave);
 
   useEffect(() => {
     inactiveHandler.current = onInactive;
-    pageLeaveHandler.current = onPageLeave;
-  }, [onInactive, onPageLeave]);
+  }, [onInactive]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -35,6 +28,7 @@ export function useSessionTimeout({
       inactiveHandler.current();
     };
     const checkForInactivity = (): void => {
+      if (document.visibilityState !== 'visible') return;
       const lastActivity = getSessionLastActivity();
       if (lastActivity === null) {
         markSessionActivity();
@@ -46,12 +40,7 @@ export function useSessionTimeout({
       if (!sessionEnded) markSessionActivity();
     };
     const handleVisibilityChange = (): void => {
-      if (document.visibilityState === 'visible') checkForInactivity();
-    };
-    const handlePageHide = (): void => {
-      if (sessionEnded) return;
-      sessionEnded = true;
-      pageLeaveHandler.current();
+      if (document.visibilityState === 'visible') markSessionActivity();
     };
 
     checkForInactivity();
@@ -59,7 +48,6 @@ export function useSessionTimeout({
     window.addEventListener('keydown', recordActivity);
     window.addEventListener('touchstart', recordActivity, { passive: true });
     window.addEventListener('scroll', recordActivity, { passive: true });
-    window.addEventListener('pagehide', handlePageHide);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     const interval = window.setInterval(checkForInactivity, CHECK_INTERVAL_MS);
 
@@ -68,7 +56,6 @@ export function useSessionTimeout({
       window.removeEventListener('keydown', recordActivity);
       window.removeEventListener('touchstart', recordActivity);
       window.removeEventListener('scroll', recordActivity);
-      window.removeEventListener('pagehide', handlePageHide);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.clearInterval(interval);
     };
