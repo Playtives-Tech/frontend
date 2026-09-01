@@ -78,14 +78,10 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     notify.info('You were signed out after 5 minutes of inactivity.');
     router.replace('/sign-in');
   }, [router, signOut]);
-  const endPageLeaveSession = useCallback((): void => {
-    signOut();
-  }, [signOut]);
 
   useSessionTimeout({
     enabled: hasHydrated && hasValidSession && !isPublicRoute,
     onInactive: endInactiveSession,
-    onPageLeave: endPageLeaveSession,
   });
 
   useEffect(() => {
