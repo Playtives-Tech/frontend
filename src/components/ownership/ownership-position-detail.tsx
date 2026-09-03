@@ -199,8 +199,8 @@ export function OwnershipPositionDetail({
                 {payout?.status === 'APPROVED'
                   ? 'Payout credited to your wallet'
                   : payout?.status === 'REJECTED'
-                    ? 'Payout requires attention'
-                    : 'Payout awaiting admin approval'}
+                    ? 'Withdrawal requires attention'
+                    : 'Withdrawal awaiting admin approval'}
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {payout?.status === 'APPROVED'

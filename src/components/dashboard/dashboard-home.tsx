@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, ArrowUpRight, Bell, WalletCards } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Bell, Newspaper, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 // KYC is temporarily paused: import { VerificationCard } from '@/components/dashboard/verification-card';
@@ -16,6 +16,7 @@ import { useAuthStore } from '@/stores/use-auth-store';
 import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { useEffect, useMemo, useState } from 'react';
+import { blogService, type BlogPost } from '@/lib/services/blog-service';
 
 export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
@@ -117,6 +118,8 @@ export function DashboardHome(): React.JSX.Element {
 
       <FeaturedOpportunities />
 
+      <MobileBlogPreview />
+
       <section className="mt-6 lg:hidden">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-base font-semibold tracking-tight">Recent activities</h2>
@@ -165,6 +168,47 @@ export function DashboardHome(): React.JSX.Element {
         </div>
       </section>
     </div>
+  );
+}
+
+function MobileBlogPreview(): React.JSX.Element | null {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    void blogService.list(1).then((data) => setPosts(data.items.slice(0, 2))).catch(() => setPosts([]));
+  }, []);
+
+  if (posts.length === 0) return null;
+
+  return (
+    <section className="mt-7 lg:hidden">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Newspaper className="size-4 text-brand" />
+          <h2 className="text-base font-semibold tracking-tight">Latest insights</h2>
+        </div>
+        <Link href="/blog" className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
+          View all
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+      <div className="mt-3 grid gap-3">
+        {posts.map((post) => (
+          <Link key={post._id} href={`/blog/${post.slug}`} className="flex gap-3 rounded-xl border bg-background p-3 transition hover:border-brand/35">
+            <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+              {post.coverImageUrl ? <img src={post.coverImageUrl} alt="" className="size-full object-cover" /> : null}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-brand">{post.category}</p>
+              <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-5">{post.title}</h3>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {new Date(post.publishedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })} · {new Date(post.publishedAt).toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit', hour12: true })}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

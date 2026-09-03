@@ -145,10 +145,10 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
           <span className="font-wordmark text-4xl font-semibold leading-none">playtives</span>
         </Link>
         <span className="mt-2 text-[.85rem] font-medium leading-5 tracking-normal text-white/65">
-          Own together. Build forever.
+          Own together. Build wealth.
         </span>
 
-        <nav className="mt-12 grid gap-2">
+        <nav className="mt-12 grid gap-2" aria-label="Main navigation">
           {sidebarNavigationItems.map((item) => (
             <NavigationLink key={item.href} {...item} inverse />
           ))}
@@ -184,7 +184,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       </a>
 
       <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
-        {navigationItems.map((item) => (
+        {navigationItems.filter((item) => item.href !== '/blog').map((item) => (
           <NavigationLink key={item.href} {...item} compact />
         ))}
       </nav>

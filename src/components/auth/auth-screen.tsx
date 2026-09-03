@@ -71,6 +71,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
       const response = await login(email.trim(), password);
       signIn(
         {
+          id: response.user.id,
           name: response.user.name,
           email: response.user.email,
           phone: response.user.phone,

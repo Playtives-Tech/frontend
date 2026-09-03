@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Bell, BookOpen, Compass, House, PieChart, UserRound, WalletCards } from 'lucide-react';
+import { Bell, BookOpen, Compass, House, Newspaper, PieChart, UserRound, WalletCards } from 'lucide-react';
 
 export type NavigationItem = Readonly<{ href: string; label: string; icon: LucideIcon }>;
 
@@ -8,6 +8,7 @@ export const navigationItems = [
   { href: '/discover', label: 'Opportunities', icon: Compass },
   { href: '/ownership', label: 'My Portfolio', icon: PieChart },
   { href: '/learn', label: 'Learn', icon: BookOpen },
+  // { href: '/blog', label: 'Blog', icon: Newspaper },
   { href: '/profile', label: 'Account', icon: UserRound },
 ] as const satisfies readonly NavigationItem[];
 
@@ -15,8 +16,9 @@ export const sidebarNavigationItems = [
   { href: '/', label: 'Home', icon: House },
   { href: '/discover', label: 'Opportunities', icon: Compass },
   { href: '/ownership', label: 'My Portfolio', icon: PieChart },
-  // { href: '/wallet', label: 'Wallet', icon: WalletCards },
   { href: '/learn', label: 'Learn', icon: BookOpen },
+  // { href: '/wallet', label: 'Wallet', icon: WalletCards },
+  // { href: '/blog', label: 'Blog', icon: Newspaper },
   { href: '/profile', label: 'Account', icon: UserRound },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
 ] as const satisfies readonly NavigationItem[];
