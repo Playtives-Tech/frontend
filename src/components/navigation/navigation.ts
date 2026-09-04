@@ -8,7 +8,6 @@ export const navigationItems = [
   { href: '/discover', label: 'Opportunities', icon: Compass },
   { href: '/ownership', label: 'My Portfolio', icon: PieChart },
   { href: '/learn', label: 'Learn', icon: BookOpen },
-  // { href: '/blog', label: 'Blog', icon: Newspaper },
   { href: '/profile', label: 'Account', icon: UserRound },
 ] as const satisfies readonly NavigationItem[];
 

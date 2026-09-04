@@ -2,6 +2,7 @@
 
 import { CheckCircle2, ChevronDown, Landmark, Search, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent, LoadingSpinner } from '@/components/ui/loading-indicator';
 import { ApiError } from '@/lib/api';
@@ -19,6 +20,7 @@ import { useAuthStore } from '@/stores/use-auth-store';
 import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store';
 
 export default function BankAccountPage(): React.JSX.Element {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const accounts = useProfileStore((state) => state.accounts);
   const setAccounts = useProfileStore((state) => state.setAccounts);
@@ -79,6 +81,8 @@ export default function BankAccountPage(): React.JSX.Element {
       setResolved(null);
       setLowMatchConfirmed(false);
       notify.success('Bank account verified and linked');
+      router.replace('/wallet');
+      router.refresh();
     } catch (reason: unknown) {
       setError(reason instanceof ApiError ? reason.message : 'Could not link this account.');
     } finally {

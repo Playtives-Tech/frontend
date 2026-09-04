@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGrid, LockKeyhole, Search, SlidersHorizontal } from 'lucide-react';
+import { LayoutGrid, LockKeyhole, Search, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -42,6 +42,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = opportunities.filter(
       (opportunity) =>
+        !opportunity.interestModeEnabled &&
         (availability === 'OPEN'
           ? opportunity.acquisitionStatus === 'OPEN'
           : opportunity.acquisitionStatus !== 'OPEN') &&
@@ -53,6 +54,18 @@ export function OpportunityCatalogue(): React.JSX.Element {
     );
     return filtered;
   }, [availability, sector, opportunities, query]);
+  const interestOpportunities = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return opportunities.filter(
+      (opportunity) =>
+        opportunity.interestModeEnabled &&
+        (sector === 'All' || opportunity.category === sector) &&
+        (!normalizedQuery ||
+          `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
+            .toLowerCase()
+            .includes(normalizedQuery)),
+    );
+  }, [opportunities, query, sector]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
@@ -93,6 +106,30 @@ export function OpportunityCatalogue(): React.JSX.Element {
           ))}
         </div>
       </div>
+
+      {!loading && availability === 'OPEN' && interestOpportunities.length > 0 ? (
+        <section className="mt-9 rounded-2xl border border-amber-500/25 bg-amber-500/[.045] p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-amber-700">
+                <h2 className="font-sans text-[14px] font-semibold sm:text-[18px]">Coming Soon</h2>
+              </div>
+              <p className="text-[12px] leading-6 text-muted-foreground">
+                Join the pre-launch interest list for upcoming opportunities. No payment is required
+                yet.
+              </p>
+            </div>
+            <p className="text-[12px] font-semibold text-muted-foreground">
+              {interestOpportunities.length} available
+            </p>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {interestOpportunities.map((opportunity) => (
+              <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>

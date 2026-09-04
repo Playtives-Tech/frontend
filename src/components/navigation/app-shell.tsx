@@ -63,6 +63,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
   const [signOutDialog, setSignOutDialog] = useState<'first' | 'final' | null>(null);
+  const [inactivitySecondsRemaining, setInactivitySecondsRemaining] = useState<number | null>(null);
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
     pathname === '/sign-in' ||
@@ -74,15 +75,23 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const token = getAccessToken();
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
   const endInactiveSession = useCallback((): void => {
+    setInactivitySecondsRemaining(null);
     signOut();
     notify.info('You were signed out after 5 minutes of inactivity.');
     router.replace('/sign-in');
   }, [router, signOut]);
 
-  useSessionTimeout({
+  const { staySignedIn } = useSessionTimeout({
     enabled: hasHydrated && hasValidSession && !isPublicRoute,
     onInactive: endInactiveSession,
+    onWarning: setInactivitySecondsRemaining,
   });
+
+  const continueSession = (): void => {
+    staySignedIn();
+    setInactivitySecondsRemaining(null);
+    notify.success('You are still signed in.');
+  };
 
   useEffect(() => {
     const validateSession = (): void => {
@@ -184,7 +193,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       </a>
 
       <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
-        {navigationItems.filter((item) => item.href !== '/blog').map((item) => (
+        {navigationItems.map((item) => (
           <NavigationLink key={item.href} {...item} compact />
         ))}
       </nav>
@@ -204,6 +213,14 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         title="Confirm sign out"
         description="This is your final confirmation."
         confirmLabel="Sign out"
+      />
+      <ConfirmModal
+        open={inactivitySecondsRemaining !== null}
+        onClose={continueSession}
+        onConfirm={continueSession}
+        title="Are you still there?"
+        description={`Your session will end in ${inactivitySecondsRemaining ?? 0} seconds because there has been no activity. Choose “Stay signed in” to continue securely.`}
+        confirmLabel="Stay signed in"
       />
     </div>
   );

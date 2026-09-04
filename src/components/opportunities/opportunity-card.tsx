@@ -67,7 +67,9 @@ function OpportunityCardImage({
       <span
         className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${opportunity.acquisitionStatus === 'OPEN' ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
       >
-        {opportunity.acquisitionStatus === 'OPEN'
+        {opportunity.interestModeEnabled
+          ? opportunity.status === 'INTEREST_OPEN' ? 'INTEREST OPEN' : 'INTEREST CLOSED'
+          : opportunity.acquisitionStatus === 'OPEN'
           ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
           : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${opportunity.acquisitionStatus === 'COMMENCED' ? 'DEAL LIVE' : 'OFFER CLOSED'}`}
       </span>
@@ -78,17 +80,14 @@ function OpportunityCardImage({
 function OpportunityCardDetails({
   opportunity,
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
-  const projectedRate = formatProjectedReturnRate(opportunity);
-  const memberCount = opportunity.memberCount ?? 0;
-  const memberLabel =
-    opportunity.opportunityStructure === 'CO_FUNDING' ? 'CO-FUNDERS' : 'CO-OWNERS';
+  const projectedRate = opportunity.interestModeEnabled ? '3% projected' : formatProjectedReturnRate(opportunity);
   const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
   return (
     <>
       <div className="h-4">
         <p className="flex items-center gap-1 text-[9px] font-normal text-[#bab9b9]">
-          {memberLabel}: {memberCount}
+          ⚡️ VETTED OPPORTUNITIES
         </p>
       </div>
       <h3 className="relative mt-1 max-w-full overflow-hidden whitespace-nowrap pr-3 font-sans text-[11px] font-semibold leading-5 tracking-normal">
@@ -102,7 +101,7 @@ function OpportunityCardDetails({
       <div className="line-clamp-1 pt-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
           {projectedRate}{' '}
-          <span className="font-medium text-muted-foreground">monthly profit share</span>
+          <span className="font-medium text-muted-foreground">{opportunity.interestModeEnabled ? 'monthly · 12-month pool' : 'monthly profit share'}</span>
         </p>
       </div>
     </>

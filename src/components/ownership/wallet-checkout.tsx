@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, CircleAlert, WalletCards } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CircleAlert, Minus, Plus, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +19,7 @@ import { formatNaira } from './formatters';
 type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
   quantity: number;
+  onQuantityChange: (quantity: number) => void;
   agreementAccepted: boolean;
   onAgreementAcceptedChange: (accepted: boolean) => void;
   rolloverElection: 'PAYOUT' | 'COMPOUND';
@@ -28,6 +29,7 @@ type WalletCheckoutProps = Readonly<{
 export function WalletCheckout({
   opportunity,
   quantity,
+  onQuantityChange,
   agreementAccepted,
   onAgreementAcceptedChange,
   rolloverElection,
@@ -48,6 +50,8 @@ export function WalletCheckout({
   const hasFunds = wallet !== null && walletBalance >= total;
   const shortfall = Math.max(0, total - walletBalance);
   const agreementRequired = Boolean(opportunity.agreement.trim());
+  const minimumUnits = opportunity.minimumUnits;
+  const maximumUnits = opportunity.availableUnits;
   const confirm = async () => {
     setSubmitting(true);
     setError('');
@@ -97,7 +101,27 @@ export function WalletCheckout({
           </div>
           <div className="flex items-center justify-between gap-4 py-3">
             <dt className="text-sm font-semibold">Units</dt>
-            <dd className="text-sm font-semibold">{quantity}</dd>
+            <dd className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onQuantityChange(Math.max(minimumUnits, quantity - 1))}
+                disabled={quantity <= minimumUnits}
+                className="grid size-8 place-items-center rounded-lg border bg-surface text-brand transition hover:bg-brand/5 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Decrease units"
+              >
+                <Minus className="size-3.5" />
+              </button>
+              <span className="min-w-6 text-center text-sm font-semibold tabular-nums">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => onQuantityChange(Math.min(maximumUnits, quantity + 1))}
+                disabled={quantity >= maximumUnits}
+                className="grid size-8 place-items-center rounded-lg border bg-surface text-brand transition hover:bg-brand/5 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Increase units"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            </dd>
           </div>
           {opportunity.rolloverAllowed ? (
             <div className="flex items-center justify-between gap-4 py-3">

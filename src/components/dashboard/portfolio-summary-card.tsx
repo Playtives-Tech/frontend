@@ -2,7 +2,7 @@
 
 import { ArrowRight, Building2, Plus, Wallet, X } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
 import { BalanceAmount } from '@/components/ui/balance-amount';
 
@@ -26,6 +26,8 @@ export function PortfolioSummaryCard({
   isGuest,
 }: PortfolioSummaryCardProps): React.JSX.Element {
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [breakdownView, setBreakdownView] = useState(0);
+  const breakdownViewsRef = useRef<HTMLDivElement>(null);
   const walletMinorUnits = walletBalanceMinorUnits ?? 0;
   const portfolioMinorUnits = walletMinorUnits + ownershipBalanceMinorUnits;
   const walletPercentage =
@@ -47,10 +49,41 @@ export function PortfolioSummaryCard({
     : activeOwnershipCount > 0
       ? '/ownership'
       : '/discover';
-  const walletEnd = walletPercentage * 3.6;
-  const coOwnedEnd = walletEnd + coOwnedPercentage * 3.6;
-  const coFundedEnd = coOwnedEnd + coFundedPercentage * 3.6;
   const hasFullOwnership = fullOwnershipContributionMinorUnits > 0;
+  const breakdownSegments: PortfolioSegment[] = [
+    {
+      label: 'Wallet',
+      value: walletBalance,
+      percentage: walletPercentage,
+      color: '#19795a',
+      colorClassName: 'bg-brand',
+    },
+    {
+      label: 'Co-owned',
+      value: coOwnedBalance,
+      percentage: coOwnedPercentage,
+      color: '#65dfae',
+      colorClassName: 'bg-emerald-300',
+    },
+    {
+      label: 'Co-funded',
+      value: coFundedBalance,
+      percentage: coFundedPercentage,
+      color: '#38bdf8',
+      colorClassName: 'bg-sky-400',
+    },
+    ...(hasFullOwnership
+      ? [
+          {
+            label: 'Full ownership',
+            value: fullOwnershipBalance,
+            percentage: fullOwnershipPercentage,
+            color: '#a78bfa',
+            colorClassName: 'bg-violet-400',
+          },
+        ]
+      : []),
+  ];
 
   return (
     <>
@@ -140,49 +173,40 @@ export function PortfolioSummaryCard({
               </button>
             </header>
 
-            <div
-              className="mx-auto mt-7 grid size-56 place-items-center rounded-full p-5 sm:size-60"
-              style={{
-                background: `conic-gradient(#19795a 0deg ${walletEnd}deg, #65dfae ${walletEnd}deg ${coOwnedEnd}deg, #38bdf8 ${coOwnedEnd}deg ${coFundedEnd}deg, #a78bfa ${coFundedEnd}deg 360deg)`,
-              }}
-            >
-              <div className="flex size-full flex-col items-center justify-center rounded-full bg-background px-3 text-center">
-                <span className="text-xs text-muted-foreground">Total balance</span>
-                <BalanceAmount
-                  value={portfolioBalance}
-                  toggle
-                  className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base"
+            <p className="mt-4 text-center text-xs text-muted-foreground">Swipe to compare your portfolio views</p>
+            <div className="mt-2 flex items-center justify-center gap-2" aria-label="Portfolio breakdown views">
+              {['Donut breakdown', 'Pie breakdown'].map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => breakdownViewsRef.current?.scrollTo({ left: index * breakdownViewsRef.current.clientWidth, behavior: 'smooth' })}
+                  className={`h-2 rounded-full transition ${breakdownView === index ? 'w-5 bg-brand' : 'w-2 bg-muted-foreground/35 hover:bg-muted-foreground/60'}`}
+                  aria-label={`Show ${label}`}
+                  aria-current={breakdownView === index ? 'true' : undefined}
                 />
-              </div>
+              ))}
             </div>
-
-            <div className="mt-8 overflow-hidden rounded-xl border bg-background">
-              <BreakdownRow
-                color="bg-brand"
-                label="Wallet"
-                value={walletBalance}
-                percentage={walletPercentage}
-              />
-              <BreakdownRow
-                color="bg-emerald-300"
-                label="Co-owned"
-                value={coOwnedBalance}
-                percentage={coOwnedPercentage}
-              />
-              <BreakdownRow
-                color="bg-sky-400"
-                label="Co-funded"
-                value={coFundedBalance}
-                percentage={coFundedPercentage}
-              />
-              {hasFullOwnership ? (
-                <BreakdownRow
-                  color="bg-violet-400"
-                  label="Full ownership"
-                  value={fullOwnershipBalance}
-                  percentage={fullOwnershipPercentage}
-                />
-              ) : null}
+            <div ref={breakdownViewsRef} onScroll={(event) => setBreakdownView(event.currentTarget.scrollLeft >= event.currentTarget.clientWidth / 2 ? 1 : 0)} className="scrollbar-none mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2">
+              <div className="w-full shrink-0 snap-center">
+                <PortfolioDonutChart segments={breakdownSegments} value={portfolioBalance} />
+                <div className="mt-8 overflow-hidden rounded-xl border bg-background">
+                  {breakdownSegments.map((segment) => (
+                    <BreakdownRow key={segment.label} color={segment.colorClassName} label={segment.label} value={segment.value} percentage={segment.percentage} />
+                  ))}
+                </div>
+              </div>
+              <div className="w-full shrink-0 snap-center">
+                <PortfolioPieChart segments={breakdownSegments} />
+                <div className="mt-5 text-center">
+                  <p className="text-xs text-muted-foreground">Total balance</p>
+                  <BalanceAmount value={portfolioBalance} toggle className="mt-1 justify-center text-lg font-bold sm:text-xl" />
+                </div>
+                <div className="mt-8 overflow-hidden rounded-xl border bg-background">
+                  {breakdownSegments.map((segment) => (
+                    <BreakdownRow key={segment.label} color={segment.colorClassName} label={segment.label} value={segment.value} />
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -200,27 +224,137 @@ function BreakdownRow({
   color: string;
   label: string;
   value: string;
-  percentage: number;
+  percentage?: number;
 }>): React.JSX.Element {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-b px-4 py-3.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,1fr)_auto] sm:gap-y-0">
+    <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5 last:border-b-0">
       <div className="flex min-w-0 items-center gap-2">
         <span className={`size-2 shrink-0 rounded-full ${color}`} />
         <span className="truncate text-sm font-medium text-foreground">{label}</span>
       </div>
-      <BalanceAmount
-        value={value}
-        className="col-start-1 text-sm font-semibold sm:col-start-auto sm:justify-self-end"
-      />
-      <span className="col-start-2 row-span-2 row-start-1 self-center text-right text-xs tabular-nums text-muted-foreground sm:col-start-auto sm:row-span-1">
-        {formatPercentage(percentage)}
-      </span>
+      <BalanceAmount value={value} className="shrink-0 text-sm font-semibold" />
+      {percentage !== undefined ? <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{formatPiePercentage(percentage)}</span> : null}
     </div>
   );
 }
 
-function formatPercentage(value: number): string {
-  if (value === 0) return '0%';
-  if (value < 0.01) return '<0.01%';
-  return `${value.toFixed(2)}%`;
+type PortfolioSegment = {
+  label: string;
+  value: string;
+  percentage: number;
+  color: string;
+  colorClassName: string;
+};
+
+function PortfolioDonutChart({ segments, value }: Readonly<{ segments: PortfolioSegment[]; value: string }>): React.JSX.Element {
+  const visibleSegments = segments.filter((segment) => segment.percentage > 0);
+  const stops = visibleSegments.reduce<{ angle: number; values: string[] }>((result, segment) => {
+    const nextAngle = result.angle + segment.percentage * 3.6;
+    result.values.push(`${segment.color} ${result.angle}deg ${nextAngle}deg`);
+    result.angle = nextAngle;
+    return result;
+  }, { angle: 0, values: [] });
+  const background = stops.values.length ? `conic-gradient(${stops.values.join(', ')})` : '#a78bfa';
+
+  return (
+    <div className="mx-auto mt-6 grid size-56 place-items-center rounded-full p-5 sm:size-60" style={{ background }}>
+      <div className="flex size-full flex-col items-center justify-center rounded-full bg-background px-3 text-center">
+        <span className="text-xs text-muted-foreground">Total balance</span>
+        <BalanceAmount value={value} toggle className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base" />
+      </div>
+    </div>
+  );
+}
+
+function PortfolioPieChart({ segments }: Readonly<{ segments: PortfolioSegment[] }>): React.JSX.Element {
+  const visibleSegments = segments.filter((segment) => segment.percentage > 0);
+  const displaySegments = getDisplaySegments(visibleSegments);
+  let startAngle = -90;
+
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      className="mx-auto mt-7 size-56 sm:size-60"
+      role="img"
+      aria-label="Portfolio balance allocation by wallet and ownership type"
+    >
+      {displaySegments.length === 1 ? (
+        <circle cx="50" cy="50" r="50" fill={displaySegments[0].color} />
+      ) : (
+        displaySegments.map((segment) => {
+          const endAngle = startAngle + segment.displayPercentage * 3.6;
+          const path = pieSlicePath(startAngle, endAngle);
+          const label = pieLabelPosition(startAngle, endAngle);
+          startAngle = endAngle;
+
+          return (
+            <g key={segment.label}>
+              <path d={path} fill={segment.color} stroke="var(--background)" strokeWidth="0.35" />
+              {segment.percentage >= 3 ? (
+                <text
+                  x={label.x}
+                  y={label.y}
+                  fill="white"
+                  fontSize={segment.percentage < 7 ? '3.25' : '4.5'}
+                  fontWeight="700"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {formatPiePercentage(segment.percentage)}
+                </text>
+              ) : null}
+            </g>
+          );
+        })
+      )}
+      {displaySegments.length === 1 && displaySegments[0].percentage >= 3 ? (
+        <text x="50" y="50" fill="white" fontSize="6" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
+          {formatPiePercentage(displaySegments[0].percentage)}
+        </text>
+      ) : null}
+    </svg>
+  );
+}
+
+function getDisplaySegments(segments: PortfolioSegment[]): Array<PortfolioSegment & { displayPercentage: number }> {
+  const minimumVisiblePercentage = 1;
+  const adjustedSegments = segments.map((segment) => ({
+    ...segment,
+    displayPercentage: Math.max(segment.percentage, minimumVisiblePercentage),
+  }));
+  const excess = adjustedSegments.reduce((total, segment) => total + segment.displayPercentage, 0) - 100;
+
+  if (excess <= 0) return adjustedSegments;
+
+  const largestSegment = adjustedSegments.reduce((largest, segment) =>
+    segment.percentage > largest.percentage ? segment : largest,
+  );
+  largestSegment.displayPercentage -= excess;
+  return adjustedSegments;
+}
+
+function pieSlicePath(startAngle: number, endAngle: number): string {
+  const start = polarToCartesian(startAngle);
+  const end = polarToCartesian(endAngle);
+  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+
+  return `M 50 50 L ${start.x} ${start.y} A 50 50 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
+}
+
+function pieLabelPosition(startAngle: number, endAngle: number): { x: number; y: number } {
+  const angleInRadians = (((startAngle + endAngle) / 2) * Math.PI) / 180;
+  const radius = 30;
+  return { x: 50 + radius * Math.cos(angleInRadians), y: 50 + radius * Math.sin(angleInRadians) };
+}
+
+function polarToCartesian(angle: number): { x: string; y: string } {
+  const angleInRadians = (angle * Math.PI) / 180;
+  return {
+    x: (50 + 50 * Math.cos(angleInRadians)).toFixed(3),
+    y: (50 + 50 * Math.sin(angleInRadians)).toFixed(3),
+  };
+}
+
+function formatPiePercentage(value: number): string {
+  return `${value.toFixed(1)}%`;
 }

@@ -4,22 +4,32 @@ import { useEffect, useRef } from 'react';
 import { getSessionLastActivity, markSessionActivity } from '@/lib/session';
 
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
-const CHECK_INTERVAL_MS = 15 * 1000;
+const WARNING_DURATION_MS = 60 * 1000;
+const CHECK_INTERVAL_MS = 1000;
 
 type SessionTimeoutOptions = Readonly<{
   enabled: boolean;
   onInactive: () => void;
+  onWarning: (remainingSeconds: number) => void;
 }>;
 
-export function useSessionTimeout({ enabled, onInactive }: SessionTimeoutOptions): void {
+export function useSessionTimeout({ enabled, onInactive, onWarning }: SessionTimeoutOptions): { staySignedIn: () => void } {
   const inactiveHandler = useRef(onInactive);
+  const warningHandler = useRef(onWarning);
+  const warningShown = useRef(false);
 
   useEffect(() => {
     inactiveHandler.current = onInactive;
   }, [onInactive]);
+  useEffect(() => { warningHandler.current = onWarning; }, [onWarning]);
+
+  const staySignedIn = (): void => {
+    warningShown.current = false;
+    markSessionActivity();
+  };
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) return undefined;
     let sessionEnded = false;
 
     const endForInactivity = (): void => {
@@ -34,13 +44,21 @@ export function useSessionTimeout({ enabled, onInactive }: SessionTimeoutOptions
         markSessionActivity();
         return;
       }
-      if (Date.now() - lastActivity >= INACTIVITY_TIMEOUT_MS) endForInactivity();
+      const inactiveFor = Date.now() - lastActivity;
+      if (inactiveFor >= INACTIVITY_TIMEOUT_MS) {
+        endForInactivity();
+        return;
+      }
+      if (inactiveFor >= INACTIVITY_TIMEOUT_MS - WARNING_DURATION_MS) {
+        warningShown.current = true;
+        warningHandler.current(Math.ceil((INACTIVITY_TIMEOUT_MS - inactiveFor) / 1000));
+      }
     };
     const recordActivity = (): void => {
-      if (!sessionEnded) markSessionActivity();
+      if (!sessionEnded) { warningShown.current = false; markSessionActivity(); }
     };
     const handleVisibilityChange = (): void => {
-      if (document.visibilityState === 'visible') markSessionActivity();
+      if (document.visibilityState === 'visible') { warningShown.current = false; markSessionActivity(); }
     };
 
     checkForInactivity();
@@ -60,4 +78,6 @@ export function useSessionTimeout({ enabled, onInactive }: SessionTimeoutOptions
       window.clearInterval(interval);
     };
   }, [enabled]);
+
+  return { staySignedIn };
 }
