@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGrid, LockKeyhole, Search, Sparkles } from 'lucide-react';
+import { LayoutGrid, LockKeyhole, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {

@@ -65,7 +65,7 @@ export function PageLoadingState({
           <LoadingSpinner className="relative size-7" label={label} />
         </span>
         <h1 className="mt-5 font-sans text-lg font-bold tracking-normal">{label}</h1>
-        {/* <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{description}</p> */}
+        <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
     </main>
   );
