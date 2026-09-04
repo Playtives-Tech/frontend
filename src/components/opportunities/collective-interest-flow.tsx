@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, CheckCircle2, Info, Pencil, TrendingUp, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Pencil, TrendingUp, X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';
@@ -115,8 +115,8 @@ export function CollectiveInterestFlow({
         onClick={() => setAbout(true)}
         className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
       >
-        <Info className="size-4" />
         About The Playtives Wealth Collective
+        <ArrowRight className="size-4" />
       </button>
       {opportunity.showInterestProgress ? (
         <section className="mt-5 rounded-2xl border bg-background p-5 text-foreground">
@@ -424,6 +424,7 @@ function MoneyInput({
   );
 }
 function AboutModal({
+  opportunity,
   onClose,
   onInterest,
 }: Readonly<{
@@ -441,60 +442,14 @@ function AboutModal({
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id="collective-about-title" className="text-2xl font-bold">
-            About The Playtives Collective
+            About {opportunity.title}
           </h2>
           <button onClick={onClose} aria-label="Close">
             <X className="size-5" />
           </button>
         </div>
-        <div className="mt-5 space-y-5 text-sm leading-6 text-muted-foreground">
-          <p>
-            The Playtives Collective is a 12-month structured co-funding pool open to all Playtives
-            members. You commit an opening amount and a fixed monthly addition. Playtives pools
-            everyone&apos;s capital and deploys it into verified commodity trades every month. Your
-            projected profit share is automatically added to your portfolio and compounds the
-            following month — so your money grows on itself, month after month, for 12 months.
-          </p>
-          <AboutCopy title="What you can earn">
-            The minimum projected monthly profit share is 3% — that is at least 36% annually on your
-            growing portfolio. However, 3% is only the floor. In months where our trades perform
-            above the minimum, the additional returns go directly into your portfolio too. There is
-            no ceiling on what the Collective can earn. The more we raise collectively, the larger
-            and more profitable the opportunities we can access.
-          </AboutCopy>
-          <AboutCopy title="What happens if you need to exit early">
-            Life happens. If you need your money back before the 12 months are complete, you can
-            request a withdrawal at any time. Your full capital will be returned to you within 30
-            days of your request. However, you will forfeit all profits that have accrued during
-            your time in the Collective. Your capital is always safe. Your profits are the
-            commitment — and they belong to those who stay the course.
-          </AboutCopy>
-          <div>
-            <h3 className="font-semibold text-foreground">Key terms</h3>
-            <dl className="mt-2 grid gap-1">
-              <div>
-                <dt className="inline font-medium text-foreground">Minimum return: </dt>
-                <dd className="inline">3% monthly (projected)</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium text-foreground">Duration: </dt>
-                <dd className="inline">12 months</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium text-foreground">Opens when: </dt>
-                <dd className="inline">₦100M confirmed ready</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium text-foreground">Early exit: </dt>
-                <dd className="inline">Full capital returned within 30 days — profits forfeited</dd>
-              </div>
-            </dl>
-          </div>
-          <AboutCopy title="Important">
-            Returns are projected based on agreed trade terms and are not guaranteed. The Collective
-            opens only once ₦100M in committed capital is confirmed ready. Members will be given 7
-            days to fund their accounts once the threshold is reached.
-          </AboutCopy>
+        <div className="mt-5 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+          {opportunity.about || 'More details for this opportunity will be shared soon.'}
         </div>
         <button
           onClick={onInterest}
@@ -504,17 +459,6 @@ function AboutModal({
         </button>
       </section>
     </div>
-  );
-}
-function AboutCopy({
-  title,
-  children,
-}: Readonly<{ title: string; children: React.ReactNode }>): React.JSX.Element {
-  return (
-    <section>
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      <p className="mt-1">{children}</p>
-    </section>
   );
 }
 function formatNaira(amount: number): string {
