@@ -87,11 +87,14 @@ export type OpportunityChange = Readonly<{
 }>;
 
 export function getOpportunities(): Promise<Opportunity[]> {
-  return api<Opportunity[]>('/v1/opportunities', { cache: 'no-store' });
+  return api<Opportunity[]>(`/v1/opportunities?fresh=${Date.now()}`, { cache: 'no-store' });
 }
 
 export function getOpportunity(slug: string): Promise<Opportunity> {
-  return api<Opportunity>(`/v1/opportunities/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+  return api<Opportunity>(
+    `/v1/opportunities/${encodeURIComponent(slug)}?fresh=${Date.now()}`,
+    { cache: 'no-store' },
+  );
 }
 
 export type OpportunityInterest = Readonly<{ _id: string; openingCapital: number; recurringAmount: number | null; recurringFrequency: 'monthly' | null; capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure'; status: string; acknowledgementVersion: string; createdAt: string; updatedAt: string }>;

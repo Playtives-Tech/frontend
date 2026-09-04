@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckCircle2, Info, Pencil, TrendingUp, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Info, Pencil, TrendingUp, X } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -31,16 +32,27 @@ export function CollectiveInterestFlow({
   const [about, setAbout] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const refresh = () =>
-    void Promise.all([
-      opportunityInterestService.progress(opportunity.slug),
-      opportunityInterestService.mine(opportunity.slug),
-      opportunityInterestService.recent(opportunity.slug),
-    ]).then(([nextProgress, nextInterest, nextRecentActivity]) => {
-      setProgress(nextProgress);
-      setInterest(nextInterest);
-      setRecentActivity(nextRecentActivity);
-    });
+  const refresh = () => {
+    void opportunityInterestService
+      .progress(opportunity.slug)
+      .then(setProgress)
+      .catch(() =>
+        setProgress({
+          totalCommitted: 0,
+          targetAmount: opportunity.interestTargetAmount ?? 0,
+          memberCount: 0,
+          totalMonthlyCommitment: 0,
+        }),
+      );
+    void opportunityInterestService
+      .mine(opportunity.slug)
+      .then(setInterest)
+      .catch(() => setInterest(null));
+    void opportunityInterestService
+      .recent(opportunity.slug)
+      .then(setRecentActivity)
+      .catch(() => setRecentActivity([]));
+  };
   useEffect(() => {
     refresh();
   }, [opportunity.slug]);
@@ -65,7 +77,14 @@ export function CollectiveInterestFlow({
   };
   return (
     <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8">
-      <div className="rounded-3xl bg-[#123f2d] p-5 text-white shadow-sm sm:p-7">
+      <Link
+        href="/discover"
+        className="mb-5 inline-flex h-10 items-center gap-2 rounded-xl border bg-background px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Back to opportunities
+      </Link>
+      <div className="rounded-3xl bg-[#194f39] p-5 text-white shadow-sm sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <span
@@ -76,19 +95,13 @@ export function CollectiveInterestFlow({
                 : 'INTEREST REGISTRATION CLOSED'}
             </span>
             <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-              {opportunity.title}
+              {/* {opportunity.title} */}
+              The Playtives Wealth Collective
             </h1>
             <p className="mt-3 max-w-2xl text-[14px] leading-5 text-white/70">
               {opportunity.summary}
             </p>
           </div>
-          <button
-            onClick={() => setAbout(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white"
-          >
-            <Info className="size-4" />
-            About
-          </button>
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-4">
           <Metric value="3%+" label="Monthly (min)" />
@@ -97,6 +110,14 @@ export function CollectiveInterestFlow({
           <Metric value="Auto" label="Profit reinvested" />
         </div>
       </div>
+      <button
+        type="button"
+        onClick={() => setAbout(true)}
+        className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
+      >
+        <Info className="size-4" />
+        About The Playtives Wealth Collective
+      </button>
       {opportunity.showInterestProgress ? (
         <section className="mt-5 rounded-2xl border bg-background p-5 text-foreground">
           <div className="flex flex-wrap items-end justify-between gap-2">
@@ -107,7 +128,7 @@ export function CollectiveInterestFlow({
                 members share the same start and end date.
               </p>
             </div>
-            <p className="text-sm font-semibold text-brand mt-2">
+            <p className="mt-2 text-sm font-semibold text-brand">
               {progress
                 ? `${formatNaira(progress.totalCommitted)} of ${formatNaira(progress.targetAmount)} target`
                 : 'Loading interest progress…'}
@@ -185,11 +206,13 @@ function RecentInterestActivityList({
       <div className="divide-y">
         {items.map((item) => (
           <div key={item.id} className="flex items-center gap-3 px-5 py-3.5">
-            <span className="grid gap-1 size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-[13px] font-bold text-brand">
+            <span className="grid size-10 shrink-0 place-items-center gap-1 rounded-full bg-brand/10 text-[13px] font-bold text-brand">
               {initials(item.name)}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{initials(item.name)} signified interest in The Collective</p>
+              <p className="truncate text-sm font-semibold">
+                {initials(item.name)} signified interest in The Collective
+              </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{relativeTime(item.joinedAt)}</p>
             </div>
             <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-brand">
