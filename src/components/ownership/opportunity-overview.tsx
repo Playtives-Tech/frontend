@@ -57,6 +57,7 @@ export function OpportunityOverview({
       : isCoFunded
         ? 'Co-fund now'
         : 'Co own now';
+  const closureNotice = closedOpportunityNotice(opportunity);
   const canExpandSummary = opportunity.summary.trim().length > 140;
 
   return (
@@ -173,14 +174,8 @@ export function OpportunityOverview({
             </div>
           ) : (
             <div className="mt-4 rounded-xl border border-border bg-muted/45 px-4 py-3 text-sm text-muted-foreground sm:mt-5">
-              <p className="font-semibold text-foreground">
-                {opportunity.acquisitionStatus === 'CLOSED'
-                  ? 'This offer is closed to new owners.'
-                  : 'This deal is already in progress.'}
-              </p>
-              <p className="mt-1 text-xs leading-5">
-                You can still review the opportunity details and agreement, but new ownership contributions are unavailable.
-              </p>
+              <p className="font-semibold text-foreground">{closureNotice.title}</p>
+              <p className="mt-1 text-xs leading-5">{closureNotice.reason}</p>
             </div>
           )}
 
@@ -188,13 +183,13 @@ export function OpportunityOverview({
             <Highlight
               label="Projected earnings (%)"
               value={`${formatProjectedReturnRate(opportunity)} ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}`}
-              description="This is the projected distribution rate for one return cycle. It is an estimate; actual monthly distributions are reviewed and credited by Playtives after each cycle."
+              description="Estimated percentage you may earn during each stated period. This is projected, not guaranteed."
               onClick={setSelectedHighlight}
             />
             <Highlight
               label="Deal type"
               value={formatOwnershipModel(opportunity.opportunityStructure)}
-              description=""
+              description="Shows how you participate in this opportunity — for example, Co-Funding or Co-Ownership."
               onClick={setSelectedHighlight}
             />
             <Highlight
@@ -206,27 +201,27 @@ export function OpportunityOverview({
               }
               description={
                 isVariableDistribution(opportunity)
-                  ? 'The monthly distribution may change based on the opportunity’s realised performance. Each distribution is reviewed before it is credited.'
-                  : 'The displayed monthly distribution is a projection. Actual distributions are reviewed and credited based on the opportunity’s performance.'
+                  ? 'Explains how earnings are expected to be calculated and distributed for this deal.'
+                  : 'Explains how earnings are expected to be calculated and distributed for this deal.'
               }
               onClick={setSelectedHighlight}
             />
             <Highlight
               label={`Projected earnings per unit`}
               value={formatProjectedDistribution(opportunity)}
-              description="This is the projected amount for each unit you own in one distribution cycle. It is not an automatic or guaranteed wallet credit."
+              description="Estimated amount one unit may earn during each stated distribution period. Not guaranteed."
               onClick={setSelectedHighlight}
             />
             <Highlight
               label="Term"
               value={formatOpportunityTerm(opportunity)}
-              description="This is the expected period for the opportunity. For fixed-term opportunities, capital is considered for return at the end of this term."
+              description="How long your principal is expected to remain committed to this opportunity."
               onClick={setSelectedHighlight}
             />
             <Highlight
               label="Capital return"
               value={formatCapitalReturn(opportunity)}
-              description="This explains when your original contribution is due for return. Capital return is handled separately from monthly distributions."
+              description="When your original contribution is expected to be released back to you, subject to the deal terms."
               onClick={setSelectedHighlight}
             />
             {opportunity.offerClosesAt ? (
@@ -237,7 +232,7 @@ export function OpportunityOverview({
                   month: 'long',
                   year: 'numeric',
                 })}
-                description="This is the final date members can own this opportunity."
+                description="The last scheduled date to join this opportunity, unless it fills earlier."
                 onClick={setSelectedHighlight}
               />
             ) : null}
@@ -249,14 +244,20 @@ export function OpportunityOverview({
                   month: 'long',
                   year: 'numeric',
                 })}
-                description="This is when the deal begins and the monthly distribution cycle starts."
+                description="The expected date the opportunity becomes active and the deal term begins."
                 onClick={setSelectedHighlight}
               />
             ) : null}
             <Highlight
               label="Deal location"
               value={opportunity.location || 'Not specified'}
-              description="This is the primary location associated with the opportunity or underlying asset."
+              description="The primary location where the underlying business or transaction takes place."
+              onClick={setSelectedHighlight}
+            />
+            <Highlight
+              label="Units available"
+              value={`${opportunity.availableUnits} ${opportunity.availableUnits === 1 ? 'unit' : 'units'}`}
+              description="Shows how much of the opportunity is still available for members to take up."
               onClick={setSelectedHighlight}
             />
           </div>
@@ -324,6 +325,26 @@ export function OpportunityOverview({
       ) : null}
     </div>
   );
+}
+
+function closedOpportunityNotice(opportunity: Opportunity): { title: string; reason: string } {
+  if (opportunity.acquisitionStatus === 'COMMENCED')
+    return {
+      title: 'This deal is already in progress.',
+      reason:
+        'Reason: The asset is now active/operated and new ownership units are no longer available.',
+    };
+  if (opportunity.availableUnits < opportunity.minimumUnits || opportunity.availableUnits === 0)
+    return {
+      title: 'This offer is closed to new owners.',
+      reason:
+        'Reason: Fully subscribed. All available ownership units have been taken. You can still review the opportunity details and agreement.',
+    };
+  return {
+    title: 'This offer is closed to new owners.',
+    reason:
+      'Reason: Funding period ended. New ownership contributions are no longer being accepted.',
+  };
 }
 
 function AboutOpportunityModal({
@@ -417,24 +438,24 @@ function HighlightModal({
             {/* <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
               Opportunity detail
             </p> */}
-            <h2 id="highlight-detail-title" className="mt-1 text-lg font-semibold">
+            <h2 id="highlight-detail-title" className="mt-1 text-[16px] font-semibold">
               {detail.label}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid size-9 shrink-0 place-items-center rounded-lg border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            className="grid size-8 shrink-0 place-items-center rounded-lg border text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="Close detail"
           >
             <X className="size-4" />
           </button>
         </header>
-        <div className="mt-5 rounded-xl bg-brand/5 p-4">
-          <p className="text-xs text-muted-foreground">Current value</p>
-          <p className="mt-1 text-lg font-semibold text-brand">{detail.value}</p>
+        <div className="mt-2 rounded-xl bg-brand/5 p-3">
+          {/* <p className="text-xs text-muted-foreground">Current value</p> */}
+          {/* <p className="mt-1 text-lg font-semibold text-brand">{detail.value}</p> */}
+          <p className="text-sm leading-6 text-muted-foreground">{detail.description}</p>
         </div>
-        {/* <p className="mt-5 text-sm leading-6 text-muted-foreground">{detail.description}</p> */}
         {/* <button
           type="button"
           onClick={onClose}

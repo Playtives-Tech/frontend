@@ -33,6 +33,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
       <WalletCheckout
         opportunity={opportunity}
         quantity={quantity}
+        onQuantityChange={setQuantity}
         agreementAccepted={agreementAccepted}
         onAgreementAcceptedChange={setAgreementAccepted}
         rolloverElection={rolloverElection}

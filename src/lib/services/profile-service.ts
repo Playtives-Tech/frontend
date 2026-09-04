@@ -123,16 +123,29 @@ export function closeAccount(): Promise<{ message: string }> {
 export type NameChangeRequest = Readonly<{
   id: string;
   reason: string;
+  identityDocumentType: string;
+  identityDocumentNumber: string;
+  identityDocumentFileName: string;
   status: 'PENDING' | 'LINK_SENT' | 'COMPLETED';
   createdAt: string;
   linkSentAt: string | null;
   completedAt: string | null;
 }>;
 
-export function requestNameChange(reason: string): Promise<NameChangeRequest> {
+export function requestNameChange(
+  reason: string,
+  identityDocumentType: string,
+  identityDocumentNumber: string,
+  identityDocument: File,
+): Promise<NameChangeRequest> {
+  const body = new FormData();
+  body.set('reason', reason);
+  body.set('identityDocumentType', identityDocumentType);
+  body.set('identityDocumentNumber', identityDocumentNumber);
+  body.set('identityDocument', identityDocument);
   return api<NameChangeRequest>('/v1/profile/name-change-requests', {
     method: 'POST',
-    body: JSON.stringify({ reason }),
+    body,
   });
 }
 
@@ -151,3 +164,7 @@ export function completeNameChange(
     body: JSON.stringify({ token, name }),
   });
 }
+
+export type NextOfKin = Readonly<{ fullName: string; relationship: string; phone: string; email: string | null; address: string | null }>;
+export function getNextOfKin(): Promise<NextOfKin | null> { return api<NextOfKin | null>('/v1/profile/next-of-kin', { cache: 'no-store' }); }
+export function updateNextOfKin(input: NextOfKin): Promise<NextOfKin> { return api<NextOfKin>('/v1/profile/next-of-kin', { method: 'PATCH', body: JSON.stringify(input) }); }

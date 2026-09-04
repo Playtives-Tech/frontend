@@ -63,6 +63,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
   const [signOutDialog, setSignOutDialog] = useState<'first' | 'final' | null>(null);
+  const [inactivitySecondsRemaining, setInactivitySecondsRemaining] = useState<number | null>(null);
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
     pathname === '/sign-in' ||
@@ -74,15 +75,23 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const token = getAccessToken();
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
   const endInactiveSession = useCallback((): void => {
+    setInactivitySecondsRemaining(null);
     signOut();
     notify.info('You were signed out after 5 minutes of inactivity.');
     router.replace('/sign-in');
   }, [router, signOut]);
 
-  useSessionTimeout({
+  const { staySignedIn } = useSessionTimeout({
     enabled: hasHydrated && hasValidSession && !isPublicRoute,
     onInactive: endInactiveSession,
+    onWarning: setInactivitySecondsRemaining,
   });
+
+  const continueSession = (): void => {
+    staySignedIn();
+    setInactivitySecondsRemaining(null);
+    notify.success('You are still signed in.');
+  };
 
   useEffect(() => {
     const validateSession = (): void => {
@@ -145,10 +154,10 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
           <span className="font-wordmark text-4xl font-semibold leading-none">playtives</span>
         </Link>
         <span className="mt-2 text-[.85rem] font-medium leading-5 tracking-normal text-white/65">
-          Own together. Build forever.
+          Own together. Build wealth.
         </span>
 
-        <nav className="mt-12 grid gap-2">
+        <nav className="mt-12 grid gap-2" aria-label="Main navigation">
           {sidebarNavigationItems.map((item) => (
             <NavigationLink key={item.href} {...item} inverse />
           ))}
@@ -204,6 +213,14 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         title="Confirm sign out"
         description="This is your final confirmation."
         confirmLabel="Sign out"
+      />
+      <ConfirmModal
+        open={inactivitySecondsRemaining !== null}
+        onClose={continueSession}
+        onConfirm={continueSession}
+        title="Are you still there?"
+        description={`Your session will end in ${inactivitySecondsRemaining ?? 0} seconds because there has been no activity. Choose “Stay signed in” to continue securely.`}
+        confirmLabel="Stay signed in"
       />
     </div>
   );

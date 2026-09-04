@@ -30,9 +30,12 @@ import {
   closeAccount,
   getAccountClosureEligibility,
   getLatestNameChangeRequest,
+  getNextOfKin,
   requestNameChange,
+  updateNextOfKin,
   type AccountClosureEligibility,
   type NameChangeRequest,
+  type NextOfKin,
 } from '@/lib/services/profile-service';
 
 // ... rest of file unchanged ...
@@ -46,7 +49,13 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   const [nameChangeRequest, setNameChangeRequest] = useState<NameChangeRequest | null>(null);
   const [showNameRequestForm, setShowNameRequestForm] = useState(false);
   const [nameChangeReason, setNameChangeReason] = useState('');
+  const [identityDocumentType, setIdentityDocumentType] = useState('NIN');
+  const [identityDocumentNumber, setIdentityDocumentNumber] = useState('');
+  const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [isSubmittingNameRequest, setIsSubmittingNameRequest] = useState(false);
+  const [nextOfKin, setNextOfKin] = useState<NextOfKin | null>(null);
+  const [showNextOfKinForm, setShowNextOfKinForm] = useState(false);
+  const [savingNextOfKin, setSavingNextOfKin] = useState(false);
   const [accountClosureEligibility, setAccountClosureEligibility] =
     useState<AccountClosureEligibility | null>(null);
   const [isClosingAccount, setIsClosingAccount] = useState(false);
@@ -60,6 +69,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     void getLatestNameChangeRequest()
       .then(setNameChangeRequest)
       .catch(() => undefined);
+    void getNextOfKin().then(setNextOfKin).catch(() => undefined);
   }, []);
   const close = (): void => setDialog(null);
   const openDeleteAccountDialog = async (): Promise<void> => {
@@ -70,6 +80,15 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     } catch {
       notify.error('Could not check whether your account can be deleted');
     }
+  };
+  const saveNextOfKin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const input: NextOfKin = { fullName: String(data.get('fullName') ?? ''), relationship: String(data.get('relationship') ?? ''), phone: String(data.get('phone') ?? ''), email: String(data.get('email') ?? '') || null, address: String(data.get('address') ?? '') || null };
+    setSavingNextOfKin(true);
+    try { setNextOfKin(await updateNextOfKin(input)); setShowNextOfKinForm(false); notify.success('Next of Kin details saved'); }
+    catch (error) { notify.error(error instanceof Error ? error.message : 'Could not save Next of Kin details'); }
+    finally { setSavingNextOfKin(false); }
   };
   const confirm = async (): Promise<void> => {
     if (dialog === 'signout-first') return setDialog('signout-final');
@@ -104,17 +123,19 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   };
   const submitNameChangeRequest = async (): Promise<void> => {
     const reason = nameChangeReason.trim();
-    if (reason.length < 10) {
-      notify.error('Please tell support why you need to update your name');
+    if (reason.length < 10 || identityDocumentNumber.trim().length < 4 || !identityDocument) {
+      notify.error('Add your reason, ID document type, document number, and supporting file');
       return;
     }
 
     setIsSubmittingNameRequest(true);
     try {
-      const request = await requestNameChange(reason);
+      const request = await requestNameChange(reason, identityDocumentType, identityDocumentNumber.trim(), identityDocument);
       setNameChangeRequest(request);
       setShowNameRequestForm(false);
       setNameChangeReason('');
+      setIdentityDocumentNumber('');
+      setIdentityDocument(null);
       notify.success('Name change request sent to support');
     } catch {
       notify.error('Could not send your name change request');
@@ -211,6 +232,27 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               placeholder="For example, my registered name was entered incorrectly."
               className="mt-2 w-full resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-brand"
             />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-xs font-semibold">
+                ID document type
+                <select value={identityDocumentType} onChange={(event) => setIdentityDocumentType(event.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none focus:border-brand">
+                  <option value="NIN">National Identification Number (NIN)</option>
+                  <option value="BVN">Bank Verification Number (BVN)</option>
+                  <option value="PASSPORT">International passport</option>
+                  <option value="DRIVERS_LICENSE">Driver's licence</option>
+                  <option value="VOTERS_CARD">Voter's card</option>
+                </select>
+              </label>
+              <label className="text-xs font-semibold">
+                Document number
+                <input value={identityDocumentNumber} onChange={(event) => setIdentityDocumentNumber(event.target.value)} maxLength={100} placeholder="Enter the number on your ID" className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-brand" />
+              </label>
+            </div>
+            <label className="mt-3 block text-xs font-semibold">
+              Upload supporting ID document
+              <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(event) => setIdentityDocument(event.target.files?.[0] ?? null)} className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-2 file:font-semibold file:text-brand" />
+              <span className="mt-1 block font-normal text-muted-foreground">Upload a clear JPEG, PNG, WebP, or PDF (up to 8 MB).</span>
+            </label>
             <div className="mt-3 flex justify-end gap-2">
               <button
                 type="button"
@@ -230,6 +272,12 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             </div>
           </div>
         ) : null}
+      </section>
+
+      <section className="mt-5 rounded-xl border bg-background p-4">
+        <div className="flex items-start justify-between gap-3"><div><h2 className="font-sans text-[14px] font-semibold">Next of Kin</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">A trusted contact for important account matters.</p></div><button type="button" onClick={() => setShowNextOfKinForm((visible) => !visible)} className="h-8 shrink-0 rounded-lg border px-2.5 text-xs font-semibold hover:bg-muted">{nextOfKin ? 'Edit' : 'Add details'}</button></div>
+        {nextOfKin && !showNextOfKinForm ? <div className="mt-4 rounded-lg bg-surface p-3 text-sm"><p className="font-semibold">{nextOfKin.fullName} <span className="font-normal text-muted-foreground">· {nextOfKin.relationship}</span></p><p className="mt-1 text-muted-foreground">{nextOfKin.phone}{nextOfKin.email ? ` · ${nextOfKin.email}` : ''}</p></div> : null}
+        {showNextOfKinForm ? <form onSubmit={(event) => void saveNextOfKin(event)} className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2"><input required name="fullName" defaultValue={nextOfKin?.fullName} placeholder="Full name" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input required name="relationship" defaultValue={nextOfKin?.relationship} placeholder="Relationship (e.g. Sister)" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input required name="phone" defaultValue={nextOfKin?.phone} placeholder="Phone number" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input name="email" type="email" defaultValue={nextOfKin?.email ?? ''} placeholder="Email address (optional)" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input name="address" defaultValue={nextOfKin?.address ?? ''} placeholder="Address (optional)" className="h-10 rounded-lg border bg-background px-3 text-sm sm:col-span-2" /><div className="flex justify-end gap-2 sm:col-span-2"><button type="button" onClick={() => setShowNextOfKinForm(false)} className="h-8 px-2.5 text-xs font-semibold text-muted-foreground">Cancel</button><button disabled={savingNextOfKin} className="h-8 rounded-lg bg-brand px-3 text-xs font-semibold text-white disabled:opacity-60">{savingNextOfKin ? 'Saving…' : 'Save details'}</button></div></form> : null}
       </section>
 
       <section className="mt-5 divide-y rounded-xl border bg-background px-4">

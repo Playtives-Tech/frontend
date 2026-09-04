@@ -1,7 +1,7 @@
 import { api } from './api';
 import { env } from './env';
 
-export type OpportunityStatus = 'PUBLISHED';
+export type OpportunityStatus = 'PUBLISHED' | 'INTEREST_OPEN' | 'INTEREST_CLOSED';
 export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
 export type OpportunityStructure = 'CO_OWNERSHIP' | 'CO_FUNDING' | 'FULL_OWNERSHIP';
 export type TermType = 'FIXED_TERM' | 'LIFE_OF_ASSET';
@@ -57,6 +57,17 @@ export type Opportunity = Readonly<{
   offerClosesAt: string | null;
   commencementDate: string | null;
   acquisitionStatus: 'OPEN' | 'CLOSED' | 'COMMENCED';
+  interestModeEnabled: boolean;
+  interestTargetAmount: number | null;
+  interestOpensAt: string | null;
+  interestClosesAt: string | null;
+  showInterestProgress: boolean;
+  collectOpeningCapital: boolean;
+  collectRecurringAmount: boolean;
+  recurringFrequency: 'monthly' | null;
+  collectCapitalReadiness: boolean;
+  interestAcknowledgementText: string;
+  interestAcknowledgementVersion: string;
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
@@ -82,6 +93,18 @@ export function getOpportunities(): Promise<Opportunity[]> {
 export function getOpportunity(slug: string): Promise<Opportunity> {
   return api<Opportunity>(`/v1/opportunities/${encodeURIComponent(slug)}`, { cache: 'no-store' });
 }
+
+export type OpportunityInterest = Readonly<{ _id: string; openingCapital: number; recurringAmount: number | null; recurringFrequency: 'monthly' | null; capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure'; status: string; acknowledgementVersion: string; createdAt: string; updatedAt: string }>;
+export type InterestProgress = Readonly<{ totalCommitted: number; targetAmount: number; memberCount: number; totalMonthlyCommitment: number }>;
+export type RecentInterestActivity = Readonly<{ id: string; name: string; joinedAt: string }>;
+export const opportunityInterestService = {
+  mine: (slug: string) => api<OpportunityInterest | null>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/me`, { cache: 'no-store' }),
+  progress: (slug: string) => api<InterestProgress>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/progress`, { cache: 'no-store' }),
+  recent: (slug: string) => api<RecentInterestActivity[]>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/recent`, { cache: 'no-store' }),
+  save: (slug: string, input: { openingCapital: number; recurringAmount?: number; capitalReadiness: OpportunityInterest['capitalReadiness']; acknowledgementVersion: string }) => api<OpportunityInterest>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, { method: 'POST', body: JSON.stringify(input) }),
+  remove: (slug: string) => api<{ deleted: true }>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, { method: 'DELETE' }),
+  listMine: () => api<Array<OpportunityInterest & { opportunityId: Pick<Opportunity, 'title' | 'slug' | 'imageUrl' | 'imageAlt'> }>>('/v1/member/opportunity-interests', { cache: 'no-store' }),
+};
 
 export function subscribeToOpportunityChanges(
   onChange: (event: OpportunityChange) => void,
