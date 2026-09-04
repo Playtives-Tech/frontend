@@ -16,12 +16,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { formatNaira } from '@/components/ownership/formatters';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-import { BalanceAmount } from '@/components/ui/balance-amount';
 import type { CurrentUser } from '@/stores/use-auth-store';
 import { useProfileStore } from '@/stores/use-profile-store';
-import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { supportEmail, whatsappCommunityUrl } from '@/lib/community';
 import { notify } from '@/lib/notify';
@@ -43,8 +40,6 @@ import {
 type ProfileDashboardProps = Readonly<{ user: CurrentUser; onSignOut: () => void }>;
 
 export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): React.JSX.Element {
-  const [wallet, setWallet] = useState<WalletSummary | null>(null);
-  const balance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const resetProfile = useProfileStore((state) => state.resetProfile);
   const [nameChangeRequest, setNameChangeRequest] = useState<NameChangeRequest | null>(null);
   const [showNameRequestForm, setShowNameRequestForm] = useState(false);
@@ -63,9 +58,6 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     'signout-first' | 'signout-final' | 'delete-first' | 'delete-final' | 'delete-blocked' | null
   >(null);
   useEffect(() => {
-    void getWallet()
-      .then(setWallet)
-      .catch(() => undefined);
     void getLatestNameChangeRequest()
       .then(setNameChangeRequest)
       .catch(() => undefined);
@@ -239,8 +231,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
                   <option value="NIN">National Identification Number (NIN)</option>
                   <option value="BVN">Bank Verification Number (BVN)</option>
                   <option value="PASSPORT">International passport</option>
-                  <option value="DRIVERS_LICENSE">Driver's licence</option>
-                  <option value="VOTERS_CARD">Voter's card</option>
+                  <option value="DRIVERS_LICENSE">Driver&apos;s licence</option>
+                  <option value="VOTERS_CARD">Voter&apos;s card</option>
                 </select>
               </label>
               <label className="text-xs font-semibold">
