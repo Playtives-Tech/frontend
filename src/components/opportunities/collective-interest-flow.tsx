@@ -291,7 +291,7 @@ function ActivityRow({ item }: Readonly<{ item: RecentInterestActivity }>): Reac
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">
-          {item.name} signified interest in The Collective
+          {initials(item.name)} signified interest in The Collective
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">{relativeTime(item.joinedAt)}</p>
       </div>
