@@ -26,6 +26,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
   const router = useRouter();
   const signIn = useAuthStore((state) => state.signIn);
   const [name, setName] = useState('');
+  const [memberCode, setMemberCode] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
@@ -49,6 +50,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
       setIsSubmitting(true);
       try {
         const response = await register({
+          memberCode: memberCode.trim().toUpperCase(),
           name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
@@ -77,6 +79,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           phone: response.user.phone,
           country: response.user.country,
           gender: response.user.gender,
+          memberCode: response.user.memberCode,
         },
         response.accessToken,
       );
@@ -138,7 +141,11 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
 
   return (
     <AuthFrame>
-      <div className="w-full max-w-md rounded-3xl border bg-background p-6 text-center shadow-sm sm:p-8">
+      <div
+        className={`w-full rounded-3xl border bg-background p-6 text-center shadow-sm sm:p-8 ${
+          isSignUp ? 'sm:max-w-3xl lg:w-[50vw] lg:max-w-none' : 'max-w-md'
+        }`}
+      >
         <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand/10 text-brand">
           {isSignUp ? <UserPlus className="size-6" /> : <LogIn className="size-6" />}
         </span>
@@ -151,7 +158,27 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
             : 'Sign in to access your dashboard and ownership journey.'}
         </p>
 
-        <form onSubmit={submit} className="mt-8 grid gap-4 text-left">
+        <form
+          onSubmit={submit}
+          className={`mt-8 grid items-start gap-4 text-left ${isSignUp ? 'sm:grid-cols-2' : ''}`}
+        >
+          {isSignUp ? (
+            <div>
+              <FloatingField
+                id="member-code"
+                label="Member code"
+                value={memberCode}
+                onChange={(event) => setMemberCode(event.target.value.toUpperCase())}
+                autoComplete="off"
+                required
+                pattern="PLY-[0-9]{3,}-[A-Z0-9]{3}"
+              />
+              <p className="mt-1.5 px-1 text-[11px] leading-4 text-muted-foreground">
+                A Playtives-issued member code is required. Contact the Playtives team to receive
+                yours before registering.
+              </p>
+            </div>
+          ) : null}
           <FloatingField
             id="email"
             label="Email address"
@@ -218,7 +245,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-60"
+            className={`mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-60 ${isSignUp ? 'sm:col-span-2' : ''}`}
           >
             <ButtonLoadingContent
               loading={isSubmitting}

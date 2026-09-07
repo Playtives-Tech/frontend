@@ -2,6 +2,7 @@ import { api } from '@/lib/api';
 import type { WalletSummary } from './wallet-service';
 
 export type RegistrationInput = Readonly<{
+  memberCode: string;
   name: string;
   email: string;
   phone: string;
@@ -72,6 +73,7 @@ export function login(
     phone: string | null;
     country: string | null;
     gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
+    memberCode: string | null;
   };
   wallet: WalletSummary;
 }> {
@@ -88,6 +90,7 @@ export function getCurrentUser(): Promise<{
   phone: string | null;
   country: string | null;
   gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
+  memberCode: string | null;
 }> {
   return api('/v1/auth/me', { cache: 'no-store' });
 }

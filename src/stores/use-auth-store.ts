@@ -11,6 +11,7 @@ export type CurrentUser = Readonly<{
   phone: string | null;
   country: string | null;
   gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
+  memberCode: string | null;
 }>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{
