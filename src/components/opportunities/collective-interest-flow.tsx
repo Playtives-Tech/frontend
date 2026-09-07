@@ -2,11 +2,10 @@
 
 import { ArrowLeft, ArrowRight, CheckCircle2, Pencil, TrendingUp, X } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import {
-  formatOpportunityMoney,
   opportunityInterestService,
   type InterestProgress,
   type RecentInterestActivity,
@@ -28,11 +27,12 @@ export function CollectiveInterestFlow({
   const [progress, setProgress] = useState<InterestProgress | null>(null);
   const [interest, setInterest] = useState<OpportunityInterest | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentInterestActivity[]>([]);
+  const [showAllActivity, setShowAllActivity] = useState(false);
   const [editing, setEditing] = useState(false);
   const [about, setAbout] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const refresh = () => {
+  const refresh = useCallback(() => {
     void opportunityInterestService
       .progress(opportunity.slug)
       .then(setProgress)
@@ -52,10 +52,10 @@ export function CollectiveInterestFlow({
       .recent(opportunity.slug)
       .then(setRecentActivity)
       .catch(() => setRecentActivity([]));
-  };
+  }, [opportunity.interestTargetAmount, opportunity.slug]);
   useEffect(() => {
     refresh();
-  }, [opportunity.slug]);
+  }, [refresh]);
   const percent = progress?.targetAmount
     ? Math.min(100, (progress.totalCommitted / progress.targetAmount) * 100)
     : 0;
@@ -145,7 +145,13 @@ export function CollectiveInterestFlow({
           </p>
         </section>
       ) : null}
-      {recentActivity.length > 0 ? <RecentInterestActivityList items={recentActivity} /> : null}
+      {recentActivity.length > 0 ? (
+        <RecentInterestActivityList
+          items={recentActivity.slice(0, 7)}
+          total={recentActivity.length}
+          onViewAll={() => setShowAllActivity(true)}
+        />
+      ) : null}
       <section id="interest" className="mt-5">
         {interest && !editing ? (
           <Confirmation
@@ -180,6 +186,12 @@ export function CollectiveInterestFlow({
           }}
         />
       ) : null}
+      {showAllActivity ? (
+        <AllInterestActivityModal
+          items={recentActivity}
+          onClose={() => setShowAllActivity(false)}
+        />
+      ) : null}
       <ConfirmModal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
@@ -194,7 +206,13 @@ export function CollectiveInterestFlow({
 
 function RecentInterestActivityList({
   items,
-}: Readonly<{ items: RecentInterestActivity[] }>): React.JSX.Element {
+  total,
+  onViewAll,
+}: Readonly<{
+  items: RecentInterestActivity[];
+  total: number;
+  onViewAll: () => void;
+}>): React.JSX.Element {
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border bg-background">
       <div className="border-b px-5 py-4">
@@ -205,23 +223,82 @@ function RecentInterestActivityList({
       </div>
       <div className="divide-y">
         {items.map((item) => (
-          <div key={item.id} className="flex items-center gap-3 px-5 py-3.5">
-            <span className="grid size-10 shrink-0 place-items-center gap-1 rounded-full bg-brand/10 text-[13px] font-bold text-brand">
-              {initials(item.name)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">
-                {initials(item.name)} signified interest in The Collective
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{relativeTime(item.joinedAt)}</p>
-            </div>
-            <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-brand">
-              INTERESTED
-            </span>
-          </div>
+          <ActivityRow key={item.id} item={item} />
         ))}
       </div>
+      {total > items.length ? (
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="flex w-full items-center justify-center gap-2 border-t px-5 py-3.5 text-sm font-semibold text-brand transition hover:bg-brand/[.04]"
+        >
+          View all {total} interested members
+          <ArrowRight className="size-4" />
+        </button>
+      ) : null}
     </section>
+  );
+}
+
+function AllInterestActivityModal({
+  items,
+  onClose,
+}: Readonly<{ items: RecentInterestActivity[]; onClose: () => void }>): React.JSX.Element {
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="all-interest-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl border bg-background shadow-xl">
+        <div className="flex items-start justify-between border-b px-5 py-4">
+          <div>
+            <h2 id="all-interest-title" className="text-lg font-bold">
+              Interested members
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {items.length} members have signified interest.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close interested members"
+            className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="max-h-[calc(80vh-82px)] divide-y overflow-y-auto">
+          {items.map((item) => (
+            <ActivityRow key={item.id} item={item} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ActivityRow({ item }: Readonly<{ item: RecentInterestActivity }>): React.JSX.Element {
+  return (
+    <div className="flex items-center gap-3 px-5 py-3.5">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-[13px] font-bold text-brand">
+        {initials(item.name)}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">
+          {item.name} signified interest in The Collective
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{relativeTime(item.joinedAt)}</p>
+      </div>
+      <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-brand">
+        INTERESTED
+      </span>
+    </div>
   );
 }
 

@@ -1,3 +1,4 @@
+/* KYC and identity verification are temporarily paused.
 'use client';
 
 import { ArrowRight, Phone } from 'lucide-react';
@@ -238,4 +239,11 @@ export default function PhoneVerificationPage(): React.JSX.Element {
       </section>
     </div>
   );
+}
+*/
+
+import { redirect } from 'next/navigation';
+
+export default function PhoneVerificationPage(): never {
+  redirect('/profile');
 }

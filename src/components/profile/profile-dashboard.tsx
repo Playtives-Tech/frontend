@@ -13,7 +13,6 @@ import {
   Phone,
   UserRound,
   FilePenLine,
-  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -62,7 +61,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     void getLatestNameChangeRequest()
       .then(setNameChangeRequest)
       .catch(() => undefined);
-    void getNextOfKin().then(setNextOfKin).catch(() => undefined);
+    void getNextOfKin()
+      .then(setNextOfKin)
+      .catch(() => undefined);
   }, []);
   const close = (): void => setDialog(null);
   const openDeleteAccountDialog = async (): Promise<void> => {
@@ -77,11 +78,23 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   const saveNextOfKin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const input: NextOfKin = { fullName: String(data.get('fullName') ?? ''), relationship: String(data.get('relationship') ?? ''), phone: String(data.get('phone') ?? ''), email: String(data.get('email') ?? '') || null, address: String(data.get('address') ?? '') || null };
+    const input: NextOfKin = {
+      fullName: String(data.get('fullName') ?? ''),
+      relationship: String(data.get('relationship') ?? ''),
+      phone: String(data.get('phone') ?? ''),
+      email: String(data.get('email') ?? '') || null,
+      address: String(data.get('address') ?? '') || null,
+    };
     setSavingNextOfKin(true);
-    try { setNextOfKin(await updateNextOfKin(input)); setShowNextOfKinForm(false); notify.success('Next of Kin details saved'); }
-    catch (error) { notify.error(error instanceof Error ? error.message : 'Could not save Next of Kin details'); }
-    finally { setSavingNextOfKin(false); }
+    try {
+      setNextOfKin(await updateNextOfKin(input));
+      setShowNextOfKinForm(false);
+      notify.success('Next of Kin details saved');
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : 'Could not save Next of Kin details');
+    } finally {
+      setSavingNextOfKin(false);
+    }
   };
   const confirm = async (): Promise<void> => {
     if (dialog === 'signout-first') return setDialog('signout-final');
@@ -96,7 +109,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         close();
       } catch (error) {
         notify.error(error instanceof Error ? error.message : 'Could not close your account');
-        void getAccountClosureEligibility().then(setAccountClosureEligibility).catch(() => undefined);
+        void getAccountClosureEligibility()
+          .then(setAccountClosureEligibility)
+          .catch(() => undefined);
         close();
       } finally {
         setIsClosingAccount(false);
@@ -123,7 +138,12 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
 
     setIsSubmittingNameRequest(true);
     try {
-      const request = await requestNameChange(reason, identityDocumentType, identityDocumentNumber.trim(), identityDocument);
+      const request = await requestNameChange(
+        reason,
+        identityDocumentType,
+        identityDocumentNumber.trim(),
+        identityDocument,
+      );
       setNameChangeRequest(request);
       setShowNameRequestForm(false);
       setNameChangeReason('');
@@ -140,48 +160,71 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
-        <h1 className="text-[15.5px]l mt-2 font-sans font-semibold tracking-tight">My Account</h1>
+        <h1 className="mt-2 font-sans text-2xl font-semibold tracking-tight">My Account</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Manage your personal details and account preferences.
+        </p>
       </header>
 
-      <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-xl bg-brand-foreground/15">
-              <UserRound className="size-6" />
+      <section className="playtives-gold-card mt-6 overflow-hidden rounded-3xl text-white shadow-sm">
+        <div className="flex flex-col gap-6 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+            <span className="grid size-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-inner backdrop-blur-sm sm:size-20">
+              <UserRound className="size-8 sm:size-9" />
             </span>
-            <div>
-              <span className="rounded-full bg-brand-foreground/15 px-4 py-2 text-[10px] font-semibold">
+            <div className="min-w-0">
+              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/80">
                 Playtives member
               </span>
-              <h2 className="mt-2 font-sans text-xl font-semibold">{user.name}</h2>
-              <p className="mt-0.5 text-sm text-brand-foreground/75">{user.email}</p>
-              {user.memberCode ? (
-                <p className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 font-mono text-xs font-semibold tracking-wide text-white">
-                  Member code: {user.memberCode}
-                </p>
-              ) : null}
-              {user.phone ? (
-                <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-brand-foreground/75">
-                  <Phone className="size-3.5" />
-                  {user.phone}
-                </p>
-              ) : null}
-              {user.gender ? (
-                <p className="mt-0.5 text-[12px] capitalize text-brand-foreground/75">
-                  {user.gender === 'prefer_not_to_say'
-                    ? 'Prefer not to say'
-                    : user.gender.replace('_', '-')}
-                </p>
-              ) : null}
+              <h2 className="mt-3 truncate font-sans text-2xl font-semibold sm:text-3xl">
+                {user.name}
+              </h2>
+              <p className="mt-1 truncate text-sm text-white/70 sm:text-base">{user.email}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {user.phone ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/10 px-3 py-1.5 text-xs text-white/80">
+                    <Phone className="size-3.5" />
+                    {user.phone}
+                  </span>
+                ) : null}
+                {user.gender ? (
+                  <span className="rounded-full bg-black/10 px-3 py-1.5 text-xs capitalize text-white/80">
+                    {user.gender === 'prefer_not_to_say'
+                      ? 'Prefer not to say'
+                      : user.gender.replace('_', '-')}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
-
-          {/* <div className="flex divide-x divide-brand-foreground/20 rounded-xl bg-brand-foreground/10 px-1 py-2 sm:shrink-0">
-            <div className="px-4">
-              <p className="text-xs text-brand-foreground/70">Wallet balance</p>
-              <div className="mt-1 text-sm font-semibold"><BalanceAmount value={formatNaira(balance)} toggle /></div>
+          {user.memberCode ? (
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:min-w-64">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                Your member code
+              </p>
+              <div className="mt-2 flex items-center justify-between gap-4">
+                <p className="font-mono text-lg font-bold tracking-wider text-white">
+                  {user.memberCode}
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void navigator.clipboard
+                      .writeText(user.memberCode ?? '')
+                      .then(() => notify.success('Member code copied'))
+                      .catch(() => notify.error('Could not copy member code'))
+                  }
+                  className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white/75 transition hover:bg-white/20 hover:text-white"
+                  aria-label="Copy member code"
+                >
+                  <Copy className="size-4" />
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] leading-4 text-white/55">
+                Your unique Playtives membership identifier.
+              </p>
             </div>
-          </div> */}
+          ) : null}
         </div>
       </section>
 
@@ -202,7 +245,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               </p>
             ) : (
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                To protect your account, name changes are reviewed by support before you can update them.
+                To protect your account, name changes are reviewed by support before you can update
+                them.
               </p>
             )}
           </div>
@@ -233,7 +277,11 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="text-xs font-semibold">
                 ID document type
-                <select value={identityDocumentType} onChange={(event) => setIdentityDocumentType(event.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none focus:border-brand">
+                <select
+                  value={identityDocumentType}
+                  onChange={(event) => setIdentityDocumentType(event.target.value)}
+                  className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none focus:border-brand"
+                >
                   <option value="NIN">National Identification Number (NIN)</option>
                   <option value="BVN">Bank Verification Number (BVN)</option>
                   <option value="PASSPORT">International passport</option>
@@ -243,13 +291,26 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               </label>
               <label className="text-xs font-semibold">
                 Document number
-                <input value={identityDocumentNumber} onChange={(event) => setIdentityDocumentNumber(event.target.value)} maxLength={100} placeholder="Enter the number on your ID" className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-brand" />
+                <input
+                  value={identityDocumentNumber}
+                  onChange={(event) => setIdentityDocumentNumber(event.target.value)}
+                  maxLength={100}
+                  placeholder="Enter the number on your ID"
+                  className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-brand"
+                />
               </label>
             </div>
             <label className="mt-3 block text-xs font-semibold">
               Upload supporting ID document
-              <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(event) => setIdentityDocument(event.target.files?.[0] ?? null)} className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-2 file:font-semibold file:text-brand" />
-              <span className="mt-1 block font-normal text-muted-foreground">Upload a clear JPEG, PNG, WebP, or PDF (up to 8 MB).</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={(event) => setIdentityDocument(event.target.files?.[0] ?? null)}
+                className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-2 file:font-semibold file:text-brand"
+              />
+              <span className="mt-1 block font-normal text-muted-foreground">
+                Upload a clear JPEG, PNG, WebP, or PDF (up to 8 MB).
+              </span>
             </label>
             <div className="mt-3 flex justify-end gap-2">
               <button
@@ -273,25 +334,105 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       </section>
 
       <section className="mt-5 rounded-xl border bg-background p-4">
-        <div className="flex items-start justify-between gap-3"><div><h2 className="font-sans text-[14px] font-semibold">Next of Kin</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">A trusted contact for important account matters.</p></div><button type="button" onClick={() => setShowNextOfKinForm((visible) => !visible)} className="h-8 shrink-0 rounded-lg border px-2.5 text-xs font-semibold hover:bg-muted">{nextOfKin ? 'Edit' : 'Add details'}</button></div>
-        {nextOfKin && !showNextOfKinForm ? <div className="mt-4 rounded-lg bg-surface p-3 text-sm"><p className="font-semibold">{nextOfKin.fullName} <span className="font-normal text-muted-foreground">· {nextOfKin.relationship}</span></p><p className="mt-1 text-muted-foreground">{nextOfKin.phone}{nextOfKin.email ? ` · ${nextOfKin.email}` : ''}</p></div> : null}
-        {showNextOfKinForm ? <form onSubmit={(event) => void saveNextOfKin(event)} className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2"><input required name="fullName" defaultValue={nextOfKin?.fullName} placeholder="Full name" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input required name="relationship" defaultValue={nextOfKin?.relationship} placeholder="Relationship (e.g. Sister)" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input required name="phone" defaultValue={nextOfKin?.phone} placeholder="Phone number" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input name="email" type="email" defaultValue={nextOfKin?.email ?? ''} placeholder="Email address (optional)" className="h-10 rounded-lg border bg-background px-3 text-sm" /><input name="address" defaultValue={nextOfKin?.address ?? ''} placeholder="Address (optional)" className="h-10 rounded-lg border bg-background px-3 text-sm sm:col-span-2" /><div className="flex justify-end gap-2 sm:col-span-2"><button type="button" onClick={() => setShowNextOfKinForm(false)} className="h-8 px-2.5 text-xs font-semibold text-muted-foreground">Cancel</button><button disabled={savingNextOfKin} className="h-8 rounded-lg bg-brand px-3 text-xs font-semibold text-white disabled:opacity-60">{savingNextOfKin ? 'Saving…' : 'Save details'}</button></div></form> : null}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-sans text-[14px] font-semibold">Next of Kin</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              A trusted contact for important account matters.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNextOfKinForm((visible) => !visible)}
+            className="h-8 shrink-0 rounded-lg border px-2.5 text-xs font-semibold hover:bg-muted"
+          >
+            {nextOfKin ? 'Edit' : 'Add details'}
+          </button>
+        </div>
+        {nextOfKin && !showNextOfKinForm ? (
+          <div className="mt-4 rounded-lg bg-surface p-3 text-sm">
+            <p className="font-semibold">
+              {nextOfKin.fullName}{' '}
+              <span className="font-normal text-muted-foreground">· {nextOfKin.relationship}</span>
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              {nextOfKin.phone}
+              {nextOfKin.email ? ` · ${nextOfKin.email}` : ''}
+            </p>
+          </div>
+        ) : null}
+        {showNextOfKinForm ? (
+          <form
+            onSubmit={(event) => void saveNextOfKin(event)}
+            className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2"
+          >
+            <input
+              required
+              name="fullName"
+              defaultValue={nextOfKin?.fullName}
+              placeholder="Full name"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
+            />
+            <input
+              required
+              name="relationship"
+              defaultValue={nextOfKin?.relationship}
+              placeholder="Relationship (e.g. Sister)"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
+            />
+            <input
+              required
+              name="phone"
+              defaultValue={nextOfKin?.phone}
+              placeholder="Phone number"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
+            />
+            <input
+              name="email"
+              type="email"
+              defaultValue={nextOfKin?.email ?? ''}
+              placeholder="Email address (optional)"
+              className="h-10 rounded-lg border bg-background px-3 text-sm"
+            />
+            <input
+              name="address"
+              defaultValue={nextOfKin?.address ?? ''}
+              placeholder="Address (optional)"
+              className="h-10 rounded-lg border bg-background px-3 text-sm sm:col-span-2"
+            />
+            <div className="flex justify-end gap-2 sm:col-span-2">
+              <button
+                type="button"
+                onClick={() => setShowNextOfKinForm(false)}
+                className="h-8 px-2.5 text-xs font-semibold text-muted-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={savingNextOfKin}
+                className="h-8 rounded-lg bg-brand px-3 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {savingNextOfKin ? 'Saving…' : 'Save details'}
+              </button>
+            </div>
+          </form>
+        ) : null}
       </section>
 
       <section className="mt-5 divide-y rounded-xl border bg-background px-4">
-        {/* KYC is temporarily paused.
         <ProfileLink
           href="/wallet"
           icon={Landmark}
           title="Wallet"
           description="Fund, withdraw and review activity"
-        /> */}
-        <ProfileLink
+        />
+        {/* KYC is temporarily paused.
+         <ProfileLink
           href="/profile/verification"
           icon={Check}
           title="Identity and verification"
           description="Submit and track your identity verification"
-        />
+        /> */}
       </section>
 
       <section className="mt-6 rounded-xl border bg-background p-4">
