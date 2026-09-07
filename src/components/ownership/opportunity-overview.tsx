@@ -254,12 +254,12 @@ export function OpportunityOverview({
               description="The primary location where the underlying business or transaction takes place."
               onClick={setSelectedHighlight}
             />
-            <Highlight
+            {/* <Highlight
               label="Units available"
               value={`${opportunity.availableUnits} ${opportunity.availableUnits === 1 ? 'unit' : 'units'}`}
               description="Shows how much of the opportunity is still available for members to take up."
               onClick={setSelectedHighlight}
-            />
+            /> */}
           </div>
 
           {/* <div className="mt-6 flex items-end justify-between gap-4 text-sm">
