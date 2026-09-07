@@ -155,6 +155,11 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               </span>
               <h2 className="mt-2 font-sans text-xl font-semibold">{user.name}</h2>
               <p className="mt-0.5 text-sm text-brand-foreground/75">{user.email}</p>
+              {user.memberCode ? (
+                <p className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 font-mono text-xs font-semibold tracking-wide text-white">
+                  Member code: {user.memberCode}
+                </p>
+              ) : null}
               {user.phone ? (
                 <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-brand-foreground/75">
                   <Phone className="size-3.5" />
