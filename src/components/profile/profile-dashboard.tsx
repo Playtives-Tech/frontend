@@ -13,6 +13,7 @@ import {
   Phone,
   UserRound,
   FilePenLine,
+  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -273,19 +274,19 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       </section>
 
       <section className="mt-5 divide-y rounded-xl border bg-background px-4">
+        {/* KYC is temporarily paused.
         <ProfileLink
           href="/wallet"
           icon={Landmark}
           title="Wallet"
           description="Fund, withdraw and review activity"
-        />
-        {/* KYC is temporarily paused.
+        /> */}
         <ProfileLink
           href="/profile/verification"
           icon={Check}
           title="Identity and verification"
-          description={`${verifiedCount} of 3 account checks complete`}
-        /> */}
+          description="Submit and track your identity verification"
+        />
       </section>
 
       <section className="mt-6 rounded-xl border bg-background p-4">
