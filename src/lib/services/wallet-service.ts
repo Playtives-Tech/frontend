@@ -92,7 +92,7 @@ export type DepositRequestRecord = Readonly<{
   _id: string;
   amountMinorUnits: number;
   receiptImageUrl: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'processing' | 'approved' | 'rejected';
   createdAt: string;
 }>;
 
@@ -110,7 +110,7 @@ export function createDepositRequest(input: {
 }
 
 export function getDepositRequests(): Promise<DepositRequestRecord[]> {
-  return api<DepositRequestRecord[]>('/v1/wallet/deposits');
+  return api<DepositRequestRecord[]>('/v1/wallet/deposits', { cache: 'no-store' });
 }
 
 export type WithdrawalRequestRecord = Readonly<{

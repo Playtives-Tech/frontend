@@ -1,15 +1,84 @@
 'use client';
 
-import { CircleAlert } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { Check, CircleAlert, Copy, Upload } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
-import { initializePaystackWalletFunding } from '@/lib/services/wallet-service';
+import {
+  createDepositRequest,
+  getDepositRequests,
+  getWalletFundingDetails,
+  initializePaystackWalletFunding,
+  type DepositRequestRecord,
+  type WalletFundingDetails,
+} from '@/lib/services/wallet-service';
 
 export function DepositRequest(): React.JSX.Element {
+  const [copied, setCopied] = useState(false);
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cardAmount, setCardAmount] = useState('');
   const [isStartingCardPayment, setIsStartingCardPayment] = useState(false);
+  const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
+  const [fundingDetails, setFundingDetails] = useState<WalletFundingDetails | null>(null);
+
+  useEffect(() => {
+    void getDepositRequests().then(setRequests).catch(() => undefined);
+    void getWalletFundingDetails()
+      .then(setFundingDetails)
+      .catch(() => notify.error('Wallet funding details could not be loaded.'));
+  }, []);
+
+  useEffect(() => {
+    const resetCheckoutState = (): void => setIsStartingCardPayment(false);
+    window.addEventListener('pagehide', resetCheckoutState);
+    window.addEventListener('pageshow', resetCheckoutState);
+    return () => {
+      window.removeEventListener('pagehide', resetCheckoutState);
+      window.removeEventListener('pageshow', resetCheckoutState);
+    };
+  }, []);
+
+  async function copyAccountNumber(): Promise<void> {
+    if (!fundingDetails) return;
+    await navigator.clipboard.writeText(fundingDetails.accountNumber);
+    setCopied(true);
+    notify.success('Account number copied');
+  }
+
+  async function submit(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    const amountInNaira = Number(amount.replace(/,/g, ''));
+    if (!Number.isInteger(amountInNaira) || amountInNaira < 1) {
+      notify.error('Enter a valid whole-naira deposit amount.');
+      return;
+    }
+    if (!receipt) {
+      notify.error('Upload your payment receipt.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const request = await createDepositRequest({
+        amountMinorUnits: amountInNaira * 100,
+        receipt,
+      });
+      setAmount('');
+      setReceipt(null);
+      setRequests((current) => [request, ...current]);
+      notify.success('Deposit request submitted', {
+        description: 'Your receipt is awaiting admin review.',
+      });
+    } catch (error: unknown) {
+      notify.error(
+        error instanceof Error ? error.message : 'Deposit request could not be submitted.',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   async function startCardPayment(event: FormEvent): Promise<void> {
     event.preventDefault();
     const amountInNaira = Number(cardAmount.replace(/,/g, ''));
@@ -78,7 +147,7 @@ export function DepositRequest(): React.JSX.Element {
           </button>
         </div>
       </form>
-      {/* <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+      <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
         Or fund by transfer
       </div>
       <section className="mt-6 rounded-xl border bg-background p-5">
@@ -133,6 +202,7 @@ export function DepositRequest(): React.JSX.Element {
             <Upload className="mb-2 size-5 text-brand" />
             {receipt ? receipt.name : 'Choose a JPEG, PNG, WebP, or PDF receipt'}
             <input
+              key={receipt?.name ?? 'empty-receipt'}
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf,.pdf"
               className="sr-only"
@@ -172,7 +242,7 @@ export function DepositRequest(): React.JSX.Element {
             <p className="py-4 text-sm text-muted-foreground">No deposit requests yet.</p>
           ) : null}
         </div>
-      </section> */}
+      </section>
     </div>
   );
 }

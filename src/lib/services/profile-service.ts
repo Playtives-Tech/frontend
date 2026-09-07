@@ -73,16 +73,29 @@ export function getPhoneVerificationStatus(): Promise<{
   return api('/v1/auth/phone/status', { cache: 'no-store' });
 }
 
-export async function verifyNin(nin: string): Promise<void> {
-  await pause();
-  if (!/^\d{11}$/.test(nin) || /^0+$/.test(nin))
-    throw new Error('We could not verify this NIN. Check the number and try again.');
+export type KycSubmission = Readonly<{
+  id?: string;
+  status: 'NOT_STARTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'NEEDS_RESUBMISSION' | 'VERIFIED' | 'REJECTED';
+  legalName?: string;
+  documentType?: string;
+  documentNumberMasked?: string;
+  reviewNote?: string | null;
+  submittedAt?: string;
+}>;
+
+export function getKycSubmission(): Promise<KycSubmission> {
+  return api<KycSubmission>('/v1/kyc', { cache: 'no-store' });
 }
 
-export async function verifyBvn(bvn: string, name: string, dateOfBirth: string): Promise<void> {
-  await pause();
-  if (!/^\d{11}$/.test(bvn) || name.trim().length < 3 || !dateOfBirth || bvn.endsWith('0'))
-    throw new Error('Details do not match BVN records. Check your name and date of birth.');
+export function submitKyc(input: {
+  legalName: string; dateOfBirth: string; residentialAddress: string; state: string;
+  country: string; documentType: string; documentNumber: string;
+  documentFront: File; documentBack?: File | null;
+}): Promise<KycSubmission> {
+  const body = new FormData();
+  Object.entries(input).forEach(([key, value]) => { if (value) body.set(key, value); });
+  body.set('consent', 'true');
+  return api<KycSubmission>('/v1/kyc', { method: 'POST', body });
 }
 
 export async function requestWithdrawal(amount: number): Promise<void> {

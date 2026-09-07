@@ -26,9 +26,6 @@ export function DashboardHome(): React.JSX.Element {
   const [greeting, setGreeting] = useState('Good to see you');
   const isGuest = user === null;
   const firstName = user?.name.split(' ')[0];
-  // KYC is temporarily paused.
-  // const requiresKyc = user?.kycStatus !== 'verified' && !isGuest;
-  // const verificationStatus = isGuest ? 'guest' : requiresKyc ? 'unverified' : 'verified';
   useEffect(() => {
     if (isGuest) {
       setOwnerships([]);
