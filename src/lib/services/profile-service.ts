@@ -73,9 +73,37 @@ export function getPhoneVerificationStatus(): Promise<{
   return api('/v1/auth/phone/status', { cache: 'no-store' });
 }
 
+export type VerificationStepStatus = Readonly<{
+  verified: boolean;
+  maskedValue: string | null;
+  verifiedAt: string | null;
+}>;
+
+export type VerificationSteps = Readonly<{
+  bvn: VerificationStepStatus;
+  nin: VerificationStepStatus;
+  phone: VerificationStepStatus;
+  completed: number;
+}>;
+
+export function getVerificationSteps(): Promise<VerificationSteps> {
+  return api<VerificationSteps>('/v1/kyc/steps', { cache: 'no-store' });
+}
+
+export function verifyIdentityNumber(
+  type: 'bvn' | 'nin',
+  input: { number: string; firstName: string; lastName: string; dateOfBirth: string },
+): Promise<{ verified: boolean; message: string; maskedValue?: string; verifiedAt?: string }> {
+  return api(`/v1/kyc/${type}/verify`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export type KycSubmission = Readonly<{
   id?: string;
-  status: 'NOT_STARTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'NEEDS_RESUBMISSION' | 'VERIFIED' | 'REJECTED';
+  status:
+    'NOT_STARTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'NEEDS_RESUBMISSION' | 'VERIFIED' | 'REJECTED';
   legalName?: string;
   documentType?: string;
   documentNumberMasked?: string;
@@ -88,12 +116,20 @@ export function getKycSubmission(): Promise<KycSubmission> {
 }
 
 export function submitKyc(input: {
-  legalName: string; dateOfBirth: string; residentialAddress: string; state: string;
-  country: string; documentType: string; documentNumber: string;
-  documentFront: File; documentBack?: File | null;
+  legalName: string;
+  dateOfBirth: string;
+  residentialAddress: string;
+  state: string;
+  country: string;
+  documentType: string;
+  documentNumber: string;
+  documentFront: File;
+  documentBack?: File | null;
 }): Promise<KycSubmission> {
   const body = new FormData();
-  Object.entries(input).forEach(([key, value]) => { if (value) body.set(key, value); });
+  Object.entries(input).forEach(([key, value]) => {
+    if (value) body.set(key, value);
+  });
   body.set('consent', 'true');
   return api<KycSubmission>('/v1/kyc', { method: 'POST', body });
 }
@@ -136,6 +172,7 @@ export function closeAccount(): Promise<{ message: string }> {
 export type NameChangeRequest = Readonly<{
   id: string;
   reason: string;
+  proposedName?: string;
   identityDocumentType: string;
   identityDocumentNumber: string;
   identityDocumentFileName: string;
@@ -146,16 +183,18 @@ export type NameChangeRequest = Readonly<{
 }>;
 
 export function requestNameChange(
+  proposedName: string,
   reason: string,
   identityDocumentType: string,
   identityDocumentNumber: string,
-  identityDocument: File,
+  identityDocument?: File | null,
 ): Promise<NameChangeRequest> {
   const body = new FormData();
+  body.set('proposedName', proposedName);
   body.set('reason', reason);
   body.set('identityDocumentType', identityDocumentType);
   body.set('identityDocumentNumber', identityDocumentNumber);
-  body.set('identityDocument', identityDocument);
+  if (identityDocument) body.set('identityDocument', identityDocument);
   return api<NameChangeRequest>('/v1/profile/name-change-requests', {
     method: 'POST',
     body,
@@ -168,16 +207,26 @@ export function getLatestNameChangeRequest(): Promise<NameChangeRequest | null> 
   });
 }
 
-export function completeNameChange(
-  token: string,
-  name: string,
-): Promise<{ message: string }> {
+export function completeNameChange(token: string, name: string): Promise<{ message: string }> {
   return api<{ message: string }>('/v1/name-change/complete', {
     method: 'POST',
     body: JSON.stringify({ token, name }),
   });
 }
 
-export type NextOfKin = Readonly<{ fullName: string; relationship: string; phone: string; email: string | null; address: string | null }>;
-export function getNextOfKin(): Promise<NextOfKin | null> { return api<NextOfKin | null>('/v1/profile/next-of-kin', { cache: 'no-store' }); }
-export function updateNextOfKin(input: NextOfKin): Promise<NextOfKin> { return api<NextOfKin>('/v1/profile/next-of-kin', { method: 'PATCH', body: JSON.stringify(input) }); }
+export type NextOfKin = Readonly<{
+  fullName: string;
+  relationship: string;
+  phone: string;
+  email: string | null;
+  address: string | null;
+}>;
+export function getNextOfKin(): Promise<NextOfKin | null> {
+  return api<NextOfKin | null>('/v1/profile/next-of-kin', { cache: 'no-store' });
+}
+export function updateNextOfKin(input: NextOfKin): Promise<NextOfKin> {
+  return api<NextOfKin>('/v1/profile/next-of-kin', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}

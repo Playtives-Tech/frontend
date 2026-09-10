@@ -190,6 +190,8 @@ function activityPresentation(action: string): {
     EARNINGS_CREDITED: 'Investment return credited',
     PHONE_OTP_SENT: 'Verification code sent',
     PHONE_VERIFIED: 'Phone verification completed',
+    BVN_VERIFIED: 'BVN verified',
+    NIN_VERIFIED: 'NIN verified',
     OPPORTUNITY_ACQUIRED: 'Opportunity purchase completed',
   };
 

@@ -14,6 +14,7 @@ import {
 } from '@/lib/opportunities';
 import { acquireOpportunity } from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
+import { getVerificationSteps } from '@/lib/services/profile-service';
 import { formatNaira } from './formatters';
 
 type WalletCheckoutProps = Readonly<{
@@ -38,12 +39,16 @@ export function WalletCheckout({
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [kycVerified, setKycVerified] = useState(false);
   const idempotencyKey = useRef(crypto.randomUUID());
   const router = useRouter();
   useEffect(() => {
     void getWallet()
       .then(setWallet)
       .catch(() => undefined);
+    void getVerificationSteps()
+      .then((status) => setKycVerified(status.completed === 3))
+      .catch(() => setKycVerified(false));
   }, []);
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
@@ -86,6 +91,15 @@ export function WalletCheckout({
       <p className="text-[14px] text-muted-foreground">
         Review your units and confirm payment from your wallet.
       </p>
+      {!kycVerified ? (
+        <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
+          your account security. You can still acquire this opportunity for now.{' '}
+          <Link href="/profile/verification" className="font-semibold underline">
+            Complete verification
+          </Link>
+        </div>
+      ) : null}
       <section className="mt-5 rounded-xl border bg-background p-3.5 sm:mt-6 sm:p-5">
         <dl className="grid divide-y">
           <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
@@ -111,7 +125,9 @@ export function WalletCheckout({
               >
                 <Minus className="size-3.5" />
               </button>
-              <span className="min-w-6 text-center text-sm font-semibold tabular-nums">{quantity}</span>
+              <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
+                {quantity}
+              </span>
               <button
                 type="button"
                 onClick={() => onQuantityChange(Math.min(maximumUnits, quantity + 1))}
@@ -179,14 +195,17 @@ export function WalletCheckout({
             </div>
           </div>
           {wallet !== null && !hasFunds ? (
-            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5">
+            <div className="border-destructive/30 bg-destructive/5 mt-4 rounded-xl border p-3.5">
               <div className="flex items-start gap-3">
-                <CircleAlert className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <CircleAlert className="text-destructive mt-0.5 size-5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-destructive">Insufficient wallet balance</p>
+                  <p className="text-destructive text-sm font-semibold">
+                    Insufficient wallet balance
+                  </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    You need <strong className="text-foreground">{formatNaira(shortfall)} more</strong>{' '}
-                    to complete this contribution.
+                    You need{' '}
+                    <strong className="text-foreground">{formatNaira(shortfall)} more</strong> to
+                    complete this contribution.
                   </p>
                 </div>
               </div>
@@ -228,7 +247,7 @@ export function WalletCheckout({
       )}
       <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:mt-8 sm:px-8 sm:py-4 lg:-mx-10 lg:px-10">
         {wallet !== null && !hasFunds ? (
-          <p className="mx-auto mb-2 flex max-w-3xl items-center justify-center gap-1.5 text-xs font-semibold text-destructive">
+          <p className="text-destructive mx-auto mb-2 flex max-w-3xl items-center justify-center gap-1.5 text-xs font-semibold">
             <CircleAlert className="size-3.5" />
             Add {formatNaira(shortfall)} more to continue
           </p>

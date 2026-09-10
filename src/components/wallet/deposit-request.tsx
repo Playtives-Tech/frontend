@@ -2,6 +2,7 @@
 
 import { Check, CircleAlert, Copy, Upload } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
@@ -9,10 +10,10 @@ import {
   createDepositRequest,
   getDepositRequests,
   getWalletFundingDetails,
-  initializePaystackWalletFunding,
   type DepositRequestRecord,
   type WalletFundingDetails,
 } from '@/lib/services/wallet-service';
+import { getVerificationSteps } from '@/lib/services/profile-service';
 
 export function DepositRequest(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
@@ -23,12 +24,18 @@ export function DepositRequest(): React.JSX.Element {
   const [isStartingCardPayment, setIsStartingCardPayment] = useState(false);
   const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
   const [fundingDetails, setFundingDetails] = useState<WalletFundingDetails | null>(null);
+  const [kycVerified, setKycVerified] = useState(false);
 
   useEffect(() => {
-    void getDepositRequests().then(setRequests).catch(() => undefined);
+    void getDepositRequests()
+      .then(setRequests)
+      .catch(() => undefined);
     void getWalletFundingDetails()
       .then(setFundingDetails)
       .catch(() => notify.error('Wallet funding details could not be loaded.'));
+    void getVerificationSteps()
+      .then((status) => setKycVerified(status.completed === 3))
+      .catch(() => setKycVerified(false));
   }, []);
 
   useEffect(() => {
@@ -88,10 +95,14 @@ export function DepositRequest(): React.JSX.Element {
     }
     setIsStartingCardPayment(true);
     try {
-      const checkout = await initializePaystackWalletFunding(amountInNaira * 100);
-      window.location.assign(checkout.authorizationUrl);
+      // Paystack checkout is temporarily disabled.
+      await new Promise((resolve) => window.setTimeout(resolve, 3000));
+      notify.info(
+        'Something went wrong. Please try again later or use the bank transfer option above.',
+      );
     } catch (error: unknown) {
       notify.error(error instanceof Error ? error.message : 'Card checkout could not be started.');
+    } finally {
       setIsStartingCardPayment(false);
     }
   }
@@ -102,54 +113,17 @@ export function DepositRequest(): React.JSX.Element {
       <p className="text-sm leading-6 text-muted-foreground">
         Make an instant online deposit, or use a bank transfer and submit your receipt.
       </p>
-      <form
-        onSubmit={(event) => void startCardPayment(event)}
-        className="mt-6 overflow-hidden rounded-2xl border border-brand/20 bg-background shadow-sm"
-      >
-        <div className="border-b border-brand/10 bg-brand/[0.045] px-5 py-6 sm:px-6">
-          <div className="flex flex-col">
-            {/* <span className="grid size-11 place-items-center rounded-xl bg-brand text-white shadow-sm">
-              <ShieldCheck className="size-5" />
-            </span> */}
-            <h2 className="font-sans text-lg font-semibold">Deposit online</h2>
-            <p className="mt-1 max-w-md text-sm leading-6 text-muted-foreground">
-              Enter an amount to deposit securely. Your balance updates after verification.
-            </p>
-          </div>
+
+      {!kycVerified ? (
+        <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
+          your account security. You can still fund your wallet for now.{' '}
+          <Link href="/profile/verification" className="font-semibold underline">
+            Complete verification
+          </Link>
         </div>
-        <div className="p-5 sm:p-6">
-          <label className="block text-sm font-medium">
-            Deposit amount (NGN)
-            <input
-              inputMode="numeric"
-              value={cardAmount}
-              onChange={(event) => setCardAmount(event.target.value.replace(/[^0-9,]/g, ''))}
-              placeholder="250,000"
-              className="mt-2 h-12 w-full rounded-xl border bg-background px-4 text-base outline-none transition focus:ring-2 focus:ring-brand"
-            />
-          </label>
-          <div className="mt-3 flex gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs leading-5 text-muted-foreground">
-            <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
-            <p>
-              Enter the exact amount you intend to deposit. Confirm any applicable charge shown by
-              Paystack before continuing. Your wallet is credited with the deposit amount entered
-              here; any checkout charge is shown separately before you confirm.
-            </p>
-          </div>
-          <button
-            type="submit"
-            disabled={!cardAmount || isStartingCardPayment}
-            className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            <ButtonLoadingContent loading={isStartingCardPayment} loadingLabel="Opening deposit">
-              Continue to deposit
-            </ButtonLoadingContent>
-          </button>
-        </div>
-      </form>
-      <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-        Or fund by transfer
-      </div>
+      ) : null}
+
       <section className="mt-6 rounded-xl border bg-background p-5">
         <p className="text-xs text-muted-foreground">Account number</p>
         <div className="mt-2 flex items-center justify-between gap-4">
@@ -177,6 +151,7 @@ export function DepositRequest(): React.JSX.Element {
           </div>
         </div>
       </section>
+
       <form
         onSubmit={(event) => void submit(event)}
         className="mt-5 rounded-xl border bg-background p-5"
@@ -220,6 +195,57 @@ export function DepositRequest(): React.JSX.Element {
           </ButtonLoadingContent>
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+        Or fund online
+      </div>
+
+      <form
+        onSubmit={(event) => void startCardPayment(event)}
+        className="mt-6 overflow-hidden rounded-2xl border border-brand/20 bg-background shadow-sm"
+      >
+        <div className="border-b border-brand/10 bg-brand/[0.045] px-5 py-6 sm:px-6">
+          <div className="flex flex-col">
+            {/* <span className="grid size-11 place-items-center rounded-xl bg-brand text-white shadow-sm">
+              <ShieldCheck className="size-5" />
+            </span> */}
+            <h2 className="font-sans text-lg font-semibold">Deposit online</h2>
+            <p className="max-w-lg text-[.8rem] leading-6 text-muted-foreground">
+              Enter an amount to deposit securely. Your balance updates after verification.
+            </p>
+          </div>
+        </div>
+        <div className="p-5 sm:p-6">
+          <label className="block text-sm font-medium">
+            Deposit amount (NGN)
+            <input
+              inputMode="numeric"
+              value={cardAmount}
+              onChange={(event) => setCardAmount(event.target.value.replace(/[^0-9,]/g, ''))}
+              placeholder="250,000"
+              className="mt-2 h-12 w-full rounded-xl border bg-background px-4 text-base outline-none transition focus:ring-2 focus:ring-brand"
+            />
+          </label>
+          <div className="mt-3 flex gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs leading-5 text-muted-foreground">
+            <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
+            <p>
+              Enter the exact amount you intend to deposit. Confirm any applicable charge shown by
+              Paystack before continuing. Your wallet is credited with the deposit amount entered
+              here; any checkout charge is shown separately before you confirm.
+            </p>
+          </div>
+          <button
+            type="submit"
+            disabled={!cardAmount || isStartingCardPayment}
+            className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <ButtonLoadingContent loading={isStartingCardPayment} loadingLabel="">
+              Continue to deposit
+            </ButtonLoadingContent>
+          </button>
+        </div>
+      </form>
+
       <section className="mt-6 rounded-xl border bg-background p-4">
         <h2 className="font-sans text-[16px] font-semibold">Deposit history</h2>
         <div className="mt-3 divide-y">

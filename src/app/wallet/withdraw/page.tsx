@@ -17,7 +17,7 @@ import {
   type WalletSummary,
 } from '@/lib/services/wallet-service';
 import { listBankAccounts } from '@/lib/services/profile-service';
-// KYC is temporarily paused: import { getCurrentUser } from '@/lib/services/registration-service';
+import { getVerificationSteps } from '@/lib/services/profile-service';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -27,8 +27,7 @@ export default function WithdrawPage(): React.JSX.Element {
   const [amountStr, setAmountStr] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
-  // KYC is temporarily paused.
-  // const [kycStatus, setKycStatus] = useState<'pending' | 'verified' | 'rejected'>('pending');
+  const [kycVerified, setKycVerified] = useState(false);
   const [history, setHistory] = useState<WithdrawalRequestRecord[]>([]);
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -43,10 +42,9 @@ export default function WithdrawPage(): React.JSX.Element {
     void listBankAccounts()
       .then(setAccounts)
       .catch(() => undefined);
-    // KYC is temporarily paused.
-    // void getCurrentUser()
-    //   .then((current) => setKycStatus(current.kycStatus))
-    //   .catch(() => undefined);
+    void getVerificationSteps()
+      .then((status) => setKycVerified(status.completed === 3))
+      .catch(() => setKycVerified(false));
     void getWithdrawalRequests()
       .then(setHistory)
       .catch(() => undefined);
@@ -57,11 +55,6 @@ export default function WithdrawPage(): React.JSX.Element {
   const totalDeduction = parsedAmount + fee;
 
   const handleAccountSelect = (account: LinkedAccount) => {
-    // KYC is temporarily paused.
-    // if (kycStatus !== 'verified') {
-    //   notify.error('Complete KYC verification before requesting a withdrawal.');
-    //   return;
-    // }
     setSelectedAccount(account);
     setStep('enter-amount');
   };
@@ -130,13 +123,15 @@ export default function WithdrawPage(): React.JSX.Element {
         </p>
       </header>
 
-      {/* KYC is temporarily paused.
-      {kycStatus !== 'verified' ? (
+      {!kycVerified ? (
         <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-5 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-          <strong>KYC required.</strong> Your identity verification must be approved before you can withdraw funds.
-          <Link href="/profile/verification" className="font-semibold underline">Review KYC</Link>
+          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
+          your account security. You can still withdraw for now.{' '}
+          <Link href="/profile/verification" className="font-semibold underline">
+            Complete verification
+          </Link>
         </div>
-      ) : null} */}
+      ) : null}
 
       {step === 'select-account' && (
         <section className="mt-6">

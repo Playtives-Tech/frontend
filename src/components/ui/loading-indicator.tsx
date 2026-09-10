@@ -55,7 +55,7 @@ type PageLoadingStateProps = Readonly<{
 
 export function PageLoadingState({
   label = 'Loading',
-  description = 'Preparing your Playtives workspace.',
+  description = 'Preparing your account...',
 }: PageLoadingStateProps): React.JSX.Element {
   return (
     <main className="grid min-h-[calc(100dvh-3.5rem)] place-items-center px-5 py-10">
@@ -65,7 +65,7 @@ export function PageLoadingState({
           <LoadingSpinner className="relative size-7" label={label} />
         </span>
         <h1 className="mt-5 font-sans text-lg font-bold tracking-normal">{label}</h1>
-        <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{description}</p>
+        {/* <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{description}</p> */}
       </div>
     </main>
   );

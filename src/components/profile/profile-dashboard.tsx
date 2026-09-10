@@ -11,6 +11,7 @@ import {
   Moon,
   Trash2,
   Phone,
+  ShieldCheck,
   UserRound,
   FilePenLine,
 } from 'lucide-react';
@@ -41,8 +42,13 @@ type ProfileDashboardProps = Readonly<{ user: CurrentUser; onSignOut: () => void
 
 export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): React.JSX.Element {
   const resetProfile = useProfileStore((state) => state.resetProfile);
+  const verification = useProfileStore((state) => state.verification);
+  const completedVerificationSteps = Object.values(verification).filter(
+    (status) => status === 'verified',
+  ).length;
   const [nameChangeRequest, setNameChangeRequest] = useState<NameChangeRequest | null>(null);
   const [showNameRequestForm, setShowNameRequestForm] = useState(false);
+  const [proposedName, setProposedName] = useState('');
   const [nameChangeReason, setNameChangeReason] = useState('');
   const [identityDocumentType, setIdentityDocumentType] = useState('NIN');
   const [identityDocumentNumber, setIdentityDocumentNumber] = useState('');
@@ -131,14 +137,19 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   };
   const submitNameChangeRequest = async (): Promise<void> => {
     const reason = nameChangeReason.trim();
-    if (reason.length < 10 || identityDocumentNumber.trim().length < 4 || !identityDocument) {
-      notify.error('Add your reason, ID document type, document number, and supporting file');
+    if (
+      proposedName.trim().length < 3 ||
+      reason.length < 10 ||
+      !/^\d{11}$/.test(identityDocumentNumber.trim())
+    ) {
+      notify.error('Add the requested name, reason, and a valid 11-digit BVN or NIN');
       return;
     }
 
     setIsSubmittingNameRequest(true);
     try {
       const request = await requestNameChange(
+        proposedName.trim(),
         reason,
         identityDocumentType,
         identityDocumentNumber.trim(),
@@ -146,6 +157,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       );
       setNameChangeRequest(request);
       setShowNameRequestForm(false);
+      setProposedName('');
       setNameChangeReason('');
       setIdentityDocumentNumber('');
       setIdentityDocument(null);
@@ -167,20 +179,20 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       </header>
 
       <section className="playtives-gold-card mt-6 overflow-hidden rounded-3xl text-white shadow-sm">
-        <div className="flex flex-col gap-6 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
-          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-            <span className="grid size-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-inner backdrop-blur-sm sm:size-20">
-              <UserRound className="size-8 sm:size-9" />
+        <div className="grid gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_15rem] md:items-center">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 shadow-inner backdrop-blur-sm sm:size-14">
+              <UserRound className="size-6 sm:size-7" />
             </span>
             <div className="min-w-0">
-              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/80">
+              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/80 sm:text-[10px]">
                 Playtives member
               </span>
-              <h2 className="mt-3 truncate font-sans text-2xl font-semibold sm:text-3xl">
+              <h2 className="mt-2 break-words font-sans text-xl font-semibold leading-tight sm:text-2xl">
                 {user.name}
               </h2>
-              <p className="mt-1 truncate text-sm text-white/70 sm:text-base">{user.email}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <p className="mt-1 break-all text-xs text-white/70 sm:text-sm">{user.email}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {user.phone ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-black/10 px-3 py-1.5 text-xs text-white/80">
                     <Phone className="size-3.5" />
@@ -198,7 +210,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             </div>
           </div>
           {user.memberCode ? (
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:min-w-64">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-sm">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
                 Your member code
               </p>
@@ -227,6 +239,22 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
           ) : null}
         </div>
       </section>
+
+      <Link
+        href="/profile/verification"
+        className="mt-5 flex items-center gap-3 rounded-xl border bg-background p-4 transition hover:border-brand/35 hover:bg-brand/[0.03]"
+      >
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+          <ShieldCheck className="size-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-sans text-sm font-semibold">Identity verification</span>
+          <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+            Verify your BVN, NIN, and phone number · {completedVerificationSteps} of 3 completed
+          </span>
+        </span>
+        <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+      </Link>
 
       <section className="mt-5 rounded-xl border bg-background p-4">
         <div className="flex flex-wrap items-start gap-3">
@@ -262,6 +290,18 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </div>
         {showNameRequestForm ? (
           <div className="mt-4 border-t pt-4">
+            <label className="text-xs font-semibold" htmlFor="proposed-name">
+              What should your full name be changed to?
+            </label>
+            <input
+              id="proposed-name"
+              value={proposedName}
+              onChange={(event) => setProposedName(event.target.value)}
+              maxLength={120}
+              autoComplete="name"
+              placeholder="Enter your correct legal full name"
+              className="mt-2 h-10 w-full rounded-lg border bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand"
+            />
             <label className="text-xs font-semibold" htmlFor="name-change-reason">
               Why do you need to update your name?
             </label>
@@ -284,24 +324,24 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
                 >
                   <option value="NIN">National Identification Number (NIN)</option>
                   <option value="BVN">Bank Verification Number (BVN)</option>
-                  <option value="PASSPORT">International passport</option>
-                  <option value="DRIVERS_LICENSE">Driver&apos;s licence</option>
-                  <option value="VOTERS_CARD">Voter&apos;s card</option>
                 </select>
               </label>
               <label className="text-xs font-semibold">
                 Document number
                 <input
                   value={identityDocumentNumber}
-                  onChange={(event) => setIdentityDocumentNumber(event.target.value)}
-                  maxLength={100}
+                  onChange={(event) =>
+                    setIdentityDocumentNumber(event.target.value.replace(/\D/g, '').slice(0, 11))
+                  }
+                  maxLength={11}
+                  inputMode="numeric"
                   placeholder="Enter the number on your ID"
                   className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-sm font-normal outline-none placeholder:text-muted-foreground focus:border-brand"
                 />
               </label>
             </div>
             <label className="mt-3 block text-xs font-semibold">
-              Upload supporting ID document
+              Upload supporting ID document (optional)
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -309,7 +349,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
                 className="mt-2 block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-2 file:font-semibold file:text-brand"
               />
               <span className="mt-1 block font-normal text-muted-foreground">
-                Upload a clear JPEG, PNG, WebP, or PDF (up to 8 MB).
+                You may attach a clear JPEG, PNG, WebP, or PDF (up to 8 MB).
               </span>
             </label>
             <div className="mt-3 flex justify-end gap-2">
