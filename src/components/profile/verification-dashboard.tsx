@@ -12,7 +12,6 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { notify } from '@/lib/notify';
-import { countryDialCodes, dialCodeForCountry } from '@/lib/country-dial-codes';
 import {
   getVerificationSteps,
   sendPhoneCode,
@@ -71,10 +70,7 @@ export function VerificationDashboard(): React.JSX.Element {
   const [firstName, setFirstName] = useState(profileNames.firstName);
   const [lastName, setLastName] = useState(profileNames.lastName);
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [dialCode, setDialCode] = useState(() => dialCodeForCountry(user?.country));
-  const [phone, setPhone] = useState(() =>
-    nationalNumber(user?.phone, dialCodeForCountry(user?.country)),
-  );
+  const [phone, setPhone] = useState(() => nigerianNationalNumber(user?.phone));
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -150,9 +146,9 @@ export function VerificationDashboard(): React.JSX.Element {
   }
 
   async function sendOtp(): Promise<void> {
-    const fullPhone = `${dialCode}${phone.replace(/^0+/, '')}`;
-    if (!/^\+[1-9]\d{7,14}$/.test(fullPhone)) {
-      notify.error('Enter a valid phone number');
+    const fullPhone = `+234${phone.replace(/^0+/, '')}`;
+    if (!/^\+234[789]\d{9}$/.test(fullPhone)) {
+      notify.error('Enter a valid Nigerian mobile number');
       return;
     }
     setBusy(true);
@@ -175,7 +171,7 @@ export function VerificationDashboard(): React.JSX.Element {
     }
     setBusy(true);
     try {
-      const result = await verifyPhoneCode(`${dialCode}${phone.replace(/^0+/, '')}`, otp);
+      const result = await verifyPhoneCode(`+234${phone.replace(/^0+/, '')}`, otp);
       completeStep('phone');
       setOtp('');
       notify.success(result.message);
@@ -243,9 +239,7 @@ export function VerificationDashboard(): React.JSX.Element {
                 Step {currentStep.number}
               </p> */}
               <h2 className="mt-1 font-sans text-[1rem] font-bold">{currentStep.title}</h2>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {currentStep.description}
-              </p>
+              <p className="text-sm leading-6 text-muted-foreground">{currentStep.description}</p>
             </div>
           </div>
         </div>
@@ -297,16 +291,10 @@ export function VerificationDashboard(): React.JSX.Element {
           ) : (
             <PhoneForm
               phone={phone}
-              dialCode={dialCode}
               otp={otp}
               otpSent={otpSent}
               busy={busy}
               onPhoneChange={setPhone}
-              onDialCodeChange={(code) => {
-                setDialCode(code);
-                setOtpSent(false);
-                setOtp('');
-              }}
               onOtpChange={setOtp}
               onSend={sendOtp}
               onVerify={verifyOtp}
@@ -477,24 +465,20 @@ function TextField({
 
 function PhoneForm({
   phone,
-  dialCode,
   otp,
   otpSent,
   busy,
   onPhoneChange,
-  onDialCodeChange,
   onOtpChange,
   onSend,
   onVerify,
   resendIn,
 }: Readonly<{
   phone: string;
-  dialCode: string;
   otp: string;
   otpSent: boolean;
   busy: boolean;
   onPhoneChange: (value: string) => void;
-  onDialCodeChange: (value: string) => void;
   onOtpChange: (value: string) => void;
   onSend: () => void | Promise<void>;
   onVerify: () => void | Promise<void>;
@@ -513,24 +497,13 @@ function PhoneForm({
         Phone number
       </label>
       <div className="mt-2 grid grid-cols-[6.75rem_minmax(0,1fr)] gap-2">
-        <label className="relative">
-          <span className="sr-only">Country code</span>
-          <select
-            value={dialCode}
-            disabled={otpSent}
-            onChange={(event) => onDialCodeChange(event.target.value)}
-            className="h-14 w-full appearance-none rounded-xl border bg-background pl-2.5 pr-6 font-sans text-sm font-semibold outline-none transition hover:border-brand/40 focus:border-brand focus:ring-4 focus:ring-brand/10 disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-75"
-          >
-            {countryDialCodes.map((option) => (
-              <option key={`${option.country}-${option.code}`} value={option.code}>
-                {option.flag} {option.code}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground">
-            ⌄
-          </span>
-        </label>
+        <div
+          className="flex h-14 items-center gap-2 rounded-xl border bg-surface px-3 font-sans text-sm font-semibold"
+          aria-label="Nigeria country code"
+        >
+          <span aria-hidden="true">🇳🇬</span>
+          <span>+234</span>
+        </div>
         <div className="group relative">
           <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted-foreground transition-colors group-focus-within:text-brand">
             <Phone className="size-5" />
@@ -539,7 +512,7 @@ function PhoneForm({
             id="phone"
             value={phone}
             disabled={otpSent}
-            onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, '').slice(0, 14))}
+            onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, '').slice(0, 10))}
             inputMode="tel"
             autoComplete="tel-national"
             placeholder="801 234 5678"
@@ -548,8 +521,8 @@ function PhoneForm({
         </div>
       </div>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Country code {dialCode} is already selected. Enter only the remaining phone number without
-        the leading zero.
+        Phone verification currently supports Nigerian numbers only. Enter the remaining 10-digit
+        mobile number without the leading zero.
       </p>
       {otpSent ? (
         <>
@@ -595,10 +568,11 @@ function PhoneForm({
   );
 }
 
-function nationalNumber(phone: string | null | undefined, dialCode: string): string {
+function nigerianNationalNumber(phone: string | null | undefined): string {
   const digits = phone?.replace(/\D/g, '') ?? '';
-  const code = dialCode.replace(/\D/g, '');
-  return digits.startsWith(code) ? digits.slice(code.length) : digits.replace(/^0+/, '');
+  if (digits.startsWith('234')) return digits.slice(3, 13);
+  if (digits.startsWith('0') && digits.length === 11) return digits.slice(1);
+  return '';
 }
 
 function splitProfileName(name: string | null | undefined): {
