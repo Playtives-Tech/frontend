@@ -200,6 +200,8 @@ function activityPresentation(action: string) {
     WITHDRAWAL_COMPLETED: 'Cash withdrawal',
     WITHDRAWAL_FEE_CHARGED: 'Transaction fee',
     EARNINGS_CREDITED: 'Investment return credited',
+    BVN_VERIFIED: 'BVN verified',
+    NIN_VERIFIED: 'NIN verified',
     OPPORTUNITY_ACQUIRED: 'Opportunity purchase completed',
   };
   return {

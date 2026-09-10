@@ -1,9 +1,9 @@
 'use client';
 
-import { ArrowRight, ArrowUpRight, Bell, Newspaper, WalletCards } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Bell, Newspaper, UsersRound, WalletCards } from 'lucide-react';
 import Link from 'next/link';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
-// KYC is temporarily paused: import { VerificationCard } from '@/components/dashboard/verification-card';
+import { VerificationCard } from '@/components/dashboard/verification-card';
 import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
 import {
@@ -93,6 +93,19 @@ export function DashboardHome(): React.JSX.Element {
         </a>
       </header>
 
+      <section className="mt-5 flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/[0.045] px-4 py-3.5 text-sm sm:mt-6">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
+          <UsersRound className="size-4.5" />
+        </span>
+        <div>
+          <p className="font-semibold text-[.95rem] text-foreground">For active community members</p>
+          <p className="mt-0.5 text-[.8rem] leading-5 text-muted-foreground sm:text-[.8rem]">
+            This platform is solely for active community members of Playtives Coowners Tribe
+            <br /> Signed: Playtives Cooperative Multipurpose Society Limited.
+          </p>
+        </div>
+      </section>
+
       <div className="mt-5 sm:mt-7">
         <PortfolioSummaryCard
           walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
@@ -105,13 +118,11 @@ export function DashboardHome(): React.JSX.Element {
         />
       </div>
 
-      {/* KYC is temporarily paused.
-      <section className="mt-7 gap-4">
-        <h2 className="font-sans text-xl font-bold tracking-normal">Continue your journey</h2>
-        <div className="mt-4">
-          <VerificationCard status={verificationStatus} />
-        </div>
-      </section> */}
+      {!isGuest ? (
+        <section className="mt-6 sm:mt-7">
+          <VerificationCard />
+        </section>
+      ) : null}
 
       <FeaturedOpportunities />
 
@@ -148,7 +159,7 @@ export function DashboardHome(): React.JSX.Element {
             </span>
             <div>
               <h2 className="mt-1 text-sm font-semibold">Join us on WhatsApp</h2>
-              <p className="text-xs leading-5 text-muted-foreground w-[70%]">
+              <p className="w-[70%] text-xs leading-5 text-muted-foreground">
                 Receive helpful ownership updates and connect with the Playtives community.
               </p>
             </div>
@@ -172,7 +183,10 @@ function MobileBlogPreview(): React.JSX.Element | null {
   const [posts, setPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
-    void blogService.list(1).then((data) => setPosts(data.items.slice(0, 2))).catch(() => setPosts([]));
+    void blogService
+      .list(1)
+      .then((data) => setPosts(data.items.slice(0, 2)))
+      .catch(() => setPosts([]));
   }, []);
 
   if (posts.length === 0) return null;
@@ -184,22 +198,42 @@ function MobileBlogPreview(): React.JSX.Element | null {
           <Newspaper className="size-4 text-brand" />
           <h2 className="text-base font-semibold tracking-tight">Latest insights</h2>
         </div>
-        <Link href="/blog" className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
+        <Link
+          href="/blog"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-brand"
+        >
           View all
           <ArrowRight className="size-3.5" />
         </Link>
       </div>
       <div className="mt-3 grid gap-3">
         {posts.map((post) => (
-          <Link key={post._id} href={`/blog/${post.slug}`} className="flex gap-3 rounded-xl border bg-background p-3 transition hover:border-brand/35">
+          <Link
+            key={post._id}
+            href={`/blog/${post.slug}`}
+            className="flex gap-3 rounded-xl border bg-background p-3 transition hover:border-brand/35"
+          >
             <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-              {post.coverImageUrl ? <img src={post.coverImageUrl} alt="" className="size-full object-cover" /> : null}
+              {post.coverImageUrl ? (
+                <img src={post.coverImageUrl} alt="" className="size-full object-cover" />
+              ) : null}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-brand">{post.category}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-brand">
+                {post.category}
+              </p>
               <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-5">{post.title}</h3>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                {new Date(post.publishedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })} · {new Date(post.publishedAt).toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                {new Date(post.publishedAt).toLocaleDateString('en-NG', {
+                  day: 'numeric',
+                  month: 'short',
+                })}{' '}
+                ·{' '}
+                {new Date(post.publishedAt).toLocaleTimeString('en-NG', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
               </p>
             </div>
           </Link>
@@ -275,6 +309,8 @@ function activityPresentation(action: string): {
     WITHDRAWAL_COMPLETED: 'Cash Withdrawal',
     WITHDRAWAL_FEE_CHARGED: 'Transaction fee',
     EARNINGS_CREDITED: 'Investment return credited',
+    BVN_VERIFIED: 'BVN verified',
+    NIN_VERIFIED: 'NIN verified',
     OPPORTUNITY_ACQUIRED: 'Opportunity purchase completed',
   };
   const incoming = ['DEPOSIT_APPROVED', 'WALLET_FUNDED_BY_CARD', 'EARNINGS_CREDITED'].includes(

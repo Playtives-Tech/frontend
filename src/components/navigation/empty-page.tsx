@@ -13,13 +13,13 @@ export function EmptyPage({
 }: EmptyPageProps): React.JSX.Element {
   return (
     <section className="mx-auto grid min-h-[calc(100dvh-5rem)] max-w-2xl place-items-center px-5 py-8 sm:px-8 lg:px-10">
-      <div className="w-full max-w-xl rounded-2xl border border-brand/15 bg-background p-6 text-center shadow-[0_18px_40px_-32px_rgba(7,82,59,0.45)] sm:p-8">
-        <span className="mx-auto grid size-20 place-items-center rounded-3xl bg-brand/10 text-brand sm:size-24">
+      <div className="w-full max-w-xl rounded-2xl p-6 text-center sm:p-8">
+        <span className="mx-auto grid size-20 place-items-center rounded-3xl text-brand sm:size-24">
           <Icon className="size-9 sm:size-10" />
         </span>
-        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+        {/* <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-brand">
           {eyebrow}
-        </p>
+        </p> */}
         <h1 className="mt-2 font-sans text-2xl font-semibold tracking-tight sm:text-3xl">
           {title}
         </h1>

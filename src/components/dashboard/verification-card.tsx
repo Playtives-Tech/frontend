@@ -1,45 +1,63 @@
-import { ArrowRight, User } from 'lucide-react';
+'use client';
+
+import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { getVerificationSteps } from '@/lib/services/profile-service';
+import { useProfileStore } from '@/stores/use-profile-store';
 
-type VerificationCardProps = Readonly<{ status: 'guest' | 'unverified' | 'verified' }>;
+export function VerificationCard(): React.JSX.Element {
+  const verification = useProfileStore((state) => state.verification);
+  const setVerificationStatus = useProfileStore((state) => state.setVerificationStatus);
 
-export function VerificationCard({ status }: VerificationCardProps): React.JSX.Element {
-  const isGuest = status === 'guest';
-  const isVerified = status === 'verified';
-  const title = isGuest
-    ? 'Set up your Playtives profile'
-    : isVerified
-      ? 'Identity verified'
-      : 'Complete your identity check';
+  useEffect(() => {
+    void useProfileStore.persist.rehydrate();
+    void getVerificationSteps()
+      .then((status) => {
+        setVerificationStatus('bvn', status.bvn.verified ? 'verified' : 'not-verified');
+        setVerificationStatus('nin', status.nin.verified ? 'verified' : 'not-verified');
+        setVerificationStatus('phone', status.phone.verified ? 'verified' : 'not-verified');
+      })
+      .catch(() => undefined);
+  }, [setVerificationStatus]);
 
-  const description = isGuest
-    ? 'Create an account to fund your wallet and start owning opportunities.'
-    : isVerified
-      ? 'Your profile is ready to fund opportunities with confidence.'
-      : 'Verification helps keep Playtives secure and unlocks investment funding.';
-
-  const action = isGuest ? 'Create account' : isVerified ? 'View profile' : 'Start KYC';
+  const completed = Object.values(verification).filter((status) => status === 'verified').length;
+  const isComplete = completed === 3;
 
   return (
-    <section className="mt-4 rounded-2xl border border-brand/10 bg-brand/5 px-4 py-3">
-      <div className="flex items-start gap-3 sm:items-center">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-brand">
-          <User className="size-4" />
+    <Link
+      href="/profile/verification"
+      className="group block overflow-hidden rounded-2xl border border-brand/15 bg-[linear-gradient(120deg,rgb(30_130_94_/_0.10),rgb(255_255_255_/_0.96)_58%)] p-4 transition-colors hover:border-brand/35 dark:bg-[linear-gradient(120deg,rgb(30_130_94_/_0.16),rgb(20_32_27_/_0.96)_58%)] sm:p-5"
+    >
+      <div className="flex items-center gap-4">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-sm">
+          {isComplete ? <CheckCircle2 className="size-5" /> : <ShieldCheck className="size-5" />}
         </span>
-
         <span className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{description}</p>
+          <span className="flex flex-wrap items-center justify-between gap-2">
+            <strong className="text-sm sm:text-[1rem]">
+              {isComplete
+                ? 'Identity verification complete'
+                : 'Complete your identity verification'}
+            </strong>
+            <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-wide text-brand">
+              {completed} of 3 complete
+            </span>
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-muted-foreground sm:text-[.75rem]">
+            {isComplete
+              ? 'Your BVN, NIN and phone number are marked as verified.'
+              : 'Verify your BVN, NIN and phone number to secure your Playtives account.'}
+          </span>
         </span>
+        <ArrowRight className="size-5 shrink-0 text-brand transition-transform group-hover:translate-x-1" />
       </div>
-
-      <Link
-        href="/profile/verification"
-        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline sm:ml-[3.25rem]"
-      >
-        {action}
-        <ArrowRight className="size-4" />
-      </Link>
-    </section>
+      <span className="mt-4 block h-1.5 overflow-hidden rounded-full bg-brand/10">
+        <span
+          className="block h-full rounded-full bg-brand transition-[width] duration-500"
+          style={{ width: `${(completed / 3) * 100}%` }}
+        />
+      </span>
+    </Link>
   );
 }
