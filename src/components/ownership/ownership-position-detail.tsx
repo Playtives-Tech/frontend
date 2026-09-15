@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -5,22 +7,29 @@ import {
   Clock3,
   RefreshCw,
   WalletCards,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import {
   getOwnershipCapitalReturn,
   getOwnershipProjection,
+  addOwnershipUnits,
   type MemberMaturityPayout,
   type Ownership,
 } from '@/lib/services/ownership-service';
 import { BalanceAmount } from '@/components/ui/balance-amount';
 import { formatReturnSchedule } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
+import { notify } from '@/lib/notify';
+import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 
 type OwnershipPositionDetailProps = Readonly<{
   ownership: Ownership;
   payout?: MemberMaturityPayout;
+  onOwnershipUpdated: (ownership: Ownership) => void;
 }>;
 
 function DetailMetric({
@@ -46,7 +55,10 @@ function DetailMetric({
 export function OwnershipPositionDetail({
   ownership,
   payout,
+  onOwnershipUpdated,
 }: OwnershipPositionDetailProps): React.JSX.Element {
+  const [additionalUnits, setAdditionalUnits] = useState(1);
+  const [addingUnits, setAddingUnits] = useState(false);
   const opportunity = ownership.opportunityId;
   const completed = ownership.status === 'COMPLETED';
   const projection = getOwnershipProjection(ownership);
@@ -58,6 +70,20 @@ export function OwnershipPositionDetail({
           year: 'numeric',
         })
       : 'Not set';
+  const additionalCost = (opportunity.pricePerUnitMinorUnits * additionalUnits) / 100;
+  const submitAdditionalUnits = async () => {
+    setAddingUnits(true);
+    try {
+      const updated = await addOwnershipUnits(ownership, additionalUnits, crypto.randomUUID());
+      onOwnershipUpdated(updated);
+      setAdditionalUnits(1);
+      notify.success('Additional units added successfully');
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : 'Additional units could not be added');
+    } finally {
+      setAddingUnits(false);
+    }
+  };
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 sm:px-8 lg:px-10">
       <Link
@@ -117,6 +143,65 @@ export function OwnershipPositionDetail({
               value={completed ? formatDate(ownership.completedAt) : 'Cycle in progress'}
             />
           </div>
+          {!completed && ownership.canAddUnits ? (
+            <section className="mt-5 rounded-xl border border-brand/25 bg-brand/5 p-4 sm:p-5">
+              <h2 className="font-sans text-[16px] font-semibold">Increase your ownership</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Add more units while this offer remains open and before the deal starts.
+              </p>
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Additional units</p>
+                  <div className="mt-2 inline-flex items-center gap-3 rounded-xl border bg-background p-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setAdditionalUnits((value) => Math.max(1, value - 1))}
+                      disabled={additionalUnits <= 1 || addingUnits}
+                      className="grid size-8 place-items-center rounded-lg bg-surface text-brand disabled:opacity-40"
+                      aria-label="Decrease additional units"
+                    >
+                      <Minus className="size-4" />
+                    </button>
+                    <span className="min-w-8 text-center text-sm font-semibold tabular-nums">
+                      {additionalUnits}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAdditionalUnits((value) =>
+                          Math.min(ownership.maximumAdditionalUnits, value + 1),
+                        )
+                      }
+                      disabled={
+                        additionalUnits >= ownership.maximumAdditionalUnits || addingUnits
+                      }
+                      className="grid size-8 place-items-center rounded-lg bg-surface text-brand disabled:opacity-40"
+                      aria-label="Increase additional units"
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Up to {ownership.maximumAdditionalUnits} more units available to you.
+                  </p>
+                </div>
+                <div className="sm:text-right">
+                  <p className="text-xs text-muted-foreground">Additional contribution</p>
+                  <p className="mt-1 text-lg font-semibold">{formatNaira(additionalCost)}</p>
+                  <button
+                    type="button"
+                    onClick={() => void submitAdditionalUnits()}
+                    disabled={addingUnits}
+                    className="mt-2 inline-flex h-10 min-w-36 items-center justify-center rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110 disabled:opacity-60"
+                  >
+                    <ButtonLoadingContent loading={addingUnits} loadingLabel="Adding units">
+                      Add {additionalUnits} {additionalUnits === 1 ? 'unit' : 'units'}
+                    </ButtonLoadingContent>
+                  </button>
+                </div>
+              </div>
+            </section>
+          ) : null}
           {!completed && (
             <>
               {/* <div className="mt-5 flex items-center justify-between text-xs">

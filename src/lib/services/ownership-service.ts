@@ -45,6 +45,9 @@ export type Ownership = Readonly<{
   nextAccrualAt: string | null;
   maturityAt: string | null;
   completedAt: string | null;
+  canAddUnits: boolean;
+  unitAdditionBlockedReason: string | null;
+  maximumAdditionalUnits: number;
 }>;
 
 export type MemberMaturityPayout = Readonly<{
@@ -94,6 +97,21 @@ export function getOwnerships(): Promise<Ownership[]> {
 
 export function getOwnership(id: string): Promise<Ownership> {
   return api<Ownership>(`/v1/ownership/${encodeURIComponent(id)}`, { cache: 'no-store' });
+}
+
+export function addOwnershipUnits(
+  ownership: Ownership,
+  units: number,
+  idempotencyKey: string,
+): Promise<Ownership> {
+  return api<Ownership>(`/v1/ownership/${encodeURIComponent(ownership._id)}/add-units`, {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+      'If-Match': String(ownership.opportunityId.revision),
+    },
+    body: JSON.stringify({ units, ownershipRevision: ownership.revision }),
+  });
 }
 
 export function getMaturityPayouts(): Promise<MemberMaturityPayout[]> {

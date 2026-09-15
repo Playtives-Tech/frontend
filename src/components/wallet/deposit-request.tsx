@@ -190,7 +190,7 @@ export function DepositRequest(): React.JSX.Element {
           disabled={!receipt || !amount || isSubmitting}
           className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground disabled:cursor-not-allowed disabled:opacity-45"
         >
-          <ButtonLoadingContent loading={isSubmitting} loadingLabel="Submitting">
+          <ButtonLoadingContent loading={isSubmitting} loadingLabel="">
             Submit deposit request
           </ButtonLoadingContent>
         </button>

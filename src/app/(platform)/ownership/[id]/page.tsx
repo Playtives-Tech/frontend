@@ -30,5 +30,7 @@ export default function OwnershipDetailPage(): React.JSX.Element {
     return (
       <div className="mx-auto max-w-5xl p-10 text-sm text-muted-foreground">Loading ownership…</div>
     );
-  return <OwnershipPositionDetail ownership={ownership} payout={payout} />;
+  return (
+    <OwnershipPositionDetail ownership={ownership} payout={payout} onOwnershipUpdated={setOwnership} />
+  );
 }
