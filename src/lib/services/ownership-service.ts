@@ -57,6 +57,7 @@ export type MemberMaturityPayout = Readonly<{
   principalMinorUnits: number;
   returnMinorUnits: number;
   totalPayoutMinorUnits: number;
+  actualPayoutMinorUnits: number | null;
   status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED';
   reviewNote: string;
   createdAt: string;

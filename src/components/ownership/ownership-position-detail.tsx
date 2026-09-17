@@ -18,6 +18,7 @@ import {
   getOwnershipProjection,
   addOwnershipUnits,
   type MemberMaturityPayout,
+  type MemberOwnershipDistribution,
   type Ownership,
 } from '@/lib/services/ownership-service';
 import { BalanceAmount } from '@/components/ui/balance-amount';
@@ -29,6 +30,7 @@ import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 type OwnershipPositionDetailProps = Readonly<{
   ownership: Ownership;
   payout?: MemberMaturityPayout;
+  distributions: MemberOwnershipDistribution[];
   onOwnershipUpdated: (ownership: Ownership) => void;
 }>;
 
@@ -55,6 +57,7 @@ function DetailMetric({
 export function OwnershipPositionDetail({
   ownership,
   payout,
+  distributions,
   onOwnershipUpdated,
 }: OwnershipPositionDetailProps): React.JSX.Element {
   const [additionalUnits, setAdditionalUnits] = useState(1);
@@ -289,7 +292,7 @@ export function OwnershipPositionDetail({
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {payout?.status === 'APPROVED'
-                  ? `${formatNaira(payout.totalPayoutMinorUnits / 100)} principal has been returned to your wallet balance.`
+                  ? `${formatNaira((payout.actualPayoutMinorUnits ?? payout.totalPayoutMinorUnits) / 100)} principal has been returned to your wallet balance.`
                   : payout?.status === 'REJECTED'
                     ? payout.reviewNote ||
                       'The payout was not approved. Contact support for a review.'
@@ -313,6 +316,48 @@ export function OwnershipPositionDetail({
               </div>
             </section>
           )}
+          {distributions.length > 0 ? (
+            <section className="mt-7 border-t pt-5">
+              <h2 className="font-sans text-[16px] font-semibold">Distribution history</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Monthly returns appear here after administrator approval.
+              </p>
+              <div className="mt-3 overflow-x-auto rounded-xl border">
+                <table className="w-full min-w-[520px] text-left text-xs">
+                  <thead className="bg-surface text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2.5 font-medium">Cycle</th>
+                      <th className="px-3 py-2.5 font-medium">Date</th>
+                      <th className="px-3 py-2.5 font-medium">Return</th>
+                      <th className="px-3 py-2.5 font-medium">Treatment</th>
+                      <th className="px-3 py-2.5 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {distributions.map((distribution) => (
+                      <tr key={distribution._id}>
+                        <td className="px-3 py-2.5">{distribution.cycleNumber}</td>
+                        <td className="px-3 py-2.5">{formatDate(distribution.scheduledFor)}</td>
+                        <td className="px-3 py-2.5 font-semibold text-brand">
+                          <BalanceAmount value={formatNaira(distribution.returnMinorUnits / 100)} />
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {distribution.rolledOver ? 'Rolled into contribution' : 'Paid to wallet'}
+                        </td>
+                        <td className="px-3 py-2.5 font-semibold">
+                          {distribution.status === 'CREDITED' || distribution.status === 'ROLLED_OVER'
+                            ? 'Processed'
+                            : distribution.status === 'PENDING_ADMIN'
+                              ? 'Awaiting approval'
+                              : 'Maturity payout'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
           <section className="mt-7 border-t pt-5">
             <h2 className="font-sans text-[16px] font-semibold">Ownership timeline</h2>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">

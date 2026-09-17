@@ -6,7 +6,9 @@ import { OwnershipPositionDetail } from '@/components/ownership/ownership-positi
 import {
   getMaturityPayouts,
   getOwnership,
+  getOwnershipDistributions,
   type MemberMaturityPayout,
+  type MemberOwnershipDistribution,
   type Ownership,
 } from '@/lib/services/ownership-service';
 
@@ -15,11 +17,13 @@ export default function OwnershipDetailPage(): React.JSX.Element {
   const [ownership, setOwnership] = useState<Ownership>();
   const [error, setError] = useState('');
   const [payout, setPayout] = useState<MemberMaturityPayout>();
+  const [distributions, setDistributions] = useState<MemberOwnershipDistribution[]>([]);
   useEffect(() => {
-    void Promise.all([getOwnership(id), getMaturityPayouts()])
-      .then(([record, payouts]) => {
+    void Promise.all([getOwnership(id), getMaturityPayouts(), getOwnershipDistributions(id)])
+      .then(([record, payouts, distributionRecords]) => {
         setOwnership(record);
-        setPayout(payouts.find((item) => item.ownershipId === id));
+        setPayout(payouts.find((item) => String(item.ownershipId) === String(id)));
+        setDistributions(distributionRecords);
       })
       .catch((value: unknown) =>
         setError(value instanceof Error ? value.message : 'Ownership not found'),
@@ -31,6 +35,11 @@ export default function OwnershipDetailPage(): React.JSX.Element {
       <div className="mx-auto max-w-5xl p-10 text-sm text-muted-foreground">Loading ownership…</div>
     );
   return (
-    <OwnershipPositionDetail ownership={ownership} payout={payout} onOwnershipUpdated={setOwnership} />
+    <OwnershipPositionDetail
+      ownership={ownership}
+      payout={payout}
+      distributions={distributions}
+      onOwnershipUpdated={setOwnership}
+    />
   );
 }
