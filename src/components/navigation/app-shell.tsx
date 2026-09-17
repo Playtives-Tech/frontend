@@ -17,6 +17,8 @@ import { whatsappCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { notify } from '@/lib/notify';
 import { useSessionTimeout } from './use-session-timeout';
+import { getMaintenanceStatus, type MaintenanceStatus } from '@/lib/services/platform-settings-service';
+import { MaintenanceOverlay } from './maintenance-overlay';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
 
@@ -64,6 +66,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const signOut = useAuthStore((state) => state.signOut);
   const [signOutDialog, setSignOutDialog] = useState<'first' | 'final' | null>(null);
   const [inactivitySecondsRemaining, setInactivitySecondsRemaining] = useState<number | null>(null);
+  const [maintenance, setMaintenance] = useState<MaintenanceStatus | null>(null);
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
     pathname === '/sign-in' ||
@@ -92,6 +95,27 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     setInactivitySecondsRemaining(null);
     notify.success('You are still signed in.');
   };
+
+  useEffect(() => {
+    if (!hasValidSession || isPublicRoute) {
+      setMaintenance(null);
+      return;
+    }
+    let cancelled = false;
+    const load = (): void => {
+      void getMaintenanceStatus()
+        .then((status) => {
+          if (!cancelled) setMaintenance(status);
+        })
+        .catch(() => undefined);
+    };
+    load();
+    const timer = window.setInterval(load, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [hasValidSession, isPublicRoute]);
 
   useEffect(() => {
     const validateSession = (): void => {
@@ -222,6 +246,9 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         description={`Your session will end in ${inactivitySecondsRemaining ?? 0} seconds because there has been no activity. Choose “Stay signed in” to continue securely.`}
         confirmLabel="Stay signed in"
       />
+      {maintenance?.enabled ? (
+        <MaintenanceOverlay message={maintenance.message} onSignOut={completeSignOut} />
+      ) : null}
     </div>
   );
 }
