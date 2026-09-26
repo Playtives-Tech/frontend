@@ -1,6 +1,14 @@
 'use client';
 
-import { ArrowRight, ArrowUpRight, Bell, Newspaper, UsersRound, WalletCards } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Bell,
+  LockKeyhole,
+  Newspaper,
+  UsersRound,
+  WalletCards,
+} from 'lucide-react';
 import Link from 'next/link';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 import { VerificationCard } from '@/components/dashboard/verification-card';
@@ -13,8 +21,10 @@ import {
   type WalletSummary,
 } from '@/lib/services/wallet-service';
 import { useAuthStore } from '@/stores/use-auth-store';
-import { whatsappCommunityUrl } from '@/lib/community';
+import { whatsappLearningCommunityUrl, whatsappTribeCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
+import { BalanceAmount } from '@/components/ui/balance-amount';
+import { formatNaira } from '@/components/ownership/formatters';
 import { useEffect, useMemo, useState } from 'react';
 import { blogService, type BlogPost } from '@/lib/services/blog-service';
 
@@ -25,7 +35,10 @@ export function DashboardHome(): React.JSX.Element {
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [greeting, setGreeting] = useState('Good to see you');
   const isGuest = user === null;
+  const isPending = user?.memberStatus === 'pending';
+  const participationApproved = user?.participationAccessApproved === true;
   const firstName = user?.name.split(' ')[0];
+  const communityDestination = isPending ? whatsappLearningCommunityUrl : whatsappTribeCommunityUrl;
   useEffect(() => {
     if (isGuest) {
       setOwnerships([]);
@@ -33,16 +46,18 @@ export function DashboardHome(): React.JSX.Element {
       return;
     }
 
-    void getOwnerships()
-      .then(setOwnerships)
-      .catch(() => setOwnerships([]));
+    if (isPending) setOwnerships([]);
+    else
+      void getOwnerships()
+        .then(setOwnerships)
+        .catch(() => setOwnerships([]));
     void getWallet()
       .then(setWallet)
       .catch(() => setWallet(null));
     void getActivityLogs()
       .then((items) => setActivity(items.slice(0, 4)))
       .catch(() => setActivity([]));
-  }, [isGuest]);
+  }, [isGuest, isPending]);
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
@@ -98,24 +113,106 @@ export function DashboardHome(): React.JSX.Element {
           <UsersRound className="size-4.5" />
         </span>
         <div>
-          <p className="font-semibold text-[.95rem] text-foreground">For active community members</p>
+          <p className="text-[.95rem] font-semibold text-foreground">
+            {isPending ? 'Your Playtives participation account' : 'For active community members'}
+          </p>
           <p className="mt-0.5 text-[.8rem] leading-5 text-muted-foreground sm:text-[.8rem]">
-            This platform is solely for active community members of Playtives Coowners Tribe
-            <br /> Signed: Playtives Cooperative Multipurpose Society Limited.
+            {isPending
+              ? 'Browse opportunities and complete your KYC while Playtives prepares your participation access. Your portfolio and inner Co-Owners Tribe access unlock after your first confirmed opportunity.'
+              : 'This platform is solely for active community members of Playtives Coowners Tribe (Playtives Cooperative Multipurpose Society Limited).'}
           </p>
         </div>
       </section>
 
       <div className="mt-5 sm:mt-7">
-        <PortfolioSummaryCard
-          walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
-          ownershipBalanceMinorUnits={activeContributionMinorUnits}
-          coOwnedContributionMinorUnits={coOwnedContributionMinorUnits}
-          coFundedContributionMinorUnits={coFundedContributionMinorUnits}
-          fullOwnershipContributionMinorUnits={fullOwnershipContributionMinorUnits}
-          activeOwnershipCount={activeOwnerships.length}
-          isGuest={isGuest}
-        />
+        {isPending ? (
+          <section className="rounded-2xl border border-brand/20 bg-background p-5 shadow-sm sm:p-6">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+                <LockKeyhole className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
+                  Pending member access
+                </p>
+                <h2 className="mt-1 text-lg font-semibold">
+                  {participationApproved
+                    ? 'You are approved to continue'
+                    : 'Request approval before you participate'}
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  {participationApproved
+                    ? 'You can now fund your wallet and continue with an open opportunity. Your account becomes active after participation is confirmed.'
+                    : 'You can browse and complete KYC now. Wallet funding and opportunity participation remain locked until an administrator approves your request.'}
+                </p>
+                {participationApproved ? (
+                  <div className="mt-4 grid gap-2 rounded-xl border border-brand/10 bg-brand/[0.035] p-3 sm:grid-cols-2">
+                    <div className="rounded-lg bg-background px-3 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        Available wallet balance
+                      </p>
+                      <div className="mt-1 font-sans text-xl font-semibold tracking-tight text-foreground">
+                        <BalanceAmount
+                          value={
+                            wallet
+                              ? formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)
+                              : 'Loading…'
+                          }
+                          toggle={wallet !== null}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                        Funds ready for your first co-ownership or co-funding opportunity.
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-background px-3 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        Deposits awaiting approval
+                      </p>
+                      <div className="mt-1 font-sans text-xl font-semibold tracking-tight text-foreground">
+                        <BalanceAmount
+                          value={
+                            wallet
+                              ? formatNaira(wallet.deposit.pendingBalanceMinorUnits / 100)
+                              : 'Loading…'
+                          }
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                        Approved deposits automatically move into your available balance.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    href={participationApproved ? '/wallet/deposit' : '/access-request'}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-xs font-semibold text-white"
+                  >
+                    {participationApproved ? 'Fund wallet' : 'Request access'}{' '}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link
+                    href="/discover"
+                    className="inline-flex h-10 items-center rounded-lg border px-4 text-xs font-semibold"
+                  >
+                    Browse opportunities
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <PortfolioSummaryCard
+            walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
+            ownershipBalanceMinorUnits={activeContributionMinorUnits}
+            coOwnedContributionMinorUnits={coOwnedContributionMinorUnits}
+            coFundedContributionMinorUnits={coFundedContributionMinorUnits}
+            fullOwnershipContributionMinorUnits={fullOwnershipContributionMinorUnits}
+            activeOwnershipCount={activeOwnerships.length}
+            isGuest={isGuest}
+          />
+        )}
       </div>
 
       {!isGuest ? (
@@ -158,19 +255,23 @@ export function DashboardHome(): React.JSX.Element {
               <WhatsAppIcon className="size-5" />
             </span>
             <div>
-              <h2 className="mt-1 text-sm font-semibold">Join us on WhatsApp</h2>
+              <h2 className="mt-1 text-sm font-semibold">
+                {isPending ? 'Join the Playtives community' : 'Join the Playtives Co-Owners Tribe'}
+              </h2>
               <p className="w-[70%] text-xs leading-5 text-muted-foreground">
-                Receive helpful ownership updates and connect with the Playtives community.
+                {isPending
+                  ? 'Learn with the wider Playtives community while you prepare for your first opportunity.'
+                  : 'Connect with active co-owners and receive ownership updates.'}
               </p>
             </div>
           </div>
           <a
-            href={whatsappCommunityUrl}
+            href={communityDestination}
             target="_blank"
             rel="noreferrer"
             className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#22c967] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#1cad59]"
           >
-            Join community
+            {isPending ? 'Join community' : 'Join inner tribe'}
             <ArrowUpRight className="size-3.5" />
           </a>
         </div>

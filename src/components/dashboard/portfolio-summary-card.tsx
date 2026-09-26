@@ -173,25 +173,49 @@ export function PortfolioSummaryCard({
               </button>
             </header>
 
-            <p className="mt-4 text-center text-xs text-muted-foreground">Swipe to compare your portfolio views</p>
-            <div className="mt-2 flex items-center justify-center gap-2" aria-label="Portfolio breakdown views">
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Swipe to compare your portfolio views
+            </p>
+            <div
+              className="mt-2 flex items-center justify-center gap-2"
+              aria-label="Portfolio breakdown views"
+            >
               {['Donut breakdown', 'Pie breakdown'].map((label, index) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => breakdownViewsRef.current?.scrollTo({ left: index * breakdownViewsRef.current.clientWidth, behavior: 'smooth' })}
+                  onClick={() =>
+                    breakdownViewsRef.current?.scrollTo({
+                      left: index * breakdownViewsRef.current.clientWidth,
+                      behavior: 'smooth',
+                    })
+                  }
                   className={`h-2 rounded-full transition ${breakdownView === index ? 'w-5 bg-brand' : 'w-2 bg-muted-foreground/35 hover:bg-muted-foreground/60'}`}
                   aria-label={`Show ${label}`}
                   aria-current={breakdownView === index ? 'true' : undefined}
                 />
               ))}
             </div>
-            <div ref={breakdownViewsRef} onScroll={(event) => setBreakdownView(event.currentTarget.scrollLeft >= event.currentTarget.clientWidth / 2 ? 1 : 0)} className="scrollbar-none mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2">
+            <div
+              ref={breakdownViewsRef}
+              onScroll={(event) =>
+                setBreakdownView(
+                  event.currentTarget.scrollLeft >= event.currentTarget.clientWidth / 2 ? 1 : 0,
+                )
+              }
+              className="scrollbar-none mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2"
+            >
               <div className="w-full shrink-0 snap-center">
                 <PortfolioDonutChart segments={breakdownSegments} value={portfolioBalance} />
                 <div className="mt-8 overflow-hidden rounded-xl border bg-background">
                   {breakdownSegments.map((segment) => (
-                    <BreakdownRow key={segment.label} color={segment.colorClassName} label={segment.label} value={segment.value} percentage={segment.percentage} />
+                    <BreakdownRow
+                      key={segment.label}
+                      color={segment.colorClassName}
+                      label={segment.label}
+                      value={segment.value}
+                      percentage={segment.percentage}
+                    />
                   ))}
                 </div>
               </div>
@@ -199,11 +223,20 @@ export function PortfolioSummaryCard({
                 <PortfolioPieChart segments={breakdownSegments} />
                 <div className="mt-5 text-center">
                   <p className="text-xs text-muted-foreground">Total balance</p>
-                  <BalanceAmount value={portfolioBalance} toggle className="mt-1 justify-center text-lg font-bold sm:text-xl" />
+                  <BalanceAmount
+                    value={portfolioBalance}
+                    toggle
+                    className="mt-1 justify-center text-lg font-bold sm:text-xl"
+                  />
                 </div>
                 <div className="mt-8 overflow-hidden rounded-xl border bg-background">
                   {breakdownSegments.map((segment) => (
-                    <BreakdownRow key={segment.label} color={segment.colorClassName} label={segment.label} value={segment.value} />
+                    <BreakdownRow
+                      key={segment.label}
+                      color={segment.colorClassName}
+                      label={segment.label}
+                      value={segment.value}
+                    />
                   ))}
                 </div>
               </div>
@@ -233,7 +266,11 @@ function BreakdownRow({
         <span className="truncate text-sm font-medium text-foreground">{label}</span>
       </div>
       <BalanceAmount value={value} className="shrink-0 text-sm font-semibold" />
-      {percentage !== undefined ? <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{formatPiePercentage(percentage)}</span> : null}
+      {percentage !== undefined ? (
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          {formatPiePercentage(percentage)}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -246,27 +283,42 @@ type PortfolioSegment = {
   colorClassName: string;
 };
 
-function PortfolioDonutChart({ segments, value }: Readonly<{ segments: PortfolioSegment[]; value: string }>): React.JSX.Element {
+function PortfolioDonutChart({
+  segments,
+  value,
+}: Readonly<{ segments: PortfolioSegment[]; value: string }>): React.JSX.Element {
   const visibleSegments = segments.filter((segment) => segment.percentage > 0);
-  const stops = visibleSegments.reduce<{ angle: number; values: string[] }>((result, segment) => {
-    const nextAngle = result.angle + segment.percentage * 3.6;
-    result.values.push(`${segment.color} ${result.angle}deg ${nextAngle}deg`);
-    result.angle = nextAngle;
-    return result;
-  }, { angle: 0, values: [] });
+  const stops = visibleSegments.reduce<{ angle: number; values: string[] }>(
+    (result, segment) => {
+      const nextAngle = result.angle + segment.percentage * 3.6;
+      result.values.push(`${segment.color} ${result.angle}deg ${nextAngle}deg`);
+      result.angle = nextAngle;
+      return result;
+    },
+    { angle: 0, values: [] },
+  );
   const background = stops.values.length ? `conic-gradient(${stops.values.join(', ')})` : '#a78bfa';
 
   return (
-    <div className="mx-auto mt-6 grid size-56 place-items-center rounded-full p-5 sm:size-60" style={{ background }}>
+    <div
+      className="mx-auto mt-6 grid size-56 place-items-center rounded-full p-5 sm:size-60"
+      style={{ background }}
+    >
       <div className="flex size-full flex-col items-center justify-center rounded-full bg-background px-3 text-center">
         <span className="text-xs text-muted-foreground">Total balance</span>
-        <BalanceAmount value={value} toggle className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base" />
+        <BalanceAmount
+          value={value}
+          toggle
+          className="mt-1 max-w-[11.5rem] justify-center text-sm font-bold sm:text-base"
+        />
       </div>
     </div>
   );
 }
 
-function PortfolioPieChart({ segments }: Readonly<{ segments: PortfolioSegment[] }>): React.JSX.Element {
+function PortfolioPieChart({
+  segments,
+}: Readonly<{ segments: PortfolioSegment[] }>): React.JSX.Element {
   const visibleSegments = segments.filter((segment) => segment.percentage > 0);
   const displaySegments = getDisplaySegments(visibleSegments);
   let startAngle = -90;
@@ -308,7 +360,15 @@ function PortfolioPieChart({ segments }: Readonly<{ segments: PortfolioSegment[]
         })
       )}
       {displaySegments.length === 1 && displaySegments[0].percentage >= 3 ? (
-        <text x="50" y="50" fill="white" fontSize="6" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
+        <text
+          x="50"
+          y="50"
+          fill="white"
+          fontSize="6"
+          fontWeight="700"
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
           {formatPiePercentage(displaySegments[0].percentage)}
         </text>
       ) : null}
@@ -316,13 +376,16 @@ function PortfolioPieChart({ segments }: Readonly<{ segments: PortfolioSegment[]
   );
 }
 
-function getDisplaySegments(segments: PortfolioSegment[]): Array<PortfolioSegment & { displayPercentage: number }> {
+function getDisplaySegments(
+  segments: PortfolioSegment[],
+): Array<PortfolioSegment & { displayPercentage: number }> {
   const minimumVisiblePercentage = 1;
   const adjustedSegments = segments.map((segment) => ({
     ...segment,
     displayPercentage: Math.max(segment.percentage, minimumVisiblePercentage),
   }));
-  const excess = adjustedSegments.reduce((total, segment) => total + segment.displayPercentage, 0) - 100;
+  const excess =
+    adjustedSegments.reduce((total, segment) => total + segment.displayPercentage, 0) - 100;
 
   if (excess <= 0) return adjustedSegments;
 

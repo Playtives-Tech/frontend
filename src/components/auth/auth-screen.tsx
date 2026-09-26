@@ -13,10 +13,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ComponentProps, type FormEvent, useState } from 'react';
+import { type ComponentProps, type FormEvent, useEffect, useState } from 'react';
 import { ApiError } from '@/lib/api';
 import { notify } from '@/lib/notify';
-import { login, register, resendVerification } from '@/lib/services/registration-service';
+import {
+  login,
+  register,
+  reserveMemberCode,
+  resendVerification,
+} from '@/lib/services/registration-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 
@@ -26,17 +31,53 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
   const router = useRouter();
   const signIn = useAuthStore((state) => state.signIn);
   const [name, setName] = useState('');
-  const [memberCode, setMemberCode] = useState('');
   const [email, setEmail] = useState('');
+  const [memberCode, setMemberCode] = useState('');
+  const [isGeneratingMemberCode, setIsGeneratingMemberCode] = useState(false);
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
   const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [pendingRegistration, setPendingRegistration] = useState<{
+    email: string;
+    memberCode: string;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const isSignUp = mode === 'sign-up';
+
+  useEffect(() => {
+    if (!isSignUp && new URLSearchParams(window.location.search).get('community') === '1')
+      router.replace('/community-membership');
+  }, [isSignUp, router]);
+
+  useEffect(() => {
+    if (!isSignUp || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setMemberCode('');
+      setIsGeneratingMemberCode(false);
+      return;
+    }
+    let cancelled = false;
+    setMemberCode('');
+    setIsGeneratingMemberCode(true);
+    const timer = window.setTimeout(() => {
+      void reserveMemberCode(email.trim())
+        .then((result) => {
+          if (!cancelled) setMemberCode(result.memberCode);
+        })
+        .catch(() => {
+          if (!cancelled) setMemberCode('');
+        })
+        .finally(() => {
+          if (!cancelled) setIsGeneratingMemberCode(false);
+        });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [email, isSignUp]);
 
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -50,7 +91,6 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
       setIsSubmitting(true);
       try {
         const response = await register({
-          memberCode: memberCode.trim().toUpperCase(),
           name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
@@ -58,7 +98,10 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           gender: gender as 'female' | 'male' | 'non_binary' | 'prefer_not_to_say',
           password,
         });
-        setPendingEmail(response.user.email);
+        setPendingRegistration({
+          email: response.user.email,
+          memberCode: response.user.memberCode,
+        });
         notify.success('Account created', { description: 'Check your email to verify it.' });
       } catch (error: unknown) {
         notify.error(error instanceof ApiError ? error.message : 'Could not create your account');
@@ -71,6 +114,13 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
     setIsSubmitting(true);
     try {
       const response = await login(email.trim(), password);
+      if (
+        response.user.memberStatus === 'community' &&
+        response.user.memberIntent === 'LEARN_FIRST'
+      ) {
+        router.replace('/community-membership');
+        return;
+      }
       signIn(
         {
           id: response.user.id,
@@ -80,13 +130,20 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           country: response.user.country,
           gender: response.user.gender,
           memberCode: response.user.memberCode,
+          memberStatus: response.user.memberStatus,
+          memberIntent: response.user.memberIntent,
+          participationAccessApproved: response.user.participationAccessApproved,
         },
         response.accessToken,
       );
       notify.success(`Welcome back, ${response.user.name.split(' ')[0]}`, {
         description: 'Your dashboard is ready.',
       });
-      router.replace('/');
+      router.replace(
+        response.user.memberStatus === 'community' && !response.user.memberIntent
+          ? '/welcome'
+          : '/',
+      );
     } catch (error: unknown) {
       notify.error(error instanceof ApiError ? error.message : 'Could not sign in');
     } finally {
@@ -94,7 +151,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
     }
   }
 
-  if (pendingEmail)
+  if (pendingRegistration)
     return (
       <AuthFrame>
         <div className="w-full max-w-md rounded-3xl border bg-background p-6 text-center shadow-sm sm:p-8">
@@ -104,16 +161,27 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           <h1 className="mt-5 font-sans text-3xl font-semibold">Check your email</h1>
           <p className="mx-auto mt-3 max-w-sm text-muted-foreground">
             We sent a verification link to{' '}
-            <strong className="text-foreground">{pendingEmail}</strong>. Open it to finish creating
-            your account.
+            <strong className="text-foreground">{pendingRegistration.email}</strong>. Open it to
+            finish creating your account.
           </p>
+          <div className="mt-5 rounded-2xl border border-brand/20 bg-brand/[0.045] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand">
+              Your member code
+            </p>
+            <p className="mt-1 font-mono text-lg font-bold tracking-wider text-foreground">
+              {pendingRegistration.memberCode}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              This code is generated by Playtives and cannot be edited.
+            </p>
+          </div>
           <div className="mt-7 grid gap-3">
             <button
               type="button"
               disabled={isResending}
               onClick={() => {
                 setIsResending(true);
-                void resendVerification(pendingEmail)
+                void resendVerification(pendingRegistration.email)
                   .then(() => notify.success('A new verification link has been sent'))
                   .catch((error: unknown) =>
                     notify.error(
@@ -162,23 +230,6 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           onSubmit={submit}
           className={`mt-8 grid items-start gap-4 text-left ${isSignUp ? 'sm:grid-cols-2' : ''}`}
         >
-          {isSignUp ? (
-            <div>
-              <FloatingField
-                id="member-code"
-                label="Member code"
-                value={memberCode}
-                onChange={(event) => setMemberCode(event.target.value.toUpperCase())}
-                autoComplete="off"
-                required
-                pattern="PLY-[0-9]{3,}-[A-Z0-9]{3}"
-              />
-              <p className="mt-1.5 px-1 text-[11px] leading-4 text-muted-foreground">
-                A Playtives-issued member code is required. Contact the Playtives team to receive
-                yours before registering.
-              </p>
-            </div>
-          ) : null}
           <FloatingField
             id="email"
             label="Email address"
@@ -201,15 +252,40 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           ) : null}
 
           {isSignUp ? (
-            <FloatingField
-              id="phone"
-              label="Phone number"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              autoComplete="tel"
-              required
-              type="tel"
-            />
+            <div>
+              <FloatingField
+                id="member-code"
+                label="Member code"
+                value={
+                  memberCode ||
+                  (isGeneratingMemberCode ? 'Generating your code…' : 'Enter your email first')
+                }
+                readOnly
+                aria-readonly="true"
+                className="cursor-not-allowed bg-muted/45 font-mono font-semibold tracking-wide text-brand"
+              />
+              <p className="mt-1.5 px-1 text-[11px] leading-4 text-muted-foreground">
+                Generated automatically by Playtives and cannot be edited.
+              </p>
+            </div>
+          ) : null}
+
+          {isSignUp ? (
+            <div>
+              <FloatingField
+                id="phone"
+                label="Phone number"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                autoComplete="tel"
+                required
+                type="tel"
+              />
+              <p className="mt-1.5 px-1 text-[11px] leading-4 text-muted-foreground">
+                We recommend using your WhatsApp number so you can receive important community and
+                account updates.
+              </p>
+            </div>
           ) : null}
 
           {isSignUp ? (

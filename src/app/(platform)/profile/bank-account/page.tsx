@@ -158,24 +158,30 @@ export default function BankAccountPage(): React.JSX.Element {
                     />
                   </span>
                   <span className="mt-2 block max-h-52 overflow-y-auto" role="listbox">
-                    {filteredBanks.length ? filteredBanks.map((bank) => (
-                      <button
-                        key={bank.id}
-                        type="button"
-                        role="option"
-                        aria-selected={bank.code === bankCode}
-                        onClick={() => {
-                          setBankCode(bank.code);
-                          setBankQuery('');
-                          setBankPickerOpen(false);
-                          setResolved(null);
-                          setError(null);
-                        }}
-                        className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal transition hover:bg-muted"
-                      >
-                        {bank.name}
-                      </button>
-                    )) : <span className="block px-3 py-4 text-center text-xs font-normal text-muted-foreground">No banks match your search.</span>}
+                    {filteredBanks.length ? (
+                      filteredBanks.map((bank) => (
+                        <button
+                          key={bank.id}
+                          type="button"
+                          role="option"
+                          aria-selected={bank.code === bankCode}
+                          onClick={() => {
+                            setBankCode(bank.code);
+                            setBankQuery('');
+                            setBankPickerOpen(false);
+                            setResolved(null);
+                            setError(null);
+                          }}
+                          className="block w-full rounded-md px-3 py-2 text-left text-sm font-normal transition hover:bg-muted"
+                        >
+                          {bank.name}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="block px-3 py-4 text-center text-xs font-normal text-muted-foreground">
+                        No banks match your search.
+                      </span>
+                    )}
                   </span>
                 </span>
               ) : null}
@@ -271,15 +277,17 @@ export default function BankAccountPage(): React.JSX.Element {
                     loadingLabel="Linking account"
                     icon={<CheckCircle2 className="size-4" />}
                   >
-                    {resolved.nameMatchPercentage < 85 ? 'Confirm & Link Account' : 'Link this account'}
+                    {resolved.nameMatchPercentage < 85
+                      ? 'Confirm & Link Account'
+                      : 'Link this account'}
                   </ButtonLoadingContent>
                 </button>
               </>
             ) : (
               <>
                 <p className="mt-4 text-sm font-medium text-red-700 dark:text-red-300">
-                  This name has a {resolved.nameMatchPercentage}% match with your registered name,
-                  {' '}{user?.name}. A minimum 50% match is required to link this account.
+                  This name has a {resolved.nameMatchPercentage}% match with your registered name,{' '}
+                  {user?.name}. A minimum 50% match is required to link this account.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   If this is your account, please contact support to review your profile name before

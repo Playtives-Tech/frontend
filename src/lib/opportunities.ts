@@ -91,22 +91,67 @@ export function getOpportunities(): Promise<Opportunity[]> {
 }
 
 export function getOpportunity(slug: string): Promise<Opportunity> {
-  return api<Opportunity>(
-    `/v1/opportunities/${encodeURIComponent(slug)}?fresh=${Date.now()}`,
-    { cache: 'no-store' },
-  );
+  return api<Opportunity>(`/v1/opportunities/${encodeURIComponent(slug)}?fresh=${Date.now()}`, {
+    cache: 'no-store',
+  });
 }
 
-export type OpportunityInterest = Readonly<{ _id: string; openingCapital: number; recurringAmount: number | null; recurringFrequency: 'monthly' | null; capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure'; status: string; acknowledgementVersion: string; createdAt: string; updatedAt: string }>;
-export type InterestProgress = Readonly<{ totalCommitted: number; targetAmount: number; memberCount: number; totalMonthlyCommitment: number }>;
+export type OpportunityInterest = Readonly<{
+  _id: string;
+  openingCapital: number;
+  recurringAmount: number | null;
+  recurringFrequency: 'monthly' | null;
+  capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure';
+  status: string;
+  acknowledgementVersion: string;
+  createdAt: string;
+  updatedAt: string;
+}>;
+export type InterestProgress = Readonly<{
+  totalCommitted: number;
+  targetAmount: number;
+  memberCount: number;
+  totalMonthlyCommitment: number;
+}>;
 export type RecentInterestActivity = Readonly<{ id: string; name: string; joinedAt: string }>;
 export const opportunityInterestService = {
-  mine: (slug: string) => api<OpportunityInterest | null>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/me`, { cache: 'no-store' }),
-  progress: (slug: string) => api<InterestProgress>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/progress`, { cache: 'no-store' }),
-  recent: (slug: string) => api<RecentInterestActivity[]>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/recent`, { cache: 'no-store' }),
-  save: (slug: string, input: { openingCapital: number; recurringAmount?: number; capitalReadiness: OpportunityInterest['capitalReadiness']; acknowledgementVersion: string }) => api<OpportunityInterest>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, { method: 'POST', body: JSON.stringify(input) }),
-  remove: (slug: string) => api<{ deleted: true }>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, { method: 'DELETE' }),
-  listMine: () => api<Array<OpportunityInterest & { opportunityId: Pick<Opportunity, 'title' | 'slug' | 'imageUrl' | 'imageAlt'> }>>('/v1/member/opportunity-interests', { cache: 'no-store' }),
+  mine: (slug: string) =>
+    api<OpportunityInterest | null>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/me`, {
+      cache: 'no-store',
+    }),
+  progress: (slug: string) =>
+    api<InterestProgress>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/progress`, {
+      cache: 'no-store',
+    }),
+  recent: (slug: string) =>
+    api<RecentInterestActivity[]>(`/v1/opportunities/${encodeURIComponent(slug)}/interest/recent`, {
+      cache: 'no-store',
+    }),
+  save: (
+    slug: string,
+    input: {
+      openingCapital: number;
+      recurringAmount?: number;
+      capitalReadiness: OpportunityInterest['capitalReadiness'];
+      acknowledgementVersion: string;
+    },
+  ) =>
+    api<OpportunityInterest>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  remove: (slug: string) =>
+    api<{ deleted: true }>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, {
+      method: 'DELETE',
+    }),
+  listMine: () =>
+    api<
+      Array<
+        OpportunityInterest & {
+          opportunityId: Pick<Opportunity, 'title' | 'slug' | 'imageUrl' | 'imageAlt'>;
+        }
+      >
+    >('/v1/member/opportunity-interests', { cache: 'no-store' }),
 };
 
 export function subscribeToOpportunityChanges(

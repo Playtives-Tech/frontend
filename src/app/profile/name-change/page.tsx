@@ -26,7 +26,9 @@ export default function NameChangePage(): React.JSX.Element {
       await completeNameChange(token, fullName);
       setComplete(true);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Could not update your name.');
+      setError(
+        requestError instanceof Error ? requestError.message : 'Could not update your name.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -44,7 +46,10 @@ export default function NameChangePage(): React.JSX.Element {
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Sign in again to refresh your Playtives profile.
             </p>
-            <Link href="/sign-in" className="mt-6 inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white">
+            <Link
+              href="/sign-in"
+              className="mt-6 inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white"
+            >
               Go to sign in
             </Link>
           </div>
@@ -58,7 +63,9 @@ export default function NameChangePage(): React.JSX.Element {
               This secure link was sent after your request was reviewed by Playtives support.
             </p>
             <form className="mt-6" onSubmit={(event) => void submit(event)}>
-              <label htmlFor="full-name" className="text-xs font-semibold">Full name</label>
+              <label htmlFor="full-name" className="text-xs font-semibold">
+                Full name
+              </label>
               <input
                 id="full-name"
                 value={name}
@@ -69,7 +76,10 @@ export default function NameChangePage(): React.JSX.Element {
                 placeholder="Enter your correct full name"
               />
               {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
-              <button disabled={isSubmitting || !token} className="mt-5 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white disabled:opacity-60">
+              <button
+                disabled={isSubmitting || !token}
+                className="mt-5 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white disabled:opacity-60"
+              >
                 {isSubmitting ? 'Updating name…' : 'Update full name'}
               </button>
             </form>

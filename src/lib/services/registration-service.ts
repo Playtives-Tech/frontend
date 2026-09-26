@@ -2,7 +2,6 @@ import { api } from '@/lib/api';
 import type { WalletSummary } from './wallet-service';
 
 export type RegistrationInput = Readonly<{
-  memberCode: string;
   name: string;
   email: string;
   phone: string;
@@ -19,6 +18,7 @@ export type RegistrationResponse = Readonly<{
     phone: string;
     country: string;
     gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say';
+    memberCode: string;
     emailVerified: false;
   }>;
   message: string;
@@ -28,6 +28,13 @@ export function register(input: RegistrationInput): Promise<RegistrationResponse
   return api<RegistrationResponse>('/v1/auth/register', {
     method: 'POST',
     body: JSON.stringify(input),
+  });
+}
+
+export function reserveMemberCode(email: string): Promise<{ memberCode: string }> {
+  return api('/v1/auth/member-code/reserve', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   });
 }
 
@@ -74,6 +81,9 @@ export function login(
     country: string | null;
     gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
     memberCode: string | null;
+    memberStatus: 'community' | 'pending' | 'active';
+    memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE' | 'ALREADY_COMMITTED_OR_PAID' | null;
+    participationAccessApproved: boolean;
   };
   wallet: WalletSummary;
 }> {
@@ -91,6 +101,23 @@ export function getCurrentUser(): Promise<{
   country: string | null;
   gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say' | null;
   memberCode: string | null;
+  memberStatus: 'community' | 'pending' | 'active';
+  memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE' | 'ALREADY_COMMITTED_OR_PAID' | null;
+  participationAccessApproved: boolean;
 }> {
   return api('/v1/auth/me', { cache: 'no-store' });
+}
+
+export function updateMemberIntent(
+  intent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE',
+  communityWhatsappUrl?: string,
+): Promise<{
+  memberStatus: 'community' | 'pending' | 'active';
+  memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE';
+  participationAccessApproved: boolean;
+}> {
+  return api('/v1/auth/member-intent', {
+    method: 'POST',
+    body: JSON.stringify({ intent, communityWhatsappUrl }),
+  });
 }

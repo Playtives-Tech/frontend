@@ -58,7 +58,9 @@ export function PositionSelector({
           </div>
           <div className="rounded-xl bg-surface p-3 sm:p-4">
             <p className="text-sm text-muted-foreground">Availability</p>
-            <p className="mt-2 text-[15px] font-semibold">{Math.round(availablePercentage)}% available</p>
+            <p className="mt-2 text-[15px] font-semibold">
+              {Math.round(availablePercentage)}% available
+            </p>
           </div>
           <div className="rounded-xl bg-surface p-3 sm:p-4">
             <p className="text-sm text-muted-foreground">Term</p>
@@ -83,7 +85,9 @@ export function PositionSelector({
           </div> */}
         </div>
         <div className="mt-6 flex items-center justify-start text-sm">
-          <span className="font-semibold text-brand">{Math.round(availablePercentage)}% of units available</span>
+          <span className="font-semibold text-brand">
+            {Math.round(availablePercentage)}% of units available
+          </span>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
           <div
@@ -131,7 +135,9 @@ export function PositionSelector({
               <TrendingUp className="size-4.5" />
             </span>
             <div>
-              <h2 className="font-sans text-base font-semibold">Choose how to receive monthly profit</h2>
+              <h2 className="font-sans text-base font-semibold">
+                Choose how to receive monthly profit
+              </h2>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Select a monthly cash payout or add approved profit to your contribution for the
                 next calculation.
