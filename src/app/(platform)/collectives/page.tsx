@@ -20,7 +20,7 @@ export default function CollectivesComingSoonPage(): React.JSX.Element {
           </h1>
           <p className="text-white/72 mt-5 max-w-2xl text-sm leading-7 sm:text-base">
             We are preparing a new collective experience for members who want to commit capital,
-            stay consistent, and access opportunities as a community. 
+            stay consistent, and access opportunities as a community
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
