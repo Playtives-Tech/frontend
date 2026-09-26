@@ -13,7 +13,9 @@ type SessionTimeoutOptions = Readonly<{
   onWarning: (remainingSeconds: number) => void;
 }>;
 
-export function useSessionTimeout({ enabled, onInactive, onWarning }: SessionTimeoutOptions): { staySignedIn: () => void } {
+export function useSessionTimeout({ enabled, onInactive, onWarning }: SessionTimeoutOptions): {
+  staySignedIn: () => void;
+} {
   const inactiveHandler = useRef(onInactive);
   const warningHandler = useRef(onWarning);
   const warningShown = useRef(false);
@@ -21,7 +23,9 @@ export function useSessionTimeout({ enabled, onInactive, onWarning }: SessionTim
   useEffect(() => {
     inactiveHandler.current = onInactive;
   }, [onInactive]);
-  useEffect(() => { warningHandler.current = onWarning; }, [onWarning]);
+  useEffect(() => {
+    warningHandler.current = onWarning;
+  }, [onWarning]);
 
   const staySignedIn = (): void => {
     warningShown.current = false;
@@ -55,10 +59,16 @@ export function useSessionTimeout({ enabled, onInactive, onWarning }: SessionTim
       }
     };
     const recordActivity = (): void => {
-      if (!sessionEnded) { warningShown.current = false; markSessionActivity(); }
+      if (!sessionEnded) {
+        warningShown.current = false;
+        markSessionActivity();
+      }
     };
     const handleVisibilityChange = (): void => {
-      if (document.visibilityState === 'visible') { warningShown.current = false; markSessionActivity(); }
+      if (document.visibilityState === 'visible') {
+        warningShown.current = false;
+        markSessionActivity();
+      }
     };
 
     checkForInactivity();

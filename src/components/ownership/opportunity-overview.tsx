@@ -29,6 +29,7 @@ import {
 type OpportunityOverviewProps = Readonly<{
   opportunity: Opportunity;
   onContinue?: () => void;
+  continueLabelOverride?: string;
 }>;
 
 type HighlightDetail = Readonly<{
@@ -40,6 +41,7 @@ type HighlightDetail = Readonly<{
 export function OpportunityOverview({
   opportunity,
   onContinue,
+  continueLabelOverride,
 }: OpportunityOverviewProps): React.JSX.Element {
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [selectedHighlight, setSelectedHighlight] = useState<HighlightDetail | null>(null);
@@ -52,11 +54,11 @@ export function OpportunityOverview({
   const isCoFunded = opportunity.opportunityStructure === 'CO_FUNDING';
   const canContinue = opportunity.availableUnits >= opportunity.minimumUnits;
   const continueLabel =
-    opportunity.availableUnits < opportunity.minimumUnits
+    continueLabelOverride ?? (opportunity.availableUnits < opportunity.minimumUnits
       ? 'Currently unavailable'
       : isCoFunded
         ? 'Co-fund now'
-        : 'Co own now';
+        : 'Co own now');
   const closureNotice = closedOpportunityNotice(opportunity);
   const canExpandSummary = opportunity.summary.trim().length > 140;
 

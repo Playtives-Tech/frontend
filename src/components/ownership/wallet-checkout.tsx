@@ -15,6 +15,8 @@ import {
 import { acquireOpportunity } from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
 import { getVerificationSteps } from '@/lib/services/profile-service';
+import { getCurrentUser } from '@/lib/services/registration-service';
+import { useAuthStore } from '@/stores/use-auth-store';
 import { formatNaira } from './formatters';
 
 type WalletCheckoutProps = Readonly<{
@@ -42,6 +44,7 @@ export function WalletCheckout({
   const [kycVerified, setKycVerified] = useState(false);
   const idempotencyKey = useRef(crypto.randomUUID());
   const router = useRouter();
+  const updateUser = useAuthStore((state) => state.updateUser);
   useEffect(() => {
     void getWallet()
       .then(setWallet)
@@ -68,6 +71,8 @@ export function WalletCheckout({
         idempotencyKey.current,
         rolloverElection,
       );
+      const currentUser = await getCurrentUser();
+      updateUser(currentUser);
       router.replace(`/ownership/${ownership._id}`);
       router.refresh();
     } catch (value) {

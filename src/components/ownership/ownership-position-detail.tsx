@@ -175,9 +175,7 @@ export function OwnershipPositionDetail({
                           Math.min(ownership.maximumAdditionalUnits, value + 1),
                         )
                       }
-                      disabled={
-                        additionalUnits >= ownership.maximumAdditionalUnits || addingUnits
-                      }
+                      disabled={additionalUnits >= ownership.maximumAdditionalUnits || addingUnits}
                       className="grid size-8 place-items-center rounded-lg bg-surface text-brand disabled:opacity-40"
                       aria-label="Increase additional units"
                     >
@@ -345,7 +343,8 @@ export function OwnershipPositionDetail({
                           {distribution.rolledOver ? 'Rolled into contribution' : 'Paid to wallet'}
                         </td>
                         <td className="px-3 py-2.5 font-semibold">
-                          {distribution.status === 'CREDITED' || distribution.status === 'ROLLED_OVER'
+                          {distribution.status === 'CREDITED' ||
+                          distribution.status === 'ROLLED_OVER'
                             ? 'Processed'
                             : distribution.status === 'PENDING_ADMIN'
                               ? 'Awaiting approval'

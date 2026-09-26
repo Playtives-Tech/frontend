@@ -16,7 +16,6 @@ export function VerifyEmailResult({
   const [message, setMessage] = useState(
     token ? 'Verifying your email…' : 'This verification link is incomplete.',
   );
-
   useEffect(() => {
     if (!token) return;
     let active = true;
@@ -48,14 +47,14 @@ export function VerifyEmailResult({
             <Icon className="size-8" />
           )}
         </span>
-        <h1 className="mt-5 font-sans text-3xl font-semibold">
+        <h1 className="mt-5 font-sans text-[1.2rem] font-semibold">
           {state === 'verifying'
             ? 'Verifying email'
             : state === 'verified'
               ? 'Email verified'
               : 'Verification failed'}
         </h1>
-        <p className="mt-3 text-muted-foreground">{message}</p>
+        <p className="mt-2 text-muted-foreground">{message}</p>
         {state !== 'verifying' && (
           <Link
             href="/sign-in"

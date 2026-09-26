@@ -1,6 +1,14 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Eye, Heart, MessageCircle, SendHorizontal, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Eye,
+  Heart,
+  MessageCircle,
+  SendHorizontal,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';
@@ -21,8 +29,11 @@ export function BlogIndex(): React.JSX.Element {
   if (!data)
     return <p className="py-16 text-center text-sm text-muted-foreground">Loading articles…</p>;
   return (
-    <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 mt-5">
-      <Link href="/" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-brand">
+    <section className="mx-auto mt-5 max-w-6xl px-4 pb-12 sm:px-6">
+      <Link
+        href="/"
+        className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-brand"
+      >
         <ArrowLeft className="size-4" />
         Back to home
       </Link>
@@ -66,7 +77,9 @@ function ArticleCard({ post }: Readonly<{ post: BlogPost }>): React.JSX.Element 
         <h2 className="line-clamp-2 text-[15px] font-bold leading-6 group-hover:text-brand">
           {post.title}
         </h2>
-        <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-muted-foreground">{post.excerpt}</p>
+        <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-muted-foreground">
+          {post.excerpt}
+        </p>
         <div className="mt-3 flex items-center justify-between border-t pt-4 text-xs text-muted-foreground">
           <span>
             {shortDate(post.publishedAt)} · {shortTime(post.publishedAt)}
@@ -175,7 +188,7 @@ export function ArticleDetail({ slug }: Readonly<{ slug: string }>): React.JSX.E
   if (!post)
     return <p className="py-16 text-center text-sm text-muted-foreground">Loading article…</p>;
   return (
-    <article className="mx-auto max-w-3xl px-4 pb-12 sm:px-6 mt-5">
+    <article className="mx-auto mt-5 max-w-3xl px-4 pb-12 sm:px-6">
       <Link
         href="/blog"
         className="inline-flex items-center gap-2 text-sm font-semibold text-brand"
@@ -235,10 +248,10 @@ export function ArticleDetail({ slug }: Readonly<{ slug: string }>): React.JSX.E
             placeholder="Share a thoughtful comment"
             className="h-28 w-full rounded-xl border bg-background p-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
-            <button className="mt-3 inline-flex items-center gap-2 rounded-[5px] bg-brand px-4 py-3 text-sm font-semibold text-brand-foreground">
-              Post comment
-              <SendHorizontal className="size-4" />
-            </button>
+          <button className="mt-3 inline-flex items-center gap-2 rounded-[5px] bg-brand px-4 py-3 text-sm font-semibold text-brand-foreground">
+            Post comment
+            <SendHorizontal className="size-4" />
+          </button>
         </form>
         <div className="mt-7 grid gap-3">
           {comments.map((item) => (
@@ -351,20 +364,24 @@ function shortDate(value: string): string {
 }
 
 function shortTime(value: string): string {
-  return formatMeridiem(new Date(value).toLocaleTimeString('en-NG', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }));
+  return formatMeridiem(
+    new Date(value).toLocaleTimeString('en-NG', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }),
+  );
 }
 function longDate(value: string): string {
-  return formatMeridiem(new Date(value).toLocaleString('en-NG', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }));
+  return formatMeridiem(
+    new Date(value).toLocaleString('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }),
+  );
 }
 
 function formatMeridiem(value: string): string {

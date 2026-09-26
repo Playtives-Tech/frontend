@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowRight, LogOut, WalletCards } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -13,11 +12,14 @@ import { getAccessToken, isAccessTokenExpired } from '@/lib/session';
 import { getActivityLogs, type ActivityLog } from '@/lib/services/wallet-service';
 import { PageLoadingState } from '@/components/ui/loading-indicator';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
-import { whatsappCommunityUrl } from '@/lib/community';
+import { whatsappLearningCommunityUrl, whatsappTribeCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { notify } from '@/lib/notify';
 import { useSessionTimeout } from './use-session-timeout';
-import { getMaintenanceStatus, type MaintenanceStatus } from '@/lib/services/platform-settings-service';
+import {
+  getMaintenanceStatus,
+  type MaintenanceStatus,
+} from '@/lib/services/platform-settings-service';
 import { MaintenanceOverlay } from './maintenance-overlay';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
@@ -64,19 +66,38 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const signOut = useAuthStore((state) => state.signOut);
-  const [signOutDialog, setSignOutDialog] = useState<'first' | 'final' | null>(null);
+  const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
   const [inactivitySecondsRemaining, setInactivitySecondsRemaining] = useState<number | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceStatus | null>(null);
+  const [communityPromptOpen, setCommunityPromptOpen] = useState(false);
+  const isCommunity = user?.memberStatus === 'community';
+  const isPending = user?.memberStatus === 'pending';
+  const participationApproved = user?.participationAccessApproved === true;
+  const isWelcomeRoute = pathname === '/welcome';
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
     pathname === '/sign-in' ||
     pathname === '/sign-up' ||
+    pathname === '/community-membership' ||
     pathname === '/verify-email' ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password' ||
     isNameChangeRoute;
   const token = getAccessToken();
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
+  const restrictedPendingRoute =
+    pathname.startsWith('/ownership') ||
+    (pathname.startsWith('/wallet') &&
+      !(participationApproved && pathname.startsWith('/wallet/deposit'))) ||
+    pathname.startsWith('/profile/bank-account') ||
+    pathname.startsWith('/profile/change-password') ||
+    pathname.startsWith('/profile/name-change') ||
+    (!participationApproved && pathname.startsWith('/wallet/deposit'));
+  const suppressParticipationPrompt =
+    isWelcomeRoute ||
+    pathname.startsWith('/access-request') ||
+    pathname.startsWith('/profile/verification') ||
+    (participationApproved && pathname.startsWith('/wallet/deposit'));
   const endInactiveSession = useCallback((): void => {
     setInactivitySecondsRemaining(null);
     signOut();
@@ -124,7 +145,27 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
 
       if (!hasValidSession && user) signOut();
       if (!hasValidSession && !isPublicRoute) router.replace('/sign-in');
-      if (hasValidSession && isPublicRoute && !isNameChangeRoute) router.replace('/');
+      if (hasValidSession && isWelcomeRoute && user?.memberStatus === 'active')
+        router.replace('/');
+      if (hasValidSession && isPublicRoute && !isNameChangeRoute)
+        router.replace(user?.memberStatus === 'community' && !user.memberIntent ? '/welcome' : '/');
+      if (
+        hasValidSession &&
+        !isPublicRoute &&
+        !isWelcomeRoute &&
+        user?.memberStatus === 'community' &&
+        !user.memberIntent
+      )
+        router.replace('/welcome');
+      if (
+        hasValidSession &&
+        !isPublicRoute &&
+        user?.memberStatus === 'community' &&
+        user.memberIntent === 'LEARN_FIRST'
+      ) {
+        signOut();
+        window.location.replace('/community-membership');
+      }
     };
 
     if (!hasHydrated) return;
@@ -135,7 +176,37 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       window.clearInterval(timer);
       window.removeEventListener('pageshow', validateSession);
     };
-  }, [hasHydrated, isPublicRoute, router, signOut, user]);
+  }, [hasHydrated, isNameChangeRoute, isPublicRoute, isWelcomeRoute, router, signOut, user]);
+
+  useEffect(() => {
+    if (!hasHydrated || !hasValidSession || !isPending || !restrictedPendingRoute) return;
+    notify.info(
+      participationApproved
+        ? 'This feature unlocks after your first confirmed opportunity.'
+        : 'Request participation access before using this feature.',
+    );
+    router.replace('/');
+  }, [
+    hasHydrated,
+    hasValidSession,
+    isPending,
+    participationApproved,
+    restrictedPendingRoute,
+    router,
+  ]);
+
+  useEffect(() => {
+    if (!hasValidSession || !isPending || participationApproved || suppressParticipationPrompt) {
+      setCommunityPromptOpen(false);
+      return;
+    }
+    const initialTimer = window.setTimeout(() => setCommunityPromptOpen(true), 1200);
+    const timer = window.setInterval(() => setCommunityPromptOpen(true), 10 * 60 * 1000);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
+  }, [hasValidSession, isPending, participationApproved, suppressParticipationPrompt]);
 
   if (!hasHydrated)
     return (
@@ -150,12 +221,8 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   };
 
   const confirmSignOut = (): void => {
-    if (signOutDialog === 'first') {
-      setSignOutDialog('final');
-      return;
-    }
+    setSignOutDialogOpen(false);
     completeSignOut();
-    setSignOutDialog(null);
   };
 
   if (isPublicRoute) {
@@ -171,6 +238,27 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       </div>
     );
 
+  if (isWelcomeRoute) {
+    if (user?.memberStatus === 'active')
+      return <PageLoadingState label="Opening your dashboard" />;
+    return <>{children}</>;
+  }
+
+  if (isCommunity) return <PageLoadingState label="Opening community access" />;
+
+  if (isPending && restrictedPendingRoute)
+    return <PageLoadingState label="Opening your pending member dashboard" />;
+
+  const visibleSidebarItems = isPending
+    ? sidebarNavigationItems.filter((item) => item.href !== '/ownership')
+    : sidebarNavigationItems;
+  const visibleMobileItems = isPending
+    ? navigationItems.filter((item) => item.href !== '/ownership')
+    : navigationItems;
+  const whatsappDestination = isPending
+    ? whatsappLearningCommunityUrl
+    : whatsappTribeCommunityUrl;
+
   return (
     <div className="app-background min-h-dvh">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-emerald-950/30 bg-[radial-gradient(circle_at_8%_9%,rgb(220_170_42_/_0.28),transparent_24%),linear-gradient(160deg,#1a5634_0%,#07523b_42%,#003e2d_100%)] px-5 py-7 text-white lg:flex lg:w-[calc(15rem+5vw)]">
@@ -182,7 +270,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </span>
 
         <nav className="mt-12 grid gap-2" aria-label="Main navigation">
-          {sidebarNavigationItems.map((item) => (
+          {visibleSidebarItems.map((item) => (
             <NavigationLink key={item.href} {...item} inverse />
           ))}
         </nav>
@@ -190,7 +278,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         <div className="mt-auto border-t border-white/15 pt-5">
           <button
             type="button"
-            onClick={() => setSignOutDialog('first')}
+            onClick={() => setSignOutDialogOpen(true)}
             className="flex h-11 w-full items-center gap-3 rounded-xl px-3.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <LogOut className="size-5" />
@@ -206,7 +294,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       <RecentActivityRail userKey={user?.email ?? null} />
 
       <a
-        href={whatsappCommunityUrl}
+        href={whatsappDestination}
         target="_blank"
         rel="noreferrer"
         aria-label="Join the Playtives WhatsApp community"
@@ -217,26 +305,29 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       </a>
 
       <nav className="app-surface fixed inset-x-0 bottom-0 z-20 flex h-[4.75rem] items-center justify-around border-t px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur lg:hidden">
-        {navigationItems.map((item) => (
+        {visibleMobileItems.map((item) => (
           <NavigationLink key={item.href} {...item} compact />
         ))}
       </nav>
 
       <ConfirmModal
-        open={signOutDialog === 'first'}
-        onClose={() => setSignOutDialog(null)}
+        open={signOutDialogOpen}
+        onClose={() => setSignOutDialogOpen(false)}
         onConfirm={confirmSignOut}
         title="Sign out of Playtives?"
         description="You will need to sign in again to access your account."
-        confirmLabel="Continue"
+        confirmLabel="Sign out"
       />
       <ConfirmModal
-        open={signOutDialog === 'final'}
-        onClose={() => setSignOutDialog(null)}
-        onConfirm={confirmSignOut}
-        title="Confirm sign out"
-        description="This is your final confirmation."
-        confirmLabel="Sign out"
+        open={communityPromptOpen}
+        onClose={() => setCommunityPromptOpen(false)}
+        onConfirm={() => {
+          setCommunityPromptOpen(false);
+          router.push('/access-request');
+        }}
+        title="Participation approval required"
+        description="Your pending account can browse opportunities and complete KYC, but wallet funding and participation stay locked until the Playtives team approves your request."
+        confirmLabel="Request access"
       />
       <ConfirmModal
         open={inactivitySecondsRemaining !== null}

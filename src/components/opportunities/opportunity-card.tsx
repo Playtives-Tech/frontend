@@ -68,10 +68,12 @@ function OpportunityCardImage({
         className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${opportunity.acquisitionStatus === 'OPEN' ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
       >
         {opportunity.interestModeEnabled
-          ? opportunity.status === 'INTEREST_OPEN' ? 'INTEREST OPEN' : 'INTEREST CLOSED'
+          ? opportunity.status === 'INTEREST_OPEN'
+            ? 'INTEREST OPEN'
+            : 'INTEREST CLOSED'
           : opportunity.acquisitionStatus === 'OPEN'
-          ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
-          : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${opportunity.acquisitionStatus === 'COMMENCED' ? 'DEAL LIVE' : 'OFFER CLOSED'}`}
+            ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
+            : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${opportunity.acquisitionStatus === 'COMMENCED' ? 'DEAL LIVE' : 'OFFER CLOSED'}`}
       </span>
     </div>
   );
@@ -80,7 +82,9 @@ function OpportunityCardImage({
 function OpportunityCardDetails({
   opportunity,
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
-  const projectedRate = opportunity.interestModeEnabled ? '3% projected' : formatProjectedReturnRate(opportunity);
+  const projectedRate = opportunity.interestModeEnabled
+    ? '3% projected'
+    : formatProjectedReturnRate(opportunity);
   const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
   return (
@@ -101,7 +105,9 @@ function OpportunityCardDetails({
       <div className="line-clamp-1 pt-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
           {projectedRate}{' '}
-          <span className="font-medium text-muted-foreground">{opportunity.interestModeEnabled ? 'monthly · 12-month pool' : 'monthly profit share'}</span>
+          <span className="font-medium text-muted-foreground">
+            {opportunity.interestModeEnabled ? 'monthly · 12-month pool' : 'monthly profit share'}
+          </span>
         </p>
       </div>
     </>

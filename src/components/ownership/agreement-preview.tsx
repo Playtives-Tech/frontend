@@ -32,7 +32,11 @@ export function AgreementPreview({
     <section>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-[16px] font-semibold tracking-tight">Opportunity agreement</h2>
-        {accepted ? <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand"><Check className="size-3.5" /> Accepted</span> : null}
+        {accepted ? (
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand">
+            <Check className="size-3.5" /> Accepted
+          </span>
+        ) : null}
       </div>
       <div className="mt-2 border-l-2 border-brand/25 pl-3 text-sm leading-6 text-muted-foreground">
         {preview.map((line, index) => (
@@ -75,11 +79,25 @@ export function AgreementPreview({
               <MarkdownContent markdown={agreement} />
             </div>
             <footer className="flex shrink-0 items-center justify-between gap-3 border-t px-5 py-3 sm:px-6">
-              {resourceUrl ? <a href={resourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"><Download className="size-4" /> Download copy</a> : <span />}
+              {resourceUrl ? (
+                <a
+                  href={resourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:opacity-75"
+                >
+                  <Download className="size-4" /> Download copy
+                </a>
+              ) : (
+                <span />
+              )}
               {canAccept ? (
                 <button
                   type="button"
-                  onClick={() => { onAccept?.(); setIsOpen(false); }}
+                  onClick={() => {
+                    onAccept?.();
+                    setIsOpen(false);
+                  }}
                   className="h-10 rounded-lg bg-brand px-4 text-xs font-semibold text-brand-foreground transition hover:brightness-110"
                 >
                   {accepted ? 'Agreement accepted' : 'I agree to this agreement'}
@@ -108,7 +126,10 @@ function MarkdownContent({ markdown }: Readonly<{ markdown: string }>): React.JS
           const sizes = { 1: 'text-xl', 2: 'text-lg', 3: 'text-base' } as const;
           const level = heading[1].length as 1 | 2 | 3;
           return (
-            <h3 key={`${value}-${index}`} className={`${sizes[level]} pt-2 font-semibold text-foreground`}>
+            <h3
+              key={`${value}-${index}`}
+              className={`${sizes[level]} pt-2 font-semibold text-foreground`}
+            >
               {inlineMarkdown(heading[2])}
             </h3>
           );
@@ -138,13 +159,24 @@ function MarkdownContent({ markdown }: Readonly<{ markdown: string }>): React.JS
 }
 
 function inlineMarkdown(value: string): React.ReactNode[] {
-  return value.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean).map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={index} className="rounded bg-muted px-1 py-0.5 text-[0.9em] text-foreground">{part.slice(1, -1)}</code>;
-    }
-    return <span key={index}>{part}</span>;
-  });
+  return value
+    .split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+    .filter(Boolean)
+    .map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} className="font-semibold text-foreground">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return (
+          <code key={index} className="rounded bg-muted px-1 py-0.5 text-[0.9em] text-foreground">
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
 }

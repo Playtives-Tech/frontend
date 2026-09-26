@@ -51,14 +51,23 @@ export function PaystackPaymentComplete({ reference }: { reference?: string }): 
   }, [checkPayment, reference]);
 
   const Icon = state === 'credited' ? CheckCircle2 : state === 'failed' ? XCircle : Clock3;
-  const iconClass = state === 'credited' ? 'text-brand' : state === 'failed' ? 'text-destructive' : 'text-amber-600';
+  const iconClass =
+    state === 'credited'
+      ? 'text-brand'
+      : state === 'failed'
+        ? 'text-destructive'
+        : 'text-amber-600';
   return (
     <div className="mx-auto max-w-lg px-5 py-6 sm:px-8">
       <BackButton label="Wallet" />
       <section className="mt-8 rounded-2xl border bg-background p-6 text-center shadow-sm">
         <Icon className={`mx-auto size-12 ${iconClass}`} />
         <h1 className="mt-4 font-sans text-xl font-semibold">
-          {state === 'credited' ? 'Wallet funded successfully' : state === 'failed' ? 'Payment could not be confirmed' : 'Confirming your payment'}
+          {state === 'credited'
+            ? 'Wallet funded successfully'
+            : state === 'failed'
+              ? 'Payment could not be confirmed'
+              : 'Confirming your payment'}
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">{message}</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -72,7 +81,10 @@ export function PaystackPaymentComplete({ reference }: { reference?: string }): 
               {isRetrying ? 'Checking deposit…' : 'Check deposit again'}
             </button>
           ) : null}
-          <Link href="/wallet" className="inline-flex h-10 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground">
+          <Link
+            href="/wallet"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground"
+          >
             View wallet
           </Link>
         </div>

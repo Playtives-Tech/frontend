@@ -38,5 +38,9 @@ export default function OpportunityDetailPage(): React.JSX.Element {
   }, [router, slug]);
   if (error) return <div className="text-destructive mx-auto max-w-5xl p-10 text-sm">{error}</div>;
   if (!opportunity) return <PageLoadingState label="Loading opportunity" />;
-  return opportunity.interestModeEnabled ? <CollectiveInterestFlow opportunity={opportunity} /> : <OwnershipFlow opportunity={opportunity} />;
+  return opportunity.interestModeEnabled ? (
+    <CollectiveInterestFlow opportunity={opportunity} />
+  ) : (
+    <OwnershipFlow opportunity={opportunity} />
+  );
 }
