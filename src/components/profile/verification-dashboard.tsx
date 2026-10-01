@@ -146,14 +146,13 @@ export function VerificationDashboard(): React.JSX.Element {
   }
 
   async function sendOtp(): Promise<void> {
-    const fullPhone = `+234${phone.replace(/^0+/, '')}`;
-    if (!/^\+234[789]\d{9}$/.test(fullPhone)) {
-      notify.error('Enter a valid Nigerian mobile number');
+    if (!/^(?:[789]\d{9}|0[789]\d{9})$/.test(phone)) {
+      notify.error('Enter a valid 10 or 11-digit Nigerian mobile number');
       return;
     }
     setBusy(true);
     try {
-      const result = await sendPhoneCode(fullPhone);
+      const result = await sendPhoneCode(phone);
       setOtpSent(true);
       setResendIn(result.resendAfterSeconds);
       notify.success(result.message);
@@ -171,7 +170,7 @@ export function VerificationDashboard(): React.JSX.Element {
     }
     setBusy(true);
     try {
-      const result = await verifyPhoneCode(`+234${phone.replace(/^0+/, '')}`, otp);
+      const result = await verifyPhoneCode(phone, otp);
       completeStep('phone');
       setOtp('');
       notify.success(result.message);
@@ -512,17 +511,17 @@ function PhoneForm({
             id="phone"
             value={phone}
             disabled={otpSent}
-            onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, '').slice(0, 10))}
+            onChange={(event) => onPhoneChange(event.target.value.replace(/\D/g, '').slice(0, 11))}
             inputMode="tel"
             autoComplete="tel-national"
-            placeholder="801 234 5678"
+            placeholder="8012345678 or 08012345678"
             className="h-14 w-full rounded-xl border bg-background pl-12 pr-4 font-sans text-sm outline-none transition placeholder:text-muted-foreground/70 hover:border-brand/40 focus:border-brand focus:ring-4 focus:ring-brand/10 disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-75"
           />
         </div>
       </div>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-        Phone verification currently supports Nigerian numbers only. Enter the remaining 10-digit
-        mobile number without the leading zero.
+        Phone verification currently supports Nigerian numbers only. Enter either the 10 digits
+        after +234 or the complete 11-digit number beginning with 0.
       </p>
       {otpSent ? (
         <>
@@ -554,7 +553,7 @@ function PhoneForm({
         </>
       ) : (
         <p className="mt-2 text-xs leading-5 text-muted-foreground">
-          We will send a one-time password to this number through Termii.
+          {/* We will send a one-time password to this number through Termii. */}
         </p>
       )}
       <button

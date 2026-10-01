@@ -101,7 +101,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const endInactiveSession = useCallback((): void => {
     setInactivitySecondsRemaining(null);
     signOut();
-    notify.info('You were signed out after 5 minutes of inactivity.');
+    notify.info('You were signed out after 2 minutes and 30 seconds of inactivity.');
     router.replace('/sign-in');
   }, [router, signOut]);
 
@@ -145,8 +145,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
 
       if (!hasValidSession && user) signOut();
       if (!hasValidSession && !isPublicRoute) router.replace('/sign-in');
-      if (hasValidSession && isWelcomeRoute && user?.memberStatus === 'active')
-        router.replace('/');
+      if (hasValidSession && isWelcomeRoute && user?.memberStatus === 'active') router.replace('/');
       if (hasValidSession && isPublicRoute && !isNameChangeRoute)
         router.replace(user?.memberStatus === 'community' && !user.memberIntent ? '/welcome' : '/');
       if (
@@ -239,8 +238,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     );
 
   if (isWelcomeRoute) {
-    if (user?.memberStatus === 'active')
-      return <PageLoadingState label="Opening your dashboard" />;
+    if (user?.memberStatus === 'active') return <PageLoadingState label="Opening your dashboard" />;
     return <>{children}</>;
   }
 
@@ -255,9 +253,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const visibleMobileItems = isPending
     ? navigationItems.filter((item) => item.href !== '/ownership')
     : navigationItems;
-  const whatsappDestination = isPending
-    ? whatsappLearningCommunityUrl
-    : whatsappTribeCommunityUrl;
+  const whatsappDestination = isPending ? whatsappLearningCommunityUrl : whatsappTribeCommunityUrl;
 
   return (
     <div className="app-background min-h-dvh">
@@ -287,7 +283,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </div>
       </aside>
 
-      <main className="w-full pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+10vw)] lg:w-auto lg:pb-8 lg:pt-0">
+      <main className="w-full min-w-0 pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+10vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
