@@ -84,6 +84,7 @@ export function login(
     memberStatus: 'community' | 'pending' | 'active';
     memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE' | 'ALREADY_COMMITTED_OR_PAID' | null;
     participationAccessApproved: boolean;
+    participationAccessExpiresAt: string | null;
   };
   wallet: WalletSummary;
 }> {
@@ -104,6 +105,7 @@ export function getCurrentUser(): Promise<{
   memberStatus: 'community' | 'pending' | 'active';
   memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE' | 'ALREADY_COMMITTED_OR_PAID' | null;
   participationAccessApproved: boolean;
+  participationAccessExpiresAt: string | null;
 }> {
   return api('/v1/auth/me', { cache: 'no-store' });
 }
@@ -115,6 +117,7 @@ export function updateMemberIntent(
   memberStatus: 'community' | 'pending' | 'active';
   memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE';
   participationAccessApproved: boolean;
+  participationAccessExpiresAt: string | null;
 }> {
   return api('/v1/auth/member-intent', {
     method: 'POST',

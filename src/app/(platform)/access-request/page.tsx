@@ -22,17 +22,29 @@ export default function ParticipationAccessPage(): React.JSX.Element {
     void getParticipationAccess()
       .then((result) => {
         setStatus(result);
-        updateUser({ participationAccessApproved: result.approved });
+        updateUser({
+          participationAccessApproved: result.approved,
+          participationAccessExpiresAt: result.expiresAt,
+        });
       })
       .catch(() => notify.error('Could not load your participation access status'));
   }, [updateUser]);
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
+    if (!message.trim()) {
+      notify.error('Tell us what you are interested in before submitting');
+      return;
+    }
     setSubmitting(true);
     try {
       await requestParticipationAccess(message);
-      setStatus(await getParticipationAccess());
+      const nextStatus = await getParticipationAccess();
+      setStatus(nextStatus);
+      updateUser({
+        participationAccessApproved: nextStatus.approved,
+        participationAccessExpiresAt: nextStatus.expiresAt,
+      });
       setMessage('');
       notify.success('Your request has been sent to Playtives');
     } catch (error) {
@@ -67,7 +79,9 @@ export default function ParticipationAccessPage(): React.JSX.Element {
               <p className="font-semibold">Participation access approved</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 You can now fund your wallet and continue with an open opportunity. Your member
-                status becomes active after your first confirmed participation.
+                status becomes active after your first confirmed participation. Complete it before{' '}
+                {formatParticipationExpiry(status.expiresAt)} or your account will return to
+                community membership.
               </p>
             </div>
           </div>
@@ -92,13 +106,14 @@ export default function ParticipationAccessPage(): React.JSX.Element {
               </div>
             ) : null}
             <label className="text-sm font-semibold" htmlFor="participation-message">
-              Tell us what you are interested in <span className="font-normal text-muted-foreground">(optional)</span>
+              Tell us what you are interested in <span className="text-red-600">*</span>
             </label>
             <textarea
               id="participation-message"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               maxLength={500}
+              required
               rows={4}
               placeholder="For example, I am ready to participate in an open co-ownership opportunity."
               className="mt-2 w-full resize-none rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
@@ -143,4 +158,13 @@ export default function ParticipationAccessPage(): React.JSX.Element {
       </section>
     </div>
   );
+}
+
+function formatParticipationExpiry(value: string | null): string {
+  if (!value) return 'the 48-hour approval window closes';
+  return `${new Intl.DateTimeFormat('en-NG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Africa/Lagos',
+  }).format(new Date(value))} WAT`;
 }

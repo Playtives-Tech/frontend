@@ -133,6 +133,7 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           memberStatus: response.user.memberStatus,
           memberIntent: response.user.memberIntent,
           participationAccessApproved: response.user.participationAccessApproved,
+          participationAccessExpiresAt: response.user.participationAccessExpiresAt,
         },
         response.accessToken,
       );

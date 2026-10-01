@@ -15,6 +15,7 @@ export type CurrentUser = Readonly<{
   memberStatus: 'community' | 'pending' | 'active';
   memberIntent: 'LEARN_FIRST' | 'READY_TO_PARTICIPATE' | 'ALREADY_COMMITTED_OR_PAID' | null;
   participationAccessApproved: boolean;
+  participationAccessExpiresAt: string | null;
 }>;
 type AuthState = Readonly<{ user: CurrentUser | null; hasHydrated: boolean }>;
 type AuthActions = Readonly<{

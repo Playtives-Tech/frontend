@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { getSessionLastActivity, markSessionActivity } from '@/lib/session';
 
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 2.5 * 60 * 1000;
 const WARNING_DURATION_MS = 60 * 1000;
 const CHECK_INTERVAL_MS = 1000;
 

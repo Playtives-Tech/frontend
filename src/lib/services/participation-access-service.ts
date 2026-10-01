@@ -6,6 +6,8 @@ export type ParticipationAccessRequest = Readonly<{
   message: string;
   reviewNote: string | null;
   reviewedAt: string | null;
+  accessExpiresAt: string | null;
+  expiredAt: string | null;
   createdAt: string;
   updatedAt: string;
 }>;
@@ -13,6 +15,7 @@ export type ParticipationAccessRequest = Readonly<{
 export type ParticipationAccessStatus = Readonly<{
   memberStatus: 'community' | 'pending' | 'active';
   approved: boolean;
+  expiresAt: string | null;
   request: ParticipationAccessRequest | null;
 }>;
 
@@ -20,9 +23,9 @@ export function getParticipationAccess(): Promise<ParticipationAccessStatus> {
   return api('/v1/member/participation-access', { cache: 'no-store' });
 }
 
-export function requestParticipationAccess(message?: string): Promise<ParticipationAccessRequest> {
+export function requestParticipationAccess(message: string): Promise<ParticipationAccessRequest> {
   return api('/v1/member/participation-access/requests', {
     method: 'POST',
-    body: JSON.stringify({ message: message?.trim() || undefined }),
+    body: JSON.stringify({ message: message.trim() }),
   });
 }
