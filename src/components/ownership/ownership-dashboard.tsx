@@ -193,7 +193,7 @@ export function OwnershipDashboard(): React.JSX.Element {
           <OwnershipCard key={ownership._id} ownership={ownership} />
         ))}
       </section>
-      {interests.length > 0 ? (
+      {/* {interests.length > 0 ? (
         <section className="mt-10">
           <div>
             <h2 className="text-lg font-semibold">Interests / Coming soon</h2>
@@ -207,7 +207,7 @@ export function OwnershipDashboard(): React.JSX.Element {
             ))}
           </div>
         </section>
-      ) : null}
+      ) : null} */}
     </div>
   );
 }
