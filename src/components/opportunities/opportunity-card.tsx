@@ -6,17 +6,19 @@ import { formatProjectedReturnRate, type Opportunity } from '@/lib/opportunities
 type OpportunityCardProps = Readonly<{
   opportunity: Opportunity;
   variant?: 'default' | 'compact';
+  collective?: boolean;
 }>;
 
 export function OpportunityCard({
   opportunity,
   variant = 'default',
+  collective = false,
 }: OpportunityCardProps): React.JSX.Element {
   if (variant === 'compact') return <CompactOpportunityCard opportunity={opportunity} />;
 
   return (
     <Link
-      href={`/discover/${opportunity.slug}`}
+      href={collective ? `/collectives`: `/discover/${opportunity.slug}`}
       className="group flex h-[13rem] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30"
     >
       <OpportunityCardImage

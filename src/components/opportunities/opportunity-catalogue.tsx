@@ -42,7 +42,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = opportunities.filter(
       (opportunity) =>
-        !opportunity.interestModeEnabled &&
+        // !opportunity.interestModeEnabled &&
         (availability === 'OPEN'
           ? opportunity.acquisitionStatus === 'OPEN'
           : opportunity.acquisitionStatus !== 'OPEN') &&
@@ -112,11 +112,10 @@ export function OpportunityCatalogue(): React.JSX.Element {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-amber-700">
-                <h2 className="font-sans text-[14px] font-semibold sm:text-[18px]">Coming Soon</h2>
+                <h2 className="font-sans text-[14px] font-semibold sm:text-[18px]">JOIN NOW</h2>
               </div>
               <p className="text-[12px] leading-6 text-muted-foreground">
-                Join the pre-launch interest list for upcoming opportunities. No payment is required
-                yet.
+                Join now. Add your funds with others in the collective to build wealth in 12 months.
               </p>
             </div>
             <p className="text-[12px] font-semibold text-muted-foreground">
@@ -125,7 +124,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {interestOpportunities.map((opportunity) => (
-              <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
+              <OpportunityCard key={opportunity.slug} opportunity={opportunity} collective={true} />
             ))}
           </div>
         </section>
@@ -202,7 +201,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
       ) : visibleOpportunities.length > 0 ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibleOpportunities.map((opportunity) => (
-            <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
+            <OpportunityCard key={opportunity.slug} opportunity={opportunity} collective={opportunity.interestModeEnabled && true} />
           ))}
         </div>
       ) : (

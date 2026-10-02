@@ -46,7 +46,7 @@ export default function CollectiveCyclesPage(): React.JSX.Element {
                     </p>
                   </div>
                   <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
-                    {cycle.actualReturnRateBps == null ? 'Pending result' : 'Reconciled'}
+                    {cycle.actualReturnRateBps == null ? 'Awaiting result' : 'Reconciled'}
                   </span>
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3 border-t pt-5 sm:grid-cols-3">
@@ -66,7 +66,7 @@ export default function CollectiveCyclesPage(): React.JSX.Element {
                     <p className="text-xs text-muted-foreground">Profit attributed</p>
                     <p className="mt-1 font-semibold text-brand">
                       {cycle.actualReturnRateBps == null
-                        ? 'Pending'
+                        ? 'Awaiting result'
                         : formatCollectiveMoney(position?.profitMinorUnits ?? 0)}
                     </p>
                   </div>

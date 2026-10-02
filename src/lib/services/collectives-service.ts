@@ -111,6 +111,9 @@ export type CollectiveDashboard = Readonly<{
     accepted: boolean;
     acceptedAt: string | null;
   }> | null;
+  socialProof?: Readonly<{
+    memberCount: number;
+  }>;
 }>;
 
 const key = (): string => crypto.randomUUID();
