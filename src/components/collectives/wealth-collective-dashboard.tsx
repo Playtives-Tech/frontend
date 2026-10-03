@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChartNoAxesCombined,
   Coins,
+  Info,
   Layers3,
   LoaderCircle,
   Pencil,
@@ -23,7 +24,8 @@ import {
   acceptCollectiveAgreement,
   getCollectiveDashboard,
   scheduleCollectiveContribution,
-  setCollectiveMonthlyCommitment,
+  updateCollectiveContributionPlan,
+  type CollectiveContributionPlanInput,
   type CollectiveDashboard,
 } from '@/lib/services/collectives-service';
 import { CollectiveAmountModal, type CollectiveAmountAction } from './collective-amount-modal';
@@ -65,11 +67,17 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
     const interval = window.setInterval(load, 30_000);
     return () => window.clearInterval(interval);
   }, [load]);
-  const submit = async (amountMinorUnits: number): Promise<boolean> => {
+  const submit = async (input: CollectiveContributionPlanInput): Promise<boolean> => {
     if (!data || !action) return false;
     try {
-      await setCollectiveMonthlyCommitment(amountMinorUnits);
-      notify.success('Monthly commitment saved. No funds were deducted.');
+      await updateCollectiveContributionPlan(input);
+      notify.success(
+        input.amountMinorUnits === null
+          ? 'Monthly contribution plan removed.'
+          : input.method === 'AUTOMATIC'
+            ? 'Monthly contribution plan saved. Automatic debits are enabled.'
+            : 'Monthly contribution plan saved. No automatic debit is enabled.',
+      );
       load();
       return true;
     } catch (cause) {
@@ -77,14 +85,18 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
       return false;
     }
   };
-  const submitSchedule = async (amountMinorUnits: number): Promise<boolean> => {
+  const submitSchedule = async (input: {
+    amountMinorUnits: number;
+    monthlyContributionPlan?: CollectiveContributionPlanInput;
+  }): Promise<boolean> => {
     if (!data?.nextDeployment) return false;
     const firstContribution =
       data.contributedMinorUnits === 0 && data.scheduledContributions.length === 0;
     try {
       const contribution = await scheduleCollectiveContribution(
-        amountMinorUnits,
+        input.amountMinorUnits,
         data.nextDeployment,
+        input.monthlyContributionPlan,
       );
       notify.success(
         contribution.status === 'PROCESSED'
@@ -169,7 +181,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
   };
 
   return (
-    <div className="w-full min-w-0 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <div className="w-full min-w-0 px-2 py-4 sm:px-4 sm:py-6 lg:px-8 lg:py-8">
       <div className="mx-auto max-w-6xl space-y-6">
         {showIntroduction ? (
           <div className="space-y-6">
@@ -181,8 +193,9 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 The Playtives Wealth Collective
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/80 sm:text-[.85rem]">
-                Build disciplined wealth through monthly
-                compounding. Commit to a monthly amount for 12 months. Your capital is deployed into commodity trades in multiple cycles. Projected profit compounds monthly.
+                Build disciplined wealth through monthly compounding. Commit to a monthly amount for
+                12 months. Your capital is deployed into commodity trades in multiple cycles.
+                Projected profit compounds monthly.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <button
@@ -235,7 +248,8 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
               </div>
               {projectedMonthlyPercent !== null && compoundedIllustrationPercent !== null && (
                 <p className="mt-5 max-w-5xl text-[.72rem] leading-5 text-muted-foreground">
-                  *{formatPercentage(projectedMonthlyPercent)} monthly is a projected target. ~{compoundedIllustrationPercent.toFixed(1)}% illustrates what{' '}
+                  *{formatPercentage(projectedMonthlyPercent)} monthly is a projected target. ~
+                  {compoundedIllustrationPercent.toFixed(1)}% illustrates what{' '}
                   {formatPercentage(projectedMonthlyPercent)} monthly compounding would produce over
                   12 months if achieved consistently. Actual performance depends on trade results
                   and may be higher or lower.
@@ -308,6 +322,13 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                   <span className="rounded-full bg-amber-300 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-emerald-950">
                     {data.programme?.status === 'ACTIVE' ? 'Active Collective' : 'Coming soon'}
                   </span>
+                  {participatingMemberCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/90">
+                      <Users aria-hidden="true" className="size-3.5" />
+                      {participatingMemberCount.toLocaleString('en-NG')}{' '}
+                      {participatingMemberCount === 1 ? 'member' : 'members'} participating
+                    </span>
+                  )}
                 </div>
                 <h1 className="mt-5 max-w-3xl text-2xl font-semibold leading-tight sm:text-4xl">
                   The Playtives Wealth Collective
@@ -377,7 +398,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
             {view === 'overview' && (
               <div className="flex flex-col gap-6">
                 {data.agreement && (
-                  <section className="bg-card order-7 flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4 sm:p-5">
+                  <section className="bg-card order-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4 sm:p-5">
                     <div className="flex items-start gap-3">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
@@ -407,39 +428,89 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
-                        Your Monthly Commitment
+                        Monthly Contribution Plan
                       </p>
                       {/* <h2 className="mt-1 text-xl font-semibold">Stay consistent</h2> */}
                     </div>
                     <CalendarDays className="size-6 text-brand" />
                   </div>
                   <div className="mt-5 rounded-xl bg-muted/55 p-5">
-                    <p className="text-sm text-muted-foreground">Monthly commitment</p>
+                    <p className="text-sm text-muted-foreground">Planned monthly contribution</p>
                     <p className="mt-1 text-xl font-semibold">
                       {data.wallet.monthlyPlanMinorUnits
                         ? formatCollectiveMoney(data.wallet.monthlyPlanMinorUnits)
                         : 'Not set'}
                     </p>
-                    {data.nextDeployment && (
-                      <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
-                        Next: {data.nextDeployment.windowLabel === '1st' ? 'start-day' : 'halfway'}{' '}
-                        deployment{' '}
-                        <strong className="text-foreground">
-                          {formatCollectiveDeploymentDate(data.nextDeployment.deploymentAt)}
-                        </strong>
-                      </p>
-                    )}
+                    {data.wallet.monthlyPlanMinorUnits ? (
+                      <div className="mt-4 space-y-2 border-t pt-3 text-sm">
+                        <p className="flex flex-wrap justify-between gap-2">
+                          <span className="text-muted-foreground">Method</span>
+                          <strong>
+                            {data.wallet.monthlyPlanMethod === 'AUTOMATIC'
+                              ? 'Automatic from Playtives Wallet'
+                              : 'Manual'}
+                          </strong>
+                        </p>
+                        {data.wallet.monthlyPlanMethod === 'AUTOMATIC' &&
+                          data.wallet.monthlyPlanNextDebitAt && (
+                            <p className="flex flex-wrap justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Next planned contribution
+                              </span>
+                              <strong>
+                                {formatCollectiveDate(data.wallet.monthlyPlanNextDebitAt)}
+                              </strong>
+                            </p>
+                          )}
+                        {data.wallet.monthlyPlanMethod === 'MANUAL' &&
+                          data.wallet.monthlyPlanNextReminderAt && (
+                            <p className="flex flex-wrap justify-between gap-2">
+                              <span className="text-muted-foreground">Next email reminder</span>
+                              <strong>
+                                {formatCollectiveDate(data.wallet.monthlyPlanNextReminderAt)}
+                              </strong>
+                            </p>
+                          )}
+                      </div>
+                    ) : null}
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    A planned monthly contribution only. No automatic debit is made.
+                  {!data.wallet.monthlyPlanMinorUnits && (
+                    <div className="mt-3 rounded-xl border border-brand/25 bg-brand/5 p-3">
+                      <p className="text-sm font-semibold text-brand">
+                        Add a Monthly Contribution Plan
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        You joined before contribution plans were introduced. Setting one is
+                        optional and does not change your existing Collective position.
+                      </p>
+                    </div>
+                  )}
+                  {data.wallet.monthlyPlanLastStatus === 'INSUFFICIENT_FUNDS' && (
+                    <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                      Your last automatic contribution was skipped because your Playtives Wallet
+                      balance was insufficient. No debit was made.
+                    </p>
+                  )}
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    {data.wallet.monthlyPlanMinorUnits
+                      ? 'This is your planned monthly amount, not a fixed obligation. You can contribute more, contribute less, skip a month, or add funds multiple times whenever you choose.'
+                      : 'No monthly plan set. Setting a monthly contribution plan can help you build consistently, but it is optional.'}
                   </p>
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <button
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-2 text-xs font-semibold hover:bg-muted sm:text-sm"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-xs font-semibold text-white sm:text-sm"
+                      onClick={openContributionFlow}
+                      type="button"
+                    >
+                      Add funds <ArrowRight className="size-4" />
+                    </button>
+                    <button
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-7 text-xs font-semibold hover:bg-muted sm:text-sm"
                       onClick={() => setAction('monthlyPlan')}
                       type="button"
                     >
-                      <Pencil className="size-4 shrink-0" /> Set Monthly Commitment
+                      <Pencil className="size-4 shrink-0" />{' '}
+                      {data.wallet.monthlyPlanMinorUnits ? 'Edit plan' : 'Set plan'}
                     </button>
                   </div>
                 </section>
@@ -449,10 +520,10 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
                         Your Collective Position
                       </p>
-                      <h2 className="mt-2 text-lg font-semibold">
+                      <h2 className="mt-3 text-[.9rem] font-semibold">
                         {data.maturity ? 'Final Matured Value' : 'Total Collective Value'}
                       </h2>
-                      <p className="mt-1 text-3xl font-semibold tracking-tight text-brand">
+                      <p className="mt-1 text-2xl font-semibold tracking-tight text-brand">
                         {formatCollectiveMoney(totalCollective)}
                       </p>
                       {activeCapital === 0 && awaitingDeployment > 0 && !data.earlyExit && (
@@ -493,7 +564,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       </>
                     )}
                   </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <CapitalBreakdown
                       label="Capital Contributed"
                       value={formatCollectiveMoney(data.capitalContributedMinorUnits)}
@@ -539,9 +610,13 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       detail="Available to add to your Collective position"
                     />
                   </div>
-                  <div className="mt-4 flex justify-end border-t pt-4">
+                  <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+                    <p className="min-w-0 flex-1 text-[.75rem] leading-4 text-muted-foreground">
+                      Add funds anytime. New funds await the next eligible deployment and become
+                      eligible for actual returns from their deployment date.
+                    </p>
                     <button
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand/90"
+                      className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand/90 sm:w-auto"
                       disabled={
                         !data.nextDeployment || Boolean(data.earlyExit) || Boolean(data.maturity)
                       }
@@ -552,10 +627,6 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       <ArrowRight className="size-4" />
                     </button>
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Add funds anytime during the programme. New funds await the next eligible
-                    deployment and become eligible for actual returns from their deployment date.
-                  </p>
                 </section>
                 <section className="bg-card order-1 rounded-2xl border p-4 sm:p-5">
                   <div>
@@ -673,7 +744,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                     vary.
                   </p>
                 </section>
-                <section className="bg-card order-4 rounded-2xl border p-5 sm:p-7">
+                <section className="bg-card order-5 rounded-2xl border p-5 sm:p-7">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h2 className="text-[1.1rem] font-semibold">Latest activity</h2>
@@ -701,7 +772,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                   )}
                 </section>
                 {data.maturity && (
-                  <section className="order-5 rounded-2xl border border-brand/30 bg-brand/5 p-5">
+                  <section className="order-6 rounded-2xl border border-brand/30 bg-brand/5 p-5">
                     <h2 className="font-semibold">Matured Collective</h2>
                     <p className="mt-2 text-sm">
                       Capital contributed:{' '}
@@ -862,6 +933,9 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
           initialAmountMinorUnits={
             action === 'monthlyPlan' ? data.wallet.monthlyPlanMinorUnits : null
           }
+          initialMethod={data.wallet.monthlyPlanMethod}
+          initialPreferredDebitDay={data.wallet.monthlyPlanPreferredDebitDay}
+          initialPreferredReminderDay={data.wallet.monthlyPlanReminderDay}
           onClose={() => setAction(null)}
           onSubmit={submit}
         />
@@ -1067,7 +1141,7 @@ function collectiveStatusMessage(
   awaitingDeployment: number,
 ): string {
   if (data.earlyExit)
-    return 'Your Early Exit request is awaiting settlement. Your capital is no longer participating.';
+    return `Your Early Exit request is awaiting month-end settlement${data.earlyExit.eligibleSettlementAt ? ` on ${formatCollectiveDate(data.earlyExit.eligibleSettlementAt)}` : ''}. Your capital is no longer participating, and all profit and accrued returns are forfeited.`;
   if (data.maturity)
     return 'Your Collective has matured and the final reconciled value has been settled.';
   if (activeCapital > 0 && awaitingDeployment > 0)
@@ -1088,13 +1162,29 @@ function CapitalBreakdown({
   value: string;
   detail: string;
 }>): React.JSX.Element {
+  const [showDetail, setShowDetail] = useState(false);
   return (
-    <article className="min-w-0 rounded-lg bg-muted/50 p-3">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1.5 break-words text-base font-semibold tracking-tight sm:text-lg">
+    <article className="min-w-0 rounded-lg bg-muted/50 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-xs font-medium leading-5 text-muted-foreground">{label}</p>
+        <button
+          aria-expanded={showDetail}
+          aria-label={`${showDetail ? 'Hide' : 'Show'} information about ${label}`}
+          className="grid size-6 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-brand/10 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+          onClick={() => setShowDetail((visible) => !visible)}
+          type="button"
+        >
+          <Info aria-hidden="true" className="size-3.5" />
+        </button>
+      </div>
+      <p className="mt-1 break-words text-base font-bold tracking-tight sm:text-[1.05rem] lg:text-lg">
         {value}
       </p>
-      <p className="mt-1 text-[.7rem] leading-4 text-muted-foreground">{detail}</p>
+      {showDetail && (
+        <p className="mt-2 border-t border-border/60 pt-2 text-[.7rem] leading-4 text-muted-foreground">
+          {detail}
+        </p>
+      )}
     </article>
   );
 }

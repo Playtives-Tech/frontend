@@ -13,6 +13,7 @@ type PortfolioSummaryCardProps = Readonly<{
   coFundedContributionMinorUnits: number;
   fullOwnershipContributionMinorUnits: number;
   activeOwnershipCount: number;
+  collectiveContributionMinorUnits: number;
   isGuest: boolean;
 }>;
 
@@ -23,6 +24,7 @@ export function PortfolioSummaryCard({
   coFundedContributionMinorUnits,
   fullOwnershipContributionMinorUnits,
   activeOwnershipCount,
+  collectiveContributionMinorUnits,
   isGuest,
 }: PortfolioSummaryCardProps): React.JSX.Element {
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -38,11 +40,14 @@ export function PortfolioSummaryCard({
     portfolioMinorUnits > 0 ? (coFundedContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
   const fullOwnershipPercentage =
     portfolioMinorUnits > 0 ? (fullOwnershipContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
+  const collectivePercentage =
+    portfolioMinorUnits > 0 ? (collectiveContributionMinorUnits / portfolioMinorUnits) * 100 : 0;
   const portfolioBalance = formatNaira(portfolioMinorUnits / 100);
   const walletBalance = formatNaira(walletMinorUnits / 100);
   const coOwnedBalance = formatNaira(coOwnedContributionMinorUnits / 100);
   const coFundedBalance = formatNaira(coFundedContributionMinorUnits / 100);
   const fullOwnershipBalance = formatNaira(fullOwnershipContributionMinorUnits / 100);
+  const collectiveBalance = formatNaira(collectiveContributionMinorUnits / 100);
   const ownershipAction = activeOwnershipCount > 0 ? 'My ownership' : 'Co-own now';
   const ownershipHref = isGuest
     ? '/sign-up'
@@ -50,6 +55,7 @@ export function PortfolioSummaryCard({
       ? '/ownership'
       : '/discover';
   const hasFullOwnership = fullOwnershipContributionMinorUnits > 0;
+  const hasCollective = collectiveContributionMinorUnits > 0;
   const breakdownSegments: PortfolioSegment[] = [
     {
       label: 'Wallet',
@@ -83,6 +89,17 @@ export function PortfolioSummaryCard({
           },
         ]
       : []),
+    ...(hasCollective
+      ? [
+          {
+            label: 'Wealth Collective',
+            value: collectiveBalance,
+            percentage: collectivePercentage,
+            color: '#f2b928',
+            colorClassName: 'bg-amber-400',
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -97,7 +114,7 @@ export function PortfolioSummaryCard({
               <BalanceAmount value={portfolioBalance} toggle />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Your wallet plus active co-funded and co-owned positions.
+              Your wallet plus active ownership and committed Wealth Collective funds.
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
