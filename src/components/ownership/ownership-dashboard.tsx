@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronRight, SlidersHorizontal, Sprout } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -14,11 +14,17 @@ import { BalanceAmount } from '@/components/ui/balance-amount';
 import { formatReturnSchedule } from '@/lib/opportunities';
 import { opportunityInterestService, type OpportunityInterest } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
+import {
+  getCollectiveDashboard,
+  getCollectivePortfolioPosition,
+  type CollectivePortfolioPosition,
+} from '@/lib/services/collectives-service';
 
-type OwnershipTab = 'active' | 'completed';
-type OwnershipStructureFilter = 'ALL' | 'CO_FUNDING' | 'CO_OWNERSHIP';
+type OwnershipTab = 'active' | 'awaiting' | 'completed';
+type OwnershipStructureFilter = 'ALL' | 'CO_FUNDING' | 'CO_OWNERSHIP' | 'COLLECTIVE';
 const tabs = [
   { value: 'active', label: 'Active' },
+  { value: 'awaiting', label: 'Awaiting' },
   { value: 'completed', label: 'Completed' },
 ] as const;
 
@@ -75,10 +81,85 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
   );
 }
 
+function CollectivePositionCard({
+  position,
+}: Readonly<{ position: CollectivePortfolioPosition }>): React.JSX.Element {
+  const statusLabel =
+    position.status === 'COMPLETED'
+      ? 'Collective completed'
+      : position.activeCapitalMinorUnits > 0 && position.awaitingDeploymentMinorUnits > 0
+        ? 'In progress · funds awaiting deployment'
+        : position.status === 'ACTIVE'
+          ? 'In progress'
+          : 'Awaiting deployment';
+  const cycleLabel = position.cycleNumber
+    ? `Month ${position.cycleNumber} of ${position.totalCycles}`
+    : '12-month Collective';
+  const projectedTarget =
+    position.projectedTargetRateBps === null
+      ? null
+      : `~${(position.projectedTargetRateBps / 100).toFixed(2).replace(/\.00$/, '')}% monthly`;
+
+  return (
+    <Link
+      href="/collectives"
+      className="group grid overflow-hidden rounded-2xl border border-brand/20 bg-brand/[0.035] transition-colors hover:border-brand/45 sm:grid-cols-[5rem_1fr_auto] sm:items-center sm:gap-4 sm:px-3 sm:py-2"
+    >
+      <div className="grid aspect-video place-items-center bg-brand/10 text-brand sm:aspect-square sm:rounded-xl">
+        <Sprout className="size-12 stroke-[2.2]" aria-hidden="true" />
+      </div>
+      <div className="px-4 py-3 sm:px-0 sm:py-0">
+        <h2 className="font-sans text-[14px] font-bold">{position.title}</h2>
+        <p className="text-[12px] text-muted-foreground">
+          {cycleLabel} · {statusLabel}
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-xl bg-background px-3 py-2.5">
+            <p className="text-xs font-medium text-muted-foreground">
+              {position.status === 'COMPLETED' ? 'Completed value' : 'Your active contribution'}
+            </p>
+            <p className="mt-0.5 text-sm font-semibold text-foreground">
+              <BalanceAmount
+                value={formatNaira(
+                  (position.status === 'COMPLETED'
+                    ? position.displayValueMinorUnits
+                    : position.activeCapitalMinorUnits) / 100,
+                )}
+              />
+            </p>
+          </div>
+          <div className="rounded-xl bg-background px-3 py-2.5">
+            <p className="text-xs font-medium text-muted-foreground">Awaiting deployment</p>
+            <p className="mt-0.5 text-sm font-semibold text-foreground">
+              <BalanceAmount value={formatNaira(position.awaitingDeploymentMinorUnits / 100)} />
+            </p>
+          </div>
+          <div className="min-w-0 rounded-xl bg-background px-2.5 py-2.5 sm:col-span-2 sm:px-3 lg:col-span-1 lg:px-2.5 xl:px-3">
+            <p className="whitespace-nowrap text-[11px] font-medium text-muted-foreground xl:text-xs">
+              Projected monthly return
+            </p>
+            {projectedTarget ? (
+              <p className="mt-0.5 whitespace-nowrap text-[13px] font-semibold text-brand xl:text-sm">
+                {projectedTarget}
+              </p>
+            ) : (
+              <p className="mt-0.5 text-sm font-semibold text-muted-foreground">Not available</p>
+            )}
+          </div>
+        </div>
+      </div>
+      <ChevronRight className="hidden size-5 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-brand sm:block" />
+    </Link>
+  );
+}
+
 export function OwnershipDashboard(): React.JSX.Element {
   const [tab, setTab] = useState<OwnershipTab>('active');
   const [structureFilter, setStructureFilter] = useState<OwnershipStructureFilter>('ALL');
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
+  const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
+    null,
+  );
   const [interests, setInterests] = useState<
     Array<OpportunityInterest & { opportunityId: { title: string; slug: string } }>
   >([]);
@@ -93,34 +174,56 @@ export function OwnershipDashboard(): React.JSX.Element {
       .listMine()
       .then(setInterests)
       .catch(() => setInterests([]));
+    void getCollectiveDashboard()
+      .then((dashboard) => setCollectivePosition(getCollectivePortfolioPosition(dashboard)))
+      .catch(() => setCollectivePosition(null));
   }, []);
   const active = useMemo(() => ownerships.filter((item) => item.status === 'ACTIVE'), [ownerships]);
   const visible = ownerships.filter(
     (item) =>
+      tab !== 'awaiting' &&
       item.status === tab.toUpperCase() &&
+      structureFilter !== 'COLLECTIVE' &&
       (structureFilter === 'ALL' || ownershipStructure(item) === structureFilter),
   );
-  const activeTotal = active.reduce((total, item) => total + item.amountMinorUnits, 0);
+  const collectiveMatchesTab =
+    collectivePosition !== null &&
+    ((tab === 'completed' && collectivePosition.status === 'COMPLETED') ||
+      (tab === 'active' &&
+        collectivePosition.status !== 'COMPLETED' &&
+        collectivePosition.activeCapitalMinorUnits > 0) ||
+      (tab === 'awaiting' &&
+        collectivePosition.status !== 'COMPLETED' &&
+        collectivePosition.awaitingDeploymentMinorUnits > 0)) &&
+    (structureFilter === 'ALL' || structureFilter === 'COLLECTIVE');
+  const currentCollectiveValue =
+    collectivePosition?.status === 'COMPLETED'
+      ? 0
+      : (collectivePosition?.displayValueMinorUnits ?? 0);
+  const currentTotal =
+    active.reduce((total, item) => total + item.amountMinorUnits, 0) + currentCollectiveValue;
+  const currentPositionCount = active.length + (currentCollectiveValue > 0 ? 1 : 0);
   const activeMonthlyProjection = getTotalMonthlyProjection(active);
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
         <h1 className="sm:text-2.5xl font-sans text-2xl font-semibold tracking-tight">
-          My ownership
+          My portfolio
         </h1>
         <p className="font-sans text-[14px] text-muted-foreground">
-          Co-own/co-fund and share profit monthly
+          Track your active ownership and Wealth Collective positions.
         </p>
       </header>
       <section className="playtives-gold-card mt-6 rounded-2xl p-5 text-white sm:p-6">
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.16em] text-brand-foreground/70">
-          Total active ownership
+          Total portfolio value
         </p>
         <div className="mt-3 font-sans text-2xl font-semibold sm:text-3xl">
-          <BalanceAmount value={formatNaira(activeTotal / 100)} toggle />
+          <BalanceAmount value={formatNaira(currentTotal / 100)} toggle />
         </div>
         <p className="mt-3 text-[13px] text-brand-foreground/75">
-          Across {active.length} active {active.length === 1 ? 'ownership' : 'ownerships'}
+          Across {currentPositionCount} current{' '}
+          {currentPositionCount === 1 ? 'position' : 'positions'}, including committed funds
         </p>
         <div className="mt-4 justify-end border-t border-white/15 pt-4 align-baseline">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-foreground/65">
@@ -164,6 +267,7 @@ export function OwnershipDashboard(): React.JSX.Element {
               <option value="ALL">All</option>
               <option value="CO_FUNDING">Co-funded</option>
               <option value="CO_OWNERSHIP">Co-owned</option>
+              <option value="COLLECTIVE">Wealth Collective</option>
             </select>
             <ChevronDown
               className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -178,17 +282,14 @@ export function OwnershipDashboard(): React.JSX.Element {
             {error}
           </p>
         )}
-        {!error && visible.length === 0 && (
+        {!error && visible.length === 0 && !collectiveMatchesTab && (
           <p className="rounded-2xl border bg-background p-8 text-center text-[13px] text-muted-foreground">
-            No {tab}{' '}
-            {structureFilter === 'ALL'
-              ? ''
-              : structureFilter === 'CO_FUNDING'
-                ? 'co-funded '
-                : 'co-owned '}
-            ownership units yet.
+            No {tab} {portfolioFilterLabel(structureFilter)}portfolio positions yet.
           </p>
         )}
+        {collectiveMatchesTab && collectivePosition ? (
+          <CollectivePositionCard position={collectivePosition} />
+        ) : null}
         {visible.map((ownership) => (
           <OwnershipCard key={ownership._id} ownership={ownership} />
         ))}
@@ -210,6 +311,13 @@ export function OwnershipDashboard(): React.JSX.Element {
       ) : null} */}
     </div>
   );
+}
+
+function portfolioFilterLabel(filter: OwnershipStructureFilter): string {
+  if (filter === 'CO_FUNDING') return 'co-funded ';
+  if (filter === 'CO_OWNERSHIP') return 'co-owned ';
+  if (filter === 'COLLECTIVE') return 'Wealth Collective ';
+  return '';
 }
 
 function getTotalMonthlyProjection(ownerships: Ownership[]): string {

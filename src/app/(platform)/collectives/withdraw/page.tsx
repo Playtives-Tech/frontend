@@ -4,6 +4,7 @@ import { LockKeyhole } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   CollectiveDetailLayout,
+  formatCollectiveDate,
   formatCollectiveMoney,
 } from '@/components/collectives/collective-ui';
 import {
@@ -32,8 +33,10 @@ export default function CollectiveEarlyExitPage(): React.JSX.Element {
   const capital = data?.earlyExit?.capitalMinorUnits ?? data?.capitalContributedMinorUnits ?? 0;
   const forfeitedProfit =
     data?.earlyExit?.forfeitedProfitMinorUnits ?? Math.max(0, data?.profitToDateMinorUnits ?? 0);
+  const eligibleSettlementAt =
+    data?.earlyExit?.eligibleSettlementAt ?? data?.currentCycle?.endsAt ?? null;
   const submit = async (): Promise<void> => {
-    if (!data || !acknowledged || capital <= 0 || !data.programme?.settlementTimeframe) return;
+    if (!data || !acknowledged || capital <= 0 || !eligibleSettlementAt) return;
     setSubmitting(true);
     try {
       await requestCollectiveEarlyExit();
@@ -65,21 +68,23 @@ export default function CollectiveEarlyExitPage(): React.JSX.Element {
               <h2 className="text-lg font-semibold">Leaving before maturity</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Early Exit is a formal request, not a withdrawal. Your position stops earning from
-                the request date. At settlement, your personally contributed capital is returned to
-                your Playtives Wallet; all attributed profit is forfeited.
+                the request date. All profit and accrued returns are permanently forfeited,
+                including confirmed, attributed, pending, estimated, and unreconciled returns. Only
+                your personally contributed capital becomes eligible for return at the end of the
+                current Collective month.
               </p>
             </div>
           </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <Figure label="Your contributed capital" value={capital} />
-            <Figure label="Profit you will forfeit" value={forfeitedProfit} />
+            <Figure label="Recorded profit forfeited" value={forfeitedProfit} />
             <Figure label="Amount due back to you" value={capital} />
             <div className="rounded-xl border p-4">
-              <p className="text-xs text-muted-foreground">Estimated settlement period</p>
+              <p className="text-xs text-muted-foreground">Eligible settlement date</p>
               <p className="mt-2 text-sm font-semibold">
-                {data.earlyExit?.settlementTimeframe ||
-                  data.programme?.settlementTimeframe ||
-                  'Not configured yet'} working days
+                {eligibleSettlementAt
+                  ? formatCollectiveDate(eligibleSettlementAt)
+                  : 'No active Collective month'}
               </p>
             </div>
           </div>
@@ -87,7 +92,7 @@ export default function CollectiveEarlyExitPage(): React.JSX.Element {
             <p className="mt-6 rounded-xl border border-brand/20 bg-brand/5 p-4 text-sm font-medium">
               {data.earlyExit.status === 'COMPLETED'
                 ? 'Early Exit completed. Your capital was returned to your Playtives Wallet.'
-                : 'Early Exit requested. Your position is no longer participating and settlement is pending.'}
+                : `Early Exit requested. Your position is no longer participating, every return is forfeited, and your contributed capital becomes eligible for settlement${eligibleSettlementAt ? ` on ${formatCollectiveDate(eligibleSettlementAt)}` : ' at month end'}.`}
             </p>
           ) : data.maturity ? (
             <p className="mt-6 text-sm text-muted-foreground">
@@ -104,26 +109,24 @@ export default function CollectiveEarlyExitPage(): React.JSX.Element {
                   type="checkbox"
                 />
                 <span>
-                  I understand that by exiting the Collective early, I will forfeit all profit
-                  attributed to my Collective position.
+                  I understand that submitting this Early Exit permanently forfeits all profit and
+                  accrued returns associated with my position. I will receive only my personally
+                  contributed capital, which becomes eligible for settlement at the end of the
+                  current Collective month
+                  {eligibleSettlementAt ? ` on ${formatCollectiveDate(eligibleSettlementAt)}` : ''}.
                 </span>
               </label>
               <button
                 className="mt-5 min-h-11 rounded-xl bg-red-600 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={
-                  !acknowledged ||
-                  submitting ||
-                  capital <= 0 ||
-                  !data.programme?.settlementTimeframe
-                }
+                disabled={!acknowledged || submitting || capital <= 0 || !eligibleSettlementAt}
                 onClick={() => void submit()}
                 type="button"
               >
                 {submitting ? 'Submitting…' : 'Submit Early Exit Request'}
               </button>
-              {!data.programme?.settlementTimeframe && (
+              {!eligibleSettlementAt && (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Requests open when Playtives configures the settlement timeframe.
+                  Early Exit is available only during an active Collective month.
                 </p>
               )}
             </>

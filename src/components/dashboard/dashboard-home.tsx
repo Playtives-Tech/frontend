@@ -29,12 +29,20 @@ import { formatNaira } from '@/components/ownership/formatters';
 import { useEffect, useMemo, useState } from 'react';
 import { blogService, type BlogPost } from '@/lib/services/blog-service';
 import { getCurrentUser } from '@/lib/services/registration-service';
+import {
+  getCollectiveDashboard,
+  getCollectivePortfolioPosition,
+  type CollectivePortfolioPosition,
+} from '@/lib/services/collectives-service';
 
 export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
+    null,
+  );
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [greeting, setGreeting] = useState('Good to see you');
   const isGuest = user === null;
@@ -50,6 +58,7 @@ export function DashboardHome(): React.JSX.Element {
     if (isGuest) {
       setOwnerships([]);
       setWallet(null);
+      setCollectivePosition(null);
       return;
     }
 
@@ -58,6 +67,11 @@ export function DashboardHome(): React.JSX.Element {
       void getOwnerships()
         .then(setOwnerships)
         .catch(() => setOwnerships([]));
+    if (isPending) setCollectivePosition(null);
+    else
+      void getCollectiveDashboard()
+        .then((dashboard) => setCollectivePosition(getCollectivePortfolioPosition(dashboard)))
+        .catch(() => setCollectivePosition(null));
     void getWallet()
       .then(setWallet)
       .catch(() => setWallet(null));
@@ -96,6 +110,10 @@ export function DashboardHome(): React.JSX.Element {
     (total, ownership) => total + ownership.amountMinorUnits,
     0,
   );
+  const currentCollectiveMinorUnits =
+    collectivePosition?.status === 'COMPLETED'
+      ? 0
+      : (collectivePosition?.displayValueMinorUnits ?? 0);
   const coOwnedContributionMinorUnits = activeOwnerships
     .filter((ownership) => ownershipStructure(ownership) === 'CO_OWNERSHIP')
     .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
@@ -251,11 +269,14 @@ export function DashboardHome(): React.JSX.Element {
         ) : (
           <PortfolioSummaryCard
             walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
-            ownershipBalanceMinorUnits={activeContributionMinorUnits}
+            ownershipBalanceMinorUnits={activeContributionMinorUnits + currentCollectiveMinorUnits}
             coOwnedContributionMinorUnits={coOwnedContributionMinorUnits}
             coFundedContributionMinorUnits={coFundedContributionMinorUnits}
             fullOwnershipContributionMinorUnits={fullOwnershipContributionMinorUnits}
-            activeOwnershipCount={activeOwnerships.length}
+            activeOwnershipCount={
+              activeOwnerships.length + (currentCollectiveMinorUnits > 0 ? 1 : 0)
+            }
+            collectiveContributionMinorUnits={currentCollectiveMinorUnits}
             isGuest={isGuest}
           />
         )}

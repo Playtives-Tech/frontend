@@ -3,7 +3,23 @@ import { api } from '@/lib/api';
 export type CollectiveWallet = Readonly<{
   id: string;
   monthlyPlanMinorUnits: number | null;
+  monthlyPlanMethod: 'MANUAL' | 'AUTOMATIC';
+  monthlyPlanPreferredDebitDay: number | null;
+  monthlyPlanNextDebitAt: string | null;
+  monthlyPlanLastAttemptAt: string | null;
+  monthlyPlanLastStatus: 'PROCESSING' | 'SUCCESSFUL' | 'INSUFFICIENT_FUNDS' | 'FAILED' | null;
+  monthlyPlanLastFailureReason: string | null;
+  monthlyPlanReminderDay: number | null;
+  monthlyPlanNextReminderAt: string | null;
+  monthlyPlanLastReminderAt: string | null;
   currency: 'NGN';
+}>;
+export type CollectiveContributionPlanInput = Readonly<{
+  amountMinorUnits: number | null;
+  method: 'MANUAL' | 'AUTOMATIC';
+  preferredDebitDay?: number;
+  automaticDebitAuthorized?: true;
+  preferredReminderDay?: number;
 }>;
 export type CollectiveCycle = Readonly<{
   _id: string;
@@ -97,6 +113,7 @@ export type CollectiveDashboard = Readonly<{
     capitalMinorUnits: number;
     forfeitedProfitMinorUnits: number;
     settlementTimeframe: string;
+    eligibleSettlementAt: string | null;
     requestedAt: string;
     completedAt: string | null;
   }> | null;
@@ -116,6 +133,54 @@ export type CollectiveDashboard = Readonly<{
   }>;
 }>;
 
+export type CollectivePortfolioPosition = Readonly<{
+  title: string;
+  cycleNumber: number | null;
+  totalCycles: number;
+  status: 'AWAITING_DEPLOYMENT' | 'ACTIVE' | 'COMPLETED';
+  activeCapitalMinorUnits: number;
+  awaitingDeploymentMinorUnits: number;
+  profitToDateMinorUnits: number;
+  displayValueMinorUnits: number;
+  projectedTargetRateBps: number | null;
+}>;
+
+export function getCollectivePortfolioPosition(
+  dashboard: CollectiveDashboard,
+): CollectivePortfolioPosition | null {
+  const hasParticipation =
+    dashboard.contributedMinorUnits > 0 ||
+    dashboard.scheduledContributions.length > 0 ||
+    dashboard.maturity !== null;
+
+  if (!hasParticipation || dashboard.earlyExit) return null;
+
+  const latestPosition = [...dashboard.positions]
+    .reverse()
+    .find((position) => position.activeMinorUnits > 0 || position.awaitingDeploymentMinorUnits > 0);
+  const cycleNumber = dashboard.currentCycle?.number ?? latestPosition?.cycleNumber ?? null;
+  const completed = dashboard.maturity !== null;
+  const status = completed
+    ? 'COMPLETED'
+    : dashboard.activeCapitalMinorUnits > 0
+      ? 'ACTIVE'
+      : 'AWAITING_DEPLOYMENT';
+
+  return {
+    title: dashboard.programme?.name || 'The Playtives Wealth Collective',
+    cycleNumber,
+    totalCycles: dashboard.cycles.length || 12,
+    status,
+    activeCapitalMinorUnits: dashboard.activeCapitalMinorUnits,
+    awaitingDeploymentMinorUnits: dashboard.awaitingDeploymentMinorUnits,
+    profitToDateMinorUnits: dashboard.profitToDateMinorUnits,
+    displayValueMinorUnits: completed
+      ? (dashboard.maturity?.totalMaturedValueMinorUnits ?? 0)
+      : dashboard.totalCollectiveValueMinorUnits,
+    projectedTargetRateBps: dashboard.programme?.projectedTargetRateBps ?? null,
+  };
+}
+
 const key = (): string => crypto.randomUUID();
 export function getCollectiveDashboard(): Promise<CollectiveDashboard> {
   return api('/v1/collectives/dashboard', { cache: 'no-store' });
@@ -132,15 +197,26 @@ export function acceptCollectiveAgreement(input: {
 export function getCollectiveActivity(): Promise<CollectiveTransaction[]> {
   return api('/v1/collectives/activity', { cache: 'no-store' });
 }
-export function setCollectiveMonthlyCommitment(amountMinorUnits: number): Promise<CollectiveWallet> {
+export function setCollectiveMonthlyCommitment(
+  amountMinorUnits: number,
+): Promise<CollectiveWallet> {
   return api('/v1/collectives/monthly-commitment', {
     method: 'PATCH',
     body: JSON.stringify({ amountMinorUnits }),
   });
 }
+export function updateCollectiveContributionPlan(
+  input: CollectiveContributionPlanInput,
+): Promise<CollectiveWallet> {
+  return api('/v1/collectives/contribution-plan', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
 export function scheduleCollectiveContribution(
   amountMinorUnits: number,
   deployment: NonNullable<CollectiveDashboard['nextDeployment']>,
+  monthlyContributionPlan?: CollectiveContributionPlanInput,
 ): Promise<CollectiveScheduledContribution> {
   return api('/v1/collectives/scheduled-contributions', {
     method: 'POST',
@@ -150,6 +226,7 @@ export function scheduleCollectiveContribution(
       cycleId: deployment.cycleId,
       deploymentAt: deployment.deploymentAt,
       windowLabel: deployment.windowLabel,
+      ...(monthlyContributionPlan ? { monthlyContributionPlan } : {}),
     }),
   });
 }
