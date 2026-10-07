@@ -4,6 +4,7 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly retryAfterSeconds: number | null = null,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -31,7 +32,30 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
           : String(body.message)
         : 'Request failed. Please try again.';
     if (response.status === 401 && token) expireSession();
-    throw new ApiError(response.status, message);
+    const retryAfterSeconds = readRetryAfter(response);
+    throw new ApiError(
+      response.status,
+      response.status === 429 && retryAfterSeconds
+        ? `${message} Try again in ${formatWaitTime(retryAfterSeconds)}.`
+        : message,
+      retryAfterSeconds,
+    );
   }
   return response.json() as Promise<T>;
+}
+
+function readRetryAfter(response: Response): number | null {
+  for (const name of ['Retry-After', 'Retry-After-account', 'Retry-After-ip']) {
+    const value = Number(response.headers.get(name));
+    if (Number.isFinite(value) && value > 0) return Math.ceil(value);
+  }
+  return null;
+}
+
+function formatWaitTime(seconds: number): string {
+  if (seconds < 60) return `${seconds} second${seconds === 1 ? '' : 's'}`;
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} hour${hours === 1 ? '' : 's'}`;
 }
