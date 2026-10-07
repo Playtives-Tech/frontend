@@ -11,6 +11,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 import { VerificationCard } from '@/components/dashboard/verification-card';
 import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
@@ -34,6 +35,8 @@ import {
   getCollectivePortfolioPosition,
   type CollectivePortfolioPosition,
 } from '@/lib/services/collectives-service';
+import { notificationService } from '@/lib/services/notification-service';
+import { queryKeys } from '@/lib/query/query-keys';
 
 export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
@@ -46,6 +49,15 @@ export function DashboardHome(): React.JSX.Element {
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [greeting, setGreeting] = useState('Good to see you');
   const isGuest = user === null;
+  const notificationCount = useQuery({
+    queryKey: queryKeys.notifications.unreadCount(),
+    queryFn: async () => ({ count: (await notificationService.list()).unreadCount }),
+    enabled: !isGuest,
+    refetchInterval: 30_000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+  });
+  const unreadNotificationCount = notificationCount.data?.count ?? 0;
   const isPending = user?.memberStatus === 'pending';
   const participationApproved = user?.participationAccessApproved === true;
   const participationExpiry = useMemo(
@@ -141,13 +153,23 @@ export function DashboardHome(): React.JSX.Element {
           </p>
         </div>
 
-        <a
+        <Link
           href="/notifications"
-          className="mt-1 grid size-10 shrink-0 place-items-center rounded-full border bg-background shadow-sm"
-          aria-label="Notifications"
+          className="relative mt-1 grid size-10 shrink-0 place-items-center rounded-full border bg-background shadow-sm"
+          aria-label={
+            unreadNotificationCount > 0
+              ? `${unreadNotificationCount} unread notification${unreadNotificationCount === 1 ? '' : 's'}`
+              : 'Notifications'
+          }
+          prefetch={false}
         >
           <Bell className="size-5" />
-        </a>
+          {unreadNotificationCount > 0 ? (
+            <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-background bg-red-600 px-1 text-[10px] font-bold leading-none text-white shadow-sm">
+              {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+            </span>
+          ) : null}
+        </Link>
       </header>
 
       <section className="mt-5 flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/[0.045] px-4 py-3.5 text-sm sm:mt-6">
