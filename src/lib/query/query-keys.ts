@@ -10,5 +10,6 @@ export const queryKeys = {
   notifications: {
     all: ['notifications'] as const,
     list: () => ['notifications', 'list'] as const,
+    unreadCount: () => ['notifications', 'unread-count'] as const,
   },
 } as const;
