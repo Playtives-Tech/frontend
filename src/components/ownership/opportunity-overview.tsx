@@ -204,16 +204,8 @@ export function OpportunityOverview({
             />
             <Highlight
               label="Return type"
-              value={
-                isVariableDistribution(opportunity)
-                  ? 'Variable monthly distribution'
-                  : 'Projected monthly distribution'
-              }
-              description={
-                isVariableDistribution(opportunity)
-                  ? 'Explains how earnings are expected to be calculated and distributed for this deal.'
-                  : 'Explains how earnings are expected to be calculated and distributed for this deal.'
-              }
+              value={`${isVariableDistribution(opportunity) ? 'Variable' : 'Projected'} ${distributionScheduleLabel(opportunity.returnSchedule)}`}
+              description="Explains how earnings are expected to be calculated and distributed for this deal."
               onClick={setSelectedHighlight}
             />
             <Highlight
@@ -335,6 +327,12 @@ export function OpportunityOverview({
       ) : null}
     </div>
   );
+}
+
+function distributionScheduleLabel(schedule: Opportunity['returnSchedule']): string {
+  if (schedule === 'MONTHLY') return 'monthly distribution';
+  if (schedule === 'YEARLY') return 'yearly distribution';
+  return 'distribution at maturity';
 }
 
 function closedOpportunityNotice(opportunity: Opportunity): { title: string; reason: string } {
