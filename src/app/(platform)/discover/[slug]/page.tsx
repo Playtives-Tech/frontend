@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OwnershipFlow } from '@/components/ownership/ownership-flow';
-import { CollectiveInterestFlow } from '@/components/opportunities/collective-interest-flow';
+import { OpportunityInterestFlow } from '@/components/opportunities/collective-interest-flow';
 import { PageLoadingState } from '@/components/ui/loading-indicator';
 import {
   getOpportunity,
@@ -39,7 +39,7 @@ export default function OpportunityDetailPage(): React.JSX.Element {
   if (error) return <div className="text-destructive mx-auto max-w-5xl p-10 text-sm">{error}</div>;
   if (!opportunity) return <PageLoadingState label="Loading opportunity" />;
   return opportunity.interestModeEnabled ? (
-    <CollectiveInterestFlow opportunity={opportunity} />
+    <OpportunityInterestFlow opportunity={opportunity} />
   ) : (
     <OwnershipFlow opportunity={opportunity} />
   );

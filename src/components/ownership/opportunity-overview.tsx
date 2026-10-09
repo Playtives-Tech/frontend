@@ -183,11 +183,11 @@ export function OpportunityOverview({
             </div>
           )}
 
-          {opportunity.executionProgress ? (
+          {/* {opportunity.executionProgress ? (
             <div className="mt-5 sm:mt-6">
               <OpportunityExecutionTimeline progress={opportunity.executionProgress} />
             </div>
-          ) : null}
+          ) : null} */}
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
