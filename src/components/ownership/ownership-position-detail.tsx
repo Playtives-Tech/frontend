@@ -147,11 +147,11 @@ export function OwnershipPositionDetail({
               value={completed ? formatDate(ownership.completedAt) : 'Cycle in progress'}
             />
           </div>
-          {opportunity.executionProgress ? (
+          {/* {opportunity.executionProgress ? (
             <div className="mt-5">
               <OpportunityExecutionTimeline progress={opportunity.executionProgress} compact />
             </div>
-          ) : null}
+          ) : null} */}
           {!completed && ownership.canAddUnits ? (
             <section className="mt-5 rounded-xl border border-brand/25 bg-brand/5 p-4 sm:p-5">
               <h2 className="font-sans text-[16px] font-semibold">Increase your ownership</h2>
@@ -269,16 +269,18 @@ export function OwnershipPositionDetail({
                     value={opportunity.opportunityStructure.replaceAll('_', '-')}
                   />
                   <DetailMetric
-                    label="Monthly profit preference"
+                    label="Profit distribution preference"
                     value={
                       ownership.rolloverElection === 'COMPOUND'
                         ? 'Rolled into contribution'
-                        : 'Paid to earnings wallet'
+                        : ownership.rolloverElection === 'PAYOUT'
+                          ? 'Paid to earnings wallet'
+                          : payoutScheduleLabel(ownership.returnSchedule)
                     }
                     supportingText={
                       ownership.rolloverElection === 'COMPOUND'
-                        ? 'Approved profit increases the capital used for the next calculation.'
-                        : 'Approved profit is credited to your wallet each month.'
+                        ? `Approved profit increases the capital used for the next ${returnPeriodLabel(ownership.returnSchedule)} calculation.`
+                        : `Approved profit is credited to your earnings wallet ${returnTimingLabel(ownership.returnSchedule)}.`
                     }
                   />
                 </div>
@@ -324,7 +326,8 @@ export function OwnershipPositionDetail({
             <section className="mt-7 border-t pt-5">
               <h2 className="font-sans text-[16px] font-semibold">Distribution history</h2>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Monthly returns appear here after administrator approval.
+                {formatReturnSchedule(ownership.returnSchedule)} returns appear here after
+                administrator approval.
               </p>
               <div className="mt-3 overflow-x-auto rounded-xl border">
                 <table className="w-full min-w-[520px] text-left text-xs">
@@ -384,4 +387,22 @@ export function OwnershipPositionDetail({
       </section>
     </div>
   );
+}
+
+function payoutScheduleLabel(schedule: Ownership['returnSchedule']): string {
+  if (schedule === 'MONTHLY') return 'Paid monthly';
+  if (schedule === 'YEARLY') return 'Paid yearly';
+  return 'Paid at maturity';
+}
+
+function returnTimingLabel(schedule: Ownership['returnSchedule']): string {
+  if (schedule === 'MONTHLY') return 'each month';
+  if (schedule === 'YEARLY') return 'each year';
+  return 'at maturity';
+}
+
+function returnPeriodLabel(schedule: Ownership['returnSchedule']): string {
+  if (schedule === 'MONTHLY') return 'monthly';
+  if (schedule === 'YEARLY') return 'yearly';
+  return 'eligible';
 }
