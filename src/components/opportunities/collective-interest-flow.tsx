@@ -15,13 +15,13 @@ import {
 
 const readiness = [
   { value: 'available_now', label: 'Yes I have the capital ready now' },
-  { value: 'within_7_days', label: 'I can have it ready within 7 days of the Collective opening' },
+  { value: 'within_7_days', label: 'I can have it ready within 7 days if funding opens' },
   { value: 'not_sure', label: 'Not sure yet, I want to learn more first' },
 ] as const;
 const acknowledgementFallback =
   'I understand this is an expression of interest only. No payment is required now, and submitting this does not mean that my position has been funded.';
 
-export function CollectiveInterestFlow({
+export function OpportunityInterestFlow({
   opportunity,
 }: Readonly<{ opportunity: Opportunity }>): React.JSX.Element {
   const [progress, setProgress] = useState<InterestProgress | null>(null);
@@ -95,37 +95,30 @@ export function CollectiveInterestFlow({
                 : 'INTEREST REGISTRATION CLOSED'}
             </span>
             <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-              {/* {opportunity.title} */}
-              The Playtives Wealth Collective
+              {opportunity.title}
             </h1>
             <p className="mt-3 max-w-2xl text-[14px] leading-5 text-white/70">
               {opportunity.summary}
             </p>
           </div>
         </div>
-        <div className="mt-8 grid gap-3 sm:grid-cols-4">
-          <Metric value="3%+" label="Monthly (min)" />
-          <Metric value="42.58%" label="Annual (compounded)" />
-          <Metric value="12 mo" label="Duration" />
-          <Metric value="Auto" label="Profit reinvested" />
-        </div>
+        <OpportunityMetrics opportunity={opportunity} progress={progress} />
       </div>
       <button
         type="button"
         onClick={() => setAbout(true)}
         className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-4 text-sm font-semibold text-brand-foreground transition hover:brightness-110"
       >
-        About The Playtives Wealth Collective
+        About {opportunity.title}
         <ArrowRight className="size-4" />
       </button>
       {opportunity.showInterestProgress ? (
         <section className="mt-5 rounded-2xl border bg-background p-5 text-foreground">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <h2 className="text-lg font-bold">Collective opens when we reach ₦100M</h2>
+              <h2 className="text-lg font-bold">Interest progress</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Once ₦100M in committed capital is confirmed ready, the Collective launches. All
-                members share the same start and end date.
+                Follow the interest registered for this opportunity before its funding stage.
               </p>
             </div>
             <p className="mt-2 text-sm font-semibold text-brand">
@@ -149,12 +142,14 @@ export function CollectiveInterestFlow({
         <RecentInterestActivityList
           items={recentActivity.slice(0, 7)}
           total={recentActivity.length}
+          opportunityTitle={opportunity.title}
           onViewAll={() => setShowAllActivity(true)}
         />
       ) : null}
       <section id="interest" className="mt-5">
         {interest && !editing ? (
           <Confirmation
+            opportunity={opportunity}
             interest={interest}
             onEdit={() => setEditing(true)}
             onDelete={() => setDeleteOpen(true)}
@@ -189,6 +184,7 @@ export function CollectiveInterestFlow({
       {showAllActivity ? (
         <AllInterestActivityModal
           items={recentActivity}
+          opportunityTitle={opportunity.title}
           onClose={() => setShowAllActivity(false)}
         />
       ) : null}
@@ -197,7 +193,7 @@ export function CollectiveInterestFlow({
         onClose={() => setDeleteOpen(false)}
         onConfirm={removeInterest}
         title="Remove your interest?"
-        description="This removes your expression of interest and updates the Collective progress. No payment or portfolio position is affected."
+        description="This removes your expression of interest and updates this opportunity's progress. No payment or portfolio position is affected."
         confirmLabel={removing ? 'Removing…' : 'Remove interest'}
       />
     </div>
@@ -207,10 +203,12 @@ export function CollectiveInterestFlow({
 function RecentInterestActivityList({
   items,
   total,
+  opportunityTitle,
   onViewAll,
 }: Readonly<{
   items: RecentInterestActivity[];
   total: number;
+  opportunityTitle: string;
   onViewAll: () => void;
 }>): React.JSX.Element {
   return (
@@ -223,7 +221,7 @@ function RecentInterestActivityList({
       </div>
       <div className="divide-y">
         {items.map((item) => (
-          <ActivityRow key={item.id} item={item} />
+          <ActivityRow key={item.id} item={item} opportunityTitle={opportunityTitle} />
         ))}
       </div>
       {total > items.length ? (
@@ -242,8 +240,13 @@ function RecentInterestActivityList({
 
 function AllInterestActivityModal({
   items,
+  opportunityTitle,
   onClose,
-}: Readonly<{ items: RecentInterestActivity[]; onClose: () => void }>): React.JSX.Element {
+}: Readonly<{
+  items: RecentInterestActivity[];
+  opportunityTitle: string;
+  onClose: () => void;
+}>): React.JSX.Element {
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4"
@@ -275,7 +278,7 @@ function AllInterestActivityModal({
         </div>
         <div className="max-h-[calc(80vh-82px)] divide-y overflow-y-auto">
           {items.map((item) => (
-            <ActivityRow key={item.id} item={item} />
+            <ActivityRow key={item.id} item={item} opportunityTitle={opportunityTitle} />
           ))}
         </div>
       </section>
@@ -283,7 +286,10 @@ function AllInterestActivityModal({
   );
 }
 
-function ActivityRow({ item }: Readonly<{ item: RecentInterestActivity }>): React.JSX.Element {
+function ActivityRow({
+  item,
+  opportunityTitle,
+}: Readonly<{ item: RecentInterestActivity; opportunityTitle: string }>): React.JSX.Element {
   return (
     <div className="flex items-center gap-3 px-5 py-3.5">
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-[13px] font-bold text-brand">
@@ -291,7 +297,7 @@ function ActivityRow({ item }: Readonly<{ item: RecentInterestActivity }>): Reac
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">
-          {initials(item.name)} signified interest in The Collective
+          {initials(item.name)} signified interest in {opportunityTitle}
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">{relativeTime(item.joinedAt)}</p>
       </div>
@@ -329,12 +335,42 @@ function Metric({ value, label }: Readonly<{ value: string; label: string }>): R
     </div>
   );
 }
+function OpportunityMetrics({
+  opportunity,
+  progress,
+}: Readonly<{ opportunity: Opportunity; progress: InterestProgress | null }>): React.JSX.Element {
+  const metrics = [
+    opportunity.interestTargetAmount
+      ? { value: formatNaira(opportunity.interestTargetAmount), label: 'Interest target' }
+      : null,
+    { value: String(progress?.memberCount ?? 0), label: 'Interested members' },
+    opportunity.durationValue
+      ? {
+          value: `${opportunity.durationValue} ${opportunity.durationUnit?.toLowerCase() ?? 'months'}`,
+          label: 'Expected duration',
+        }
+      : null,
+    opportunity.location ? { value: opportunity.location, label: 'Location' } : null,
+  ].filter((metric): metric is { value: string; label: string } => metric !== null);
+
+  return (
+    <div
+      className={`mt-8 grid gap-3 ${metrics.length > 2 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2'}`}
+    >
+      {metrics.map((metric) => (
+        <Metric key={metric.label} {...metric} />
+      ))}
+    </div>
+  );
+}
 function Confirmation({
+  opportunity,
   interest,
   onEdit,
   onDelete,
 }: Readonly<{
   interest: OpportunityInterest;
+  opportunity: Opportunity;
   onEdit: () => void;
   onDelete: () => void;
 }>): React.JSX.Element {
@@ -345,18 +381,24 @@ function Confirmation({
         You’re interested
       </div>
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-        <Detail label="Opening capital" value={formatNaira(interest.openingCapital)} />
-        <Detail label="Monthly commitment" value={formatNaira(interest.recurringAmount ?? 0)} />
-        <Detail
-          label="Capital readiness"
-          value={
-            readiness.find((item) => item.value === interest.capitalReadiness)?.label ??
-            interest.capitalReadiness
-          }
-        />
+        {opportunity.collectOpeningCapital ? (
+          <Detail label="Opening capital" value={formatNaira(interest.openingCapital)} />
+        ) : null}
+        {opportunity.collectRecurringAmount ? (
+          <Detail label="Recurring commitment" value={formatNaira(interest.recurringAmount ?? 0)} />
+        ) : null}
+        {opportunity.collectCapitalReadiness ? (
+          <Detail
+            label="Capital readiness"
+            value={
+              readiness.find((item) => item.value === interest.capitalReadiness)?.label ??
+              interest.capitalReadiness
+            }
+          />
+        ) : null}
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        No payment is required yet. We’ll notify you if the Collective moves to funding.
+        No payment is required yet. We’ll notify you when this opportunity moves to its next stage.
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <button
@@ -402,13 +444,19 @@ function InterestForm({
   const [saving, setSaving] = useState(false);
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!openingCapital || !recurringAmount || !accepted)
+    if (
+      (opportunity.collectOpeningCapital && !openingCapital) ||
+      (opportunity.collectRecurringAmount && !recurringAmount) ||
+      !accepted
+    )
       return notify.error('Complete all fields and acknowledge the interest terms.');
     setSaving(true);
     void opportunityInterestService
       .save(opportunity.slug, {
-        openingCapital: Math.round(Number(openingCapital)),
-        recurringAmount: Math.round(Number(recurringAmount)),
+        openingCapital: opportunity.collectOpeningCapital ? Math.round(Number(openingCapital)) : 0,
+        recurringAmount: opportunity.collectRecurringAmount
+          ? Math.round(Number(recurringAmount))
+          : undefined,
         capitalReadiness,
         acknowledgementVersion: opportunity.interestAcknowledgementVersion,
       })
@@ -427,33 +475,41 @@ function InterestForm({
       <p className="mt-1 text-sm text-muted-foreground">
         This is only an expression of interest. No payment will be taken.
       </p>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <MoneyInput
-          label="Opening capital, how much you are starting with"
-          value={openingCapital}
-          onChange={setOpeningCapital}
-        />
-        <MoneyInput
-          label="Monthly commitment, how much you will add every month"
-          value={recurringAmount}
-          onChange={setRecurringAmount}
-        />
-      </div>
-      <fieldset className="mt-5">
-        <legend className="text-sm font-semibold">Capital readiness</legend>
-        <div className="mt-3 grid gap-2">
-          {readiness.map((item) => (
-            <label key={item.value} className="flex gap-3 rounded-xl border p-3 text-sm">
-              <input
-                type="radio"
-                checked={capitalReadiness === item.value}
-                onChange={() => setCapitalReadiness(item.value)}
-              />
-              {item.label}
-            </label>
-          ))}
+      {opportunity.collectOpeningCapital || opportunity.collectRecurringAmount ? (
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {opportunity.collectOpeningCapital ? (
+            <MoneyInput
+              label="Opening capital, how much you are starting with"
+              value={openingCapital}
+              onChange={setOpeningCapital}
+            />
+          ) : null}
+          {opportunity.collectRecurringAmount ? (
+            <MoneyInput
+              label="Recurring commitment"
+              value={recurringAmount}
+              onChange={setRecurringAmount}
+            />
+          ) : null}
         </div>
-      </fieldset>
+      ) : null}
+      {opportunity.collectCapitalReadiness ? (
+        <fieldset className="mt-5">
+          <legend className="text-sm font-semibold">Capital readiness</legend>
+          <div className="mt-3 grid gap-2">
+            {readiness.map((item) => (
+              <label key={item.value} className="flex gap-3 rounded-xl border p-3 text-sm">
+                <input
+                  type="radio"
+                  checked={capitalReadiness === item.value}
+                  onChange={() => setCapitalReadiness(item.value)}
+                />
+                {item.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
       <label className="mt-5 flex gap-3 rounded-xl bg-muted/60 p-3 text-sm leading-6">
         <input
           type="checkbox"
@@ -514,11 +570,11 @@ function AboutModal({
       <section
         role="dialog"
         aria-modal="true"
-        aria-labelledby="collective-about-title"
+        aria-labelledby="opportunity-about-title"
         className="max-h-[85dvh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-background p-6 shadow-xl"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 id="collective-about-title" className="text-2xl font-bold">
+          <h2 id="opportunity-about-title" className="text-2xl font-bold">
             About {opportunity.title}
           </h2>
           <button onClick={onClose} aria-label="Close">

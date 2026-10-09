@@ -35,6 +35,12 @@ function ownershipStructure(ownership: Ownership): Ownership['opportunityStructu
 function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React.JSX.Element {
   const opportunity = ownership.opportunityId;
   const projection = getOwnershipProjection(ownership);
+  const lifecycleLabel =
+    ownership.status === 'COMPLETED'
+      ? 'Cycle completed'
+      : opportunity.executionProgress?.stage !== 'DEAL_ACTIVE' && opportunity.executionProgress
+        ? opportunity.executionProgress.label
+        : 'Cycle in progress';
   return (
     <Link
       href={`/ownership/${ownership._id}`}
@@ -55,8 +61,7 @@ function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React
       <div className="px-4 py-3 sm:px-0 sm:py-0">
         <h2 className="font-sans text-[14px] font-bold">{opportunity.title}</h2>
         <p className="text-[12px] text-muted-foreground">
-          {ownership.units} {ownership.units === 1 ? 'unit' : 'units'} ·{' '}
-          {ownership.status === 'COMPLETED' ? 'Cycle completed' : 'Cycle in progress'}
+          {ownership.units} {ownership.units === 1 ? 'unit' : 'units'} · {lifecycleLabel}
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <div className="rounded-xl bg-surface px-3 py-2.5">

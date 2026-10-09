@@ -1,24 +1,25 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { UsersRound } from 'lucide-react';
-import { formatProjectedReturnRate, type Opportunity } from '@/lib/opportunities';
+import {
+  formatProjectedReturnRate,
+  formatReturnSchedule,
+  type Opportunity,
+} from '@/lib/opportunities';
 
 type OpportunityCardProps = Readonly<{
   opportunity: Opportunity;
   variant?: 'default' | 'compact';
-  collective?: boolean;
 }>;
 
 export function OpportunityCard({
   opportunity,
   variant = 'default',
-  collective = false,
 }: OpportunityCardProps): React.JSX.Element {
   if (variant === 'compact') return <CompactOpportunityCard opportunity={opportunity} />;
 
   return (
     <Link
-      href={collective ? `/collectives`: `/discover/${opportunity.slug}`}
+      href={opportunityHref(opportunity)}
       className="group flex h-[13rem] w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30"
     >
       <OpportunityCardImage
@@ -35,7 +36,7 @@ export function OpportunityCard({
 function CompactOpportunityCard({ opportunity }: { opportunity: Opportunity }): React.JSX.Element {
   return (
     <Link
-      href={`/discover/${opportunity.slug}`}
+      href={opportunityHref(opportunity)}
       className="group flex h-[13rem] w-[12.125rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 sm:w-[13rem] lg:w-[14.125rem]"
     >
       <OpportunityCardImage opportunity={opportunity} sizes="(min-width: 1024px) 16vw, 60vw" />
@@ -71,7 +72,9 @@ function OpportunityCardImage({
       >
         {opportunity.interestModeEnabled
           ? opportunity.status === 'INTEREST_OPEN'
-            ? 'INTEREST OPEN'
+            ? isPlaytivesCollective(opportunity)
+              ? 'JOIN NOW'
+              : 'REGISTER INTEREST'
             : 'INTEREST CLOSED'
           : opportunity.acquisitionStatus === 'OPEN'
             ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
@@ -85,7 +88,9 @@ function OpportunityCardDetails({
   opportunity,
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
   const projectedRate = opportunity.interestModeEnabled
-    ? '3% projected'
+    ? isPlaytivesCollective(opportunity)
+      ? 'Join now'
+      : 'Register interest'
     : formatProjectedReturnRate(opportunity);
   const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
@@ -106,14 +111,28 @@ function OpportunityCardDetails({
       </h3>
       <div className="line-clamp-1 pt-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
-          {projectedRate}{' '}
-          <span className="font-medium text-muted-foreground">
-            {opportunity.interestModeEnabled ? 'monthly · 12-month pool' : 'monthly profit share'}
-          </span>
+          {projectedRate}
+          {!opportunity.interestModeEnabled ? (
+            <span className="font-medium text-muted-foreground">
+              {' '}
+              {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}
+            </span>
+          ) : null}
         </p>
       </div>
     </>
   );
+}
+
+function isPlaytivesCollective(opportunity: Opportunity): boolean {
+  const title = opportunity.title.trim().toLowerCase();
+  return title.includes('playtives') && title.includes('collective');
+}
+
+function opportunityHref(opportunity: Opportunity): string {
+  return opportunity.interestModeEnabled && isPlaytivesCollective(opportunity)
+    ? '/collectives'
+    : `/discover/${opportunity.slug}`;
 }
 
 function formatCompactNaira(minorUnits: number): string {

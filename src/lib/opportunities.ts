@@ -6,6 +6,27 @@ export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
 export type OpportunityStructure = 'CO_OWNERSHIP' | 'CO_FUNDING' | 'FULL_OWNERSHIP';
 export type TermType = 'FIXED_TERM' | 'LIFE_OF_ASSET';
 export type DurationUnit = 'DAYS' | 'MONTHS' | 'YEARS';
+export type OpportunityExecutionStage =
+  | 'OFFER_CLOSED'
+  | 'SOURCING_SELECTION'
+  | 'PURCHASE_IN_PROGRESS'
+  | 'AGREEMENT_DOCUMENTATION'
+  | 'PREPARING_FOR_DEPLOYMENT'
+  | 'DEAL_ACTIVE';
+export type OpportunityExecutionProgress = Readonly<{
+  stage: OpportunityExecutionStage;
+  label: string;
+  note: string;
+  expectedAt: string | null;
+  updatedAt: string | null;
+  commencementDate: string | null;
+  isDerived: boolean;
+  steps: ReadonlyArray<{
+    stage: OpportunityExecutionStage;
+    label: string;
+    status: 'COMPLETED' | 'CURRENT' | 'UPCOMING';
+  }>;
+}>;
 
 export type Opportunity = Readonly<{
   _id: string;
@@ -57,6 +78,7 @@ export type Opportunity = Readonly<{
   offerClosesAt: string | null;
   commencementDate: string | null;
   acquisitionStatus: 'OPEN' | 'CLOSED' | 'COMMENCED';
+  executionProgress: OpportunityExecutionProgress | null;
   interestModeEnabled: boolean;
   interestTargetAmount: number | null;
   interestOpensAt: string | null;

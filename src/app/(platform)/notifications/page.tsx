@@ -14,7 +14,11 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { notificationService, type MemberNotification } from '@/lib/services/notification-service';
+import {
+  notificationService,
+  type MemberNotification,
+  type MemberNotificationPage,
+} from '@/lib/services/notification-service';
 import { queryKeys } from '@/lib/query/query-keys';
 import { cn } from '@/lib/utils';
 import { notify } from '@/lib/notify';
@@ -26,7 +30,10 @@ export default function NotificationsPage(): React.JSX.Element {
   const notifications = useQuery({
     queryKey: queryKeys.notifications.list(),
     queryFn: notificationService.list,
-    refetchInterval: 30_000,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: true,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   async function refresh(): Promise<void> {
@@ -37,19 +44,60 @@ export default function NotificationsPage(): React.JSX.Element {
   }
 
   async function markAllRead(): Promise<void> {
+    const readAt = new Date().toISOString();
+    const previous = queryClient.getQueryData<MemberNotificationPage>(
+      queryKeys.notifications.list(),
+    );
+    queryClient.setQueryData<MemberNotificationPage>(queryKeys.notifications.list(), (current) =>
+      current
+        ? {
+            ...current,
+            unreadCount: 0,
+            items: current.items.map((item) => ({ ...item, readAt: item.readAt ?? readAt })),
+          }
+        : current,
+    );
+    queryClient.setQueryData(queryKeys.notifications.unreadCount(), { count: 0 });
     try {
       await notificationService.markAllRead();
       await refresh();
     } catch (error: unknown) {
+      if (previous) queryClient.setQueryData(queryKeys.notifications.list(), previous);
+      await refresh();
       notify.error(error instanceof Error ? error.message : 'Unable to update notifications');
     }
   }
 
-  function markRead(notificationId: string): void {
-    void notificationService
-      .markRead(notificationId)
-      .then(refresh)
-      .catch(() => undefined);
+  async function markRead(notificationId: string): Promise<void> {
+    const previous = queryClient.getQueryData<MemberNotificationPage>(
+      queryKeys.notifications.list(),
+    );
+    const item = previous?.items.find((notification) => notification._id === notificationId);
+    if (item?.readAt) return;
+    const readAt = new Date().toISOString();
+    queryClient.setQueryData<MemberNotificationPage>(queryKeys.notifications.list(), (current) =>
+      current
+        ? {
+            ...current,
+            unreadCount: Math.max(0, current.unreadCount - 1),
+            items: current.items.map((notification) =>
+              notification._id === notificationId ? { ...notification, readAt } : notification,
+            ),
+          }
+        : current,
+    );
+    queryClient.setQueryData<{ count: number }>(
+      queryKeys.notifications.unreadCount(),
+      (current) => ({ count: Math.max(0, (current?.count ?? previous?.unreadCount ?? 1) - 1) }),
+    );
+    try {
+      await notificationService.markRead(notificationId);
+      await refresh();
+    } catch (error: unknown) {
+      if (previous) queryClient.setQueryData(queryKeys.notifications.list(), previous);
+      await refresh();
+      notify.error(error instanceof Error ? error.message : 'Unable to mark notification as read');
+    }
   }
 
   return (
@@ -110,7 +158,7 @@ export default function NotificationsPage(): React.JSX.Element {
                 )}
                 key={item._id}
                 onClick={() => {
-                  markRead(item._id);
+                  void markRead(item._id);
                   setSelectedNotification({
                     ...item,
                     readAt: item.readAt ?? new Date().toISOString(),

@@ -26,6 +26,7 @@ import { formatReturnSchedule } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
 import { notify } from '@/lib/notify';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
+import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
 
 type OwnershipPositionDetailProps = Readonly<{
   ownership: Ownership;
@@ -146,6 +147,11 @@ export function OwnershipPositionDetail({
               value={completed ? formatDate(ownership.completedAt) : 'Cycle in progress'}
             />
           </div>
+          {opportunity.executionProgress ? (
+            <div className="mt-5">
+              <OpportunityExecutionTimeline progress={opportunity.executionProgress} compact />
+            </div>
+          ) : null}
           {!completed && ownership.canAddUnits ? (
             <section className="mt-5 rounded-xl border border-brand/25 bg-brand/5 p-4 sm:p-5">
               <h2 className="font-sans text-[16px] font-semibold">Increase your ownership</h2>

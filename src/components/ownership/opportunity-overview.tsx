@@ -14,6 +14,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { AgreementPreview } from './agreement-preview';
+import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
 import {
   formatOpportunityMoney,
   formatCapitalReturn,
@@ -54,7 +55,8 @@ export function OpportunityOverview({
   const isCoFunded = opportunity.opportunityStructure === 'CO_FUNDING';
   const canContinue = opportunity.availableUnits >= opportunity.minimumUnits;
   const continueLabel =
-    continueLabelOverride ?? (opportunity.availableUnits < opportunity.minimumUnits
+    continueLabelOverride ??
+    (opportunity.availableUnits < opportunity.minimumUnits
       ? 'Currently unavailable'
       : isCoFunded
         ? 'Co-fund now'
@@ -180,6 +182,12 @@ export function OpportunityOverview({
               <p className="mt-1 text-xs leading-5">{closureNotice.reason}</p>
             </div>
           )}
+
+          {/* {opportunity.executionProgress ? (
+            <div className="mt-5 sm:mt-6">
+              <OpportunityExecutionTimeline progress={opportunity.executionProgress} />
+            </div>
+          ) : null} */}
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight

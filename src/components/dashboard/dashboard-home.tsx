@@ -51,9 +51,10 @@ export function DashboardHome(): React.JSX.Element {
   const isGuest = user === null;
   const notificationCount = useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
-    queryFn: async () => ({ count: (await notificationService.list()).unreadCount }),
+    queryFn: notificationService.unreadCount,
     enabled: !isGuest,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: true,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
