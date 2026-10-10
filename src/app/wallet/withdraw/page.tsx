@@ -244,7 +244,7 @@ export default function WithdrawPage(): React.JSX.Element {
             </div>
             <div className="flex justify-between py-3">
               <dt className="text-muted-foreground">Estimated arrival</dt>
-              <dd className="font-semibold">Within 5 minutes</dd>
+              <dd className="font-semibold">48 hours</dd>
             </div>
           </dl>
           <p className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
@@ -279,7 +279,7 @@ export default function WithdrawPage(): React.JSX.Element {
               <h2 className="mt-4 font-sans text-lg font-semibold">Withdrawal processing</h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Your request to withdraw {formatNaira(parsedAmount)} has been submitted for
-                administrator approval. Your balance is reserved until a decision is made.
+                administrator approval. Once approved, your withdrawal is expected within 48 hours.
               </p>
               <Link
                 href="/wallet"
