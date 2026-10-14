@@ -42,6 +42,7 @@ export function OpportunityInterestFlow({
           targetAmount: opportunity.interestTargetAmount ?? 0,
           memberCount: 0,
           totalMonthlyCommitment: 0,
+          currency: opportunity.interestCurrency ?? 'NGN',
         }),
       );
     void opportunityInterestService
@@ -52,7 +53,7 @@ export function OpportunityInterestFlow({
       .recent(opportunity.slug)
       .then(setRecentActivity)
       .catch(() => setRecentActivity([]));
-  }, [opportunity.interestTargetAmount, opportunity.slug]);
+  }, [opportunity.interestCurrency, opportunity.interestTargetAmount, opportunity.slug]);
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -123,7 +124,7 @@ export function OpportunityInterestFlow({
             </div>
             <p className="mt-2 text-sm font-semibold text-brand">
               {progress
-                ? `${formatNaira(progress.totalCommitted)} of ${formatNaira(progress.targetAmount)} target`
+                ? `${formatInterestMoney(progress.totalCommitted, progress.currency ?? opportunity.interestCurrency)} of ${formatInterestMoney(progress.targetAmount, progress.currency ?? opportunity.interestCurrency)} target`
                 : 'Loading interest progress…'}
             </p>
           </div>
@@ -341,7 +342,13 @@ function OpportunityMetrics({
 }: Readonly<{ opportunity: Opportunity; progress: InterestProgress | null }>): React.JSX.Element {
   const metrics = [
     opportunity.interestTargetAmount
-      ? { value: formatNaira(opportunity.interestTargetAmount), label: 'Interest target' }
+      ? {
+          value: formatInterestMoney(
+            opportunity.interestTargetAmount,
+            opportunity.interestCurrency ?? 'NGN',
+          ),
+          label: 'Interest target',
+        }
       : null,
     { value: String(progress?.memberCount ?? 0), label: 'Interested members' },
     opportunity.durationValue
@@ -382,10 +389,22 @@ function Confirmation({
       </div>
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
         {opportunity.collectOpeningCapital ? (
-          <Detail label="Opening capital" value={formatNaira(interest.openingCapital)} />
+          <Detail
+            label="Opening capital"
+            value={formatInterestMoney(
+              interest.openingCapital,
+              interest.currency ?? opportunity.interestCurrency,
+            )}
+          />
         ) : null}
         {opportunity.collectRecurringAmount ? (
-          <Detail label="Recurring commitment" value={formatNaira(interest.recurringAmount ?? 0)} />
+          <Detail
+            label="Recurring commitment"
+            value={formatInterestMoney(
+              interest.recurringAmount ?? 0,
+              interest.currency ?? opportunity.interestCurrency,
+            )}
+          />
         ) : null}
         {opportunity.collectCapitalReadiness ? (
           <Detail
@@ -480,6 +499,7 @@ function InterestForm({
           {opportunity.collectOpeningCapital ? (
             <MoneyInput
               label="Opening capital, how much you are starting with"
+              currency={opportunity.interestCurrency ?? 'NGN'}
               value={openingCapital}
               onChange={setOpeningCapital}
             />
@@ -487,6 +507,7 @@ function InterestForm({
           {opportunity.collectRecurringAmount ? (
             <MoneyInput
               label="Recurring commitment"
+              currency={opportunity.interestCurrency ?? 'NGN'}
               value={recurringAmount}
               onChange={setRecurringAmount}
             />
@@ -530,10 +551,12 @@ function InterestForm({
 }
 function MoneyInput({
   label,
+  currency,
   value,
   onChange,
 }: Readonly<{
   label: string;
+  currency: 'NGN' | 'GBP' | 'USD';
   value: string;
   onChange: (value: string) => void;
 }>): React.JSX.Element {
@@ -541,7 +564,7 @@ function MoneyInput({
     <label className="grid gap-2 text-sm font-semibold">
       {label}
       <span className="flex items-center rounded-xl border bg-background px-3">
-        <span className="text-muted-foreground">₦</span>
+        <span className="text-muted-foreground">{currencySymbol(currency)}</span>
         <input
           required
           min="0"
@@ -594,10 +617,19 @@ function AboutModal({
     </div>
   );
 }
-function formatNaira(amount: number): string {
+function formatInterestMoney(
+  amount: number,
+  currency: 'NGN' | 'GBP' | 'USD' = 'NGN',
+): string {
   return new Intl.NumberFormat('en-NG', {
     style: 'currency',
-    currency: 'NGN',
+    currency,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function currencySymbol(currency: 'NGN' | 'GBP' | 'USD'): string {
+  if (currency === 'GBP') return '£';
+  if (currency === 'USD') return '$';
+  return '₦';
 }

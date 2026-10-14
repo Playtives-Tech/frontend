@@ -444,6 +444,10 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
       ? item.metadata.amountMinorUnits / 100
       : null;
   const presentation = activityPresentation(item.action);
+  const balanceAfter =
+    typeof item.metadata?.balanceAfterMinorUnits === 'number'
+      ? item.metadata.balanceAfterMinorUnits / 100
+      : null;
   return (
     <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-3.5">
       <span
@@ -463,12 +467,19 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
           })}
         </small>
       </span>
-      {amount !== null ? (
-        <strong className={`text-xs font-semibold ${presentation.amountClass}`}>
-          {presentation.prefix}
-          {formatAmount(amount)}
-        </strong>
-      ) : null}
+      <span className="shrink-0 text-right">
+        {amount !== null ? (
+          <strong className={`block text-xs font-semibold ${presentation.amountClass}`}>
+            {presentation.prefix}
+            {formatAmount(amount)}
+          </strong>
+        ) : null}
+        {balanceAfter !== null ? (
+          <small className="block text-[11px] text-muted-foreground">
+            {formatAmount(balanceAfter)}
+          </small>
+        ) : null}
+      </span>
     </Link>
   );
 }

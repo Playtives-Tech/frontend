@@ -409,6 +409,10 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
       ? item.metadata.amountMinorUnits / 100
       : null;
   const presentation = activityPresentation(item.action);
+  const balanceAfter =
+    typeof item.metadata?.balanceAfterMinorUnits === 'number'
+      ? item.metadata.balanceAfterMinorUnits / 100
+      : null;
 
   return (
     <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-4">
@@ -429,12 +433,19 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
           })}
         </small>
       </span>
-      {amount !== null ? (
-        <strong className={`text-xs ${presentation.amountClass}`}>
-          {presentation.prefix}
-          {formatAmount(amount)}
-        </strong>
-      ) : null}
+      <span className="shrink-0 text-right">
+        {amount !== null ? (
+          <strong className={`block text-xs ${presentation.amountClass}`}>
+            {presentation.prefix}
+            {formatAmount(amount)}
+          </strong>
+        ) : null}
+        {balanceAfter !== null ? (
+          <small className="block text-[11px] text-muted-foreground">
+            {formatAmount(balanceAfter)}
+          </small>
+        ) : null}
+      </span>
     </Link>
   );
 }
