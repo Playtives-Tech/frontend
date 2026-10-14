@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { AgreementPreview } from './agreement-preview';
 import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
+import { OpportunityUpdates } from '@/components/opportunities/opportunity-updates';
 import {
   formatOpportunityMoney,
   formatCapitalReturn,
@@ -96,6 +97,8 @@ export function OpportunityOverview({
                 <Check className="size-3.5" />
                 {opportunity.acquisitionStatus === 'OPEN'
                   ? 'Open for ownership'
+                  : opportunity.assetLifecycleEnabled && !opportunity.distributionStartAt
+                    ? 'Activation in progress'
                   : opportunity.acquisitionStatus === 'CLOSED'
                     ? 'Offer closed'
                     : 'Deal in progress'}
@@ -183,16 +186,45 @@ export function OpportunityOverview({
             </div>
           )}
 
-          {/* {opportunity.executionProgress ? (
+          {opportunity.executionProgress ? (
             <div className="mt-5 sm:mt-6">
               <OpportunityExecutionTimeline progress={opportunity.executionProgress} />
             </div>
-          ) : null} */}
+          ) : null}
+
+          {opportunity.assetLifecycleEnabled ? (
+            <div className="mt-5 rounded-xl border border-brand/20 bg-brand/[0.04] px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
+                Earnings status
+              </p>
+              <p className="mt-1 text-base font-bold">
+                {opportunity.distributionStartAt ? 'Active' : 'Not yet active'}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {opportunity.distributionStartAt
+                  ? `Monthly distributions are active from ${new Date(opportunity.distributionStartAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                  : 'Monthly distributions begin only after operational activation and admin confirmation.'}
+              </p>
+              {opportunity.distributionStartAt ? (
+                <p className="mt-2 text-xs font-semibold text-foreground">
+                  Next expected distribution: {nextExpectedDistribution(opportunity).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {opportunity.assetLifecycleEnabled ? (
+            <OpportunityUpdates slug={opportunity.slug} />
+          ) : null}
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3">
             <Highlight
               label="Projected earnings (%)"
-              value={`${formatProjectedReturnRate(opportunity)} ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}`}
+              value={
+                opportunity.assetLifecycleEnabled
+                  ? `${formatProjectedReturnRate(opportunity)} projected monthly once operational`
+                  : `${formatProjectedReturnRate(opportunity)} ${formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}`
+              }
               description="Estimated percentage you may earn during each stated period. This is projected, not guaranteed."
               onClick={setSelectedHighlight}
             />
@@ -209,9 +241,17 @@ export function OpportunityOverview({
               onClick={setSelectedHighlight}
             />
             <Highlight
-              label={`Projected earnings per unit`}
+              label={
+                opportunity.assetLifecycleEnabled
+                  ? 'Projected monthly earnings per unit once operational'
+                  : 'Projected earnings per unit'
+              }
               value={formatProjectedDistribution(opportunity)}
-              description="Estimated amount one unit may earn during each stated distribution period. Not guaranteed."
+              description={
+                opportunity.assetLifecycleEnabled
+                  ? 'Projected monthly amount per unit once operational. Distributions begin only after activation under the operating arrangement.'
+                  : 'Estimated amount one unit may earn during each stated distribution period. Not guaranteed.'
+              }
               onClick={setSelectedHighlight}
             />
             <Highlight
@@ -238,7 +278,7 @@ export function OpportunityOverview({
                 onClick={setSelectedHighlight}
               />
             ) : null}
-            {opportunity.commencementDate ? (
+            {!opportunity.assetLifecycleEnabled && opportunity.commencementDate ? (
               <Highlight
                 label="Deal starts"
                 value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
@@ -247,6 +287,37 @@ export function OpportunityOverview({
                   year: 'numeric',
                 })}
                 description="The expected date the opportunity becomes active and the deal term begins."
+                onClick={setSelectedHighlight}
+              />
+            ) : null}
+            {opportunity.assetLifecycleEnabled && opportunity.fundingClosedAt ? (
+              <Highlight
+                label="Funding closed"
+                value={new Date(opportunity.fundingClosedAt).toLocaleDateString('en-NG', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+                description="The co-ownership funding window has closed."
+                onClick={setSelectedHighlight}
+              />
+            ) : null}
+            {opportunity.assetLifecycleEnabled ? (
+              <Highlight
+                label={opportunity.operationalAt ? 'Operational since' : 'Expected activation'}
+                value={
+                  opportunity.operationalAt
+                    ? new Date(opportunity.operationalAt).toLocaleDateString('en-NG', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : opportunity.expectedActivationMinDays &&
+                        opportunity.expectedActivationMaxDays
+                      ? `${opportunity.expectedActivationMinDays}–${opportunity.expectedActivationMaxDays} days after funding close`
+                      : 'To be confirmed'
+                }
+                description="Operational activation is confirmed by Playtives after acquisition, compliance, and operator setup."
                 onClick={setSelectedHighlight}
               />
             ) : null}
@@ -335,7 +406,25 @@ function distributionScheduleLabel(schedule: Opportunity['returnSchedule']): str
   return 'distribution at maturity';
 }
 
+function nextExpectedDistribution(opportunity: Opportunity): Date {
+  const start = new Date(opportunity.distributionStartAt!);
+  const now = new Date();
+  const next = new Date(start);
+  if (opportunity.returnSchedule === 'AT_MATURITY') return next;
+  const incrementMonths = opportunity.returnSchedule === 'YEARLY' ? 12 : 1;
+  do {
+    next.setUTCMonth(next.getUTCMonth() + incrementMonths);
+  } while (next <= now);
+  return next;
+}
+
 function closedOpportunityNotice(opportunity: Opportunity): { title: string; reason: string } {
+  if (opportunity.assetLifecycleEnabled && !opportunity.distributionStartAt)
+    return {
+      title: 'Funding closed — activation in progress.',
+      reason:
+        'The funding window has closed. Playtives is proceeding with asset sourcing, acquisition, compliance, and operator setup. Monthly distributions begin only after operational activation.',
+    };
   if (opportunity.acquisitionStatus === 'COMMENCED')
     return {
       title: 'This deal is already in progress.',

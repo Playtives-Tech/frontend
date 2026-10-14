@@ -3,6 +3,16 @@ import { env } from './env';
 
 export type OpportunityStatus = 'PUBLISHED' | 'INTEREST_OPEN' | 'INTEREST_CLOSED';
 export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
+export type InterestCurrency = 'NGN' | 'GBP' | 'USD';
+export type AssetLifecycleStatus =
+  | 'FUNDING'
+  | 'ACQUISITION_IN_PROGRESS'
+  | 'ASSET_ACQUIRED'
+  | 'COMPLIANCE_IN_PROGRESS'
+  | 'OPERATOR_SETUP'
+  | 'OPERATIONAL'
+  | 'DISTRIBUTIONS_ACTIVE'
+  | 'ASSET_SOLD';
 export type OpportunityStructure = 'CO_OWNERSHIP' | 'CO_FUNDING' | 'FULL_OWNERSHIP';
 export type TermType = 'FIXED_TERM' | 'LIFE_OF_ASSET';
 export type DurationUnit = 'DAYS' | 'MONTHS' | 'YEARS';
@@ -14,16 +24,20 @@ export type OpportunityExecutionStage =
   | 'PREPARING_FOR_DEPLOYMENT'
   | 'DEAL_ACTIVE';
 export type OpportunityExecutionProgress = Readonly<{
-  stage: OpportunityExecutionStage;
+  stage: string;
   label: string;
   note: string;
   expectedAt: string | null;
   updatedAt: string | null;
   commencementDate: string | null;
+  assetLifecycle: boolean;
+  customStages?: boolean;
+  nextMilestone?: string;
   isDerived: boolean;
   steps: ReadonlyArray<{
-    stage: OpportunityExecutionStage;
+    stage: string;
     label: string;
+    date?: string | null;
     status: 'COMPLETED' | 'CURRENT' | 'UPCOMING';
   }>;
 }>;
@@ -77,9 +91,27 @@ export type Opportunity = Readonly<{
   memberAvailabilityDate: string | null;
   offerClosesAt: string | null;
   commencementDate: string | null;
+  assetLifecycleEnabled: boolean;
+  assetLifecycleStatus: AssetLifecycleStatus | null;
+  fundingClosedAt: string | null;
+  assetAcquiredAt: string | null;
+  operationalAt: string | null;
+  distributionStartAt: string | null;
+  expectedActivationMinDays: number | null;
+  expectedActivationMaxDays: number | null;
+  currentMilestone: string;
+  nextMilestone: string;
   acquisitionStatus: 'OPEN' | 'CLOSED' | 'COMMENCED';
   executionProgress: OpportunityExecutionProgress | null;
+  executionCustomSteps?: ReadonlyArray<{
+    _id: string;
+    label: string;
+    note: string;
+    stageDate: string;
+    createdAt: string;
+  }>;
   interestModeEnabled: boolean;
+  interestCurrency: InterestCurrency;
   interestTargetAmount: number | null;
   interestOpensAt: string | null;
   interestClosesAt: string | null;
@@ -87,6 +119,7 @@ export type Opportunity = Readonly<{
   collectOpeningCapital: boolean;
   collectRecurringAmount: boolean;
   recurringFrequency: 'monthly' | null;
+  currency: InterestCurrency;
   collectCapitalReadiness: boolean;
   interestAcknowledgementText: string;
   interestAcknowledgementVersion: string;
@@ -108,6 +141,16 @@ export type OpportunityChange = Readonly<{
   revision: number;
 }>;
 
+export type OpportunityUpdate = Readonly<{
+  _id: string;
+  title: string;
+  body: string;
+  milestone: string;
+  visibility: 'PUBLIC' | 'COOWNERS_ONLY';
+  attachments: string[];
+  publishedAt: string;
+}>;
+
 export function getOpportunities(): Promise<Opportunity[]> {
   return api<Opportunity[]>(`/v1/opportunities?fresh=${Date.now()}`, { cache: 'no-store' });
 }
@@ -118,11 +161,43 @@ export function getOpportunity(slug: string): Promise<Opportunity> {
   });
 }
 
+export function getOpportunityUpdates(slug: string): Promise<OpportunityUpdate[]> {
+  return api<OpportunityUpdate[]>(
+    `/v1/member/opportunities/${encodeURIComponent(slug)}/updates`,
+    { cache: 'no-store' },
+  );
+}
+
+export function isPlaytivesCollective(opportunity: Opportunity): boolean {
+  const title = opportunity.title.trim().toLowerCase();
+  return title.includes('playtives') && title.includes('collective');
+}
+
+export function isInterestOpportunityOpen(
+  opportunity: Opportunity,
+  now = new Date(),
+): boolean {
+  if (!isPlaytivesCollective(opportunity)) return opportunity.status === 'INTEREST_OPEN';
+
+  const startsAt =
+    opportunity.commencementDate ??
+    opportunity.memberAvailabilityDate ??
+    opportunity.publishedAt ??
+    opportunity.createdAt;
+  const start = new Date(startsAt);
+  if (Number.isNaN(start.getTime())) return opportunity.status === 'INTEREST_OPEN';
+
+  const closesAt = new Date(start);
+  closesAt.setUTCMonth(closesAt.getUTCMonth() + 12);
+  return now < closesAt;
+}
+
 export type OpportunityInterest = Readonly<{
   _id: string;
   openingCapital: number;
   recurringAmount: number | null;
   recurringFrequency: 'monthly' | null;
+  currency: InterestCurrency;
   capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure';
   status: string;
   acknowledgementVersion: string;
@@ -134,6 +209,7 @@ export type InterestProgress = Readonly<{
   targetAmount: number;
   memberCount: number;
   totalMonthlyCommitment: number;
+  currency: InterestCurrency;
 }>;
 export type RecentInterestActivity = Readonly<{ id: string; name: string; joinedAt: string }>;
 export const opportunityInterestService = {
@@ -170,7 +246,10 @@ export const opportunityInterestService = {
     api<
       Array<
         OpportunityInterest & {
-          opportunityId: Pick<Opportunity, 'title' | 'slug' | 'imageUrl' | 'imageAlt'>;
+          opportunityId: Pick<
+            Opportunity,
+            'title' | 'slug' | 'imageUrl' | 'imageAlt' | 'interestCurrency'
+          >;
         }
       >
     >('/v1/member/opportunity-interests', { cache: 'no-store' }),

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import {
   formatProjectedReturnRate,
   formatReturnSchedule,
+  isInterestOpportunityOpen,
+  isPlaytivesCollective,
   type Opportunity,
 } from '@/lib/opportunities';
 
@@ -55,6 +57,11 @@ function OpportunityCardImage({
   opportunity: Opportunity;
   sizes: string;
 }>): React.JSX.Element {
+  const isInterestOpen = isInterestOpportunityOpen(opportunity);
+  const isCardOpen = opportunity.interestModeEnabled
+    ? isInterestOpen
+    : opportunity.acquisitionStatus === 'OPEN';
+
   return (
     <div className="relative h-32 shrink-0 overflow-hidden bg-muted">
       {opportunity.imageUrl ? (
@@ -68,15 +75,19 @@ function OpportunityCardImage({
         />
       ) : null}
       <span
-        className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${opportunity.acquisitionStatus === 'OPEN' ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
+        className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${isCardOpen ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
       >
         {opportunity.interestModeEnabled
-          ? opportunity.status === 'INTEREST_OPEN'
+          ? isInterestOpen
             ? isPlaytivesCollective(opportunity)
               ? 'JOIN NOW'
               : 'REGISTER INTEREST'
             : 'INTEREST CLOSED'
-          : opportunity.acquisitionStatus === 'OPEN'
+          : opportunity.assetLifecycleEnabled &&
+              opportunity.acquisitionStatus !== 'OPEN' &&
+              !opportunity.distributionStartAt
+            ? 'ACTIVATION IN PROGRESS'
+            : opportunity.acquisitionStatus === 'OPEN'
             ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
             : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${opportunity.acquisitionStatus === 'COMMENCED' ? 'DEAL LIVE' : 'OFFER CLOSED'}`}
       </span>
@@ -87,11 +98,16 @@ function OpportunityCardImage({
 function OpportunityCardDetails({
   opportunity,
 }: Readonly<{ opportunity: Opportunity; compact?: boolean }>): React.JSX.Element {
+  const isInterestOpen = isInterestOpportunityOpen(opportunity);
   const projectedRate = opportunity.interestModeEnabled
-    ? isPlaytivesCollective(opportunity)
+    ? isInterestOpen && isPlaytivesCollective(opportunity)
       ? 'Join now'
-      : 'Register interest'
-    : formatProjectedReturnRate(opportunity);
+      : isInterestOpen
+        ? 'Register interest'
+        : 'Registration closed'
+    : opportunity.assetLifecycleEnabled
+      ? `${formatProjectedReturnRate(opportunity)} projected monthly once operational`
+      : formatProjectedReturnRate(opportunity);
   const showTitleSuffix = Array.from(opportunity.title.trim()).length > 24;
 
   return (
@@ -112,7 +128,7 @@ function OpportunityCardDetails({
       <div className="line-clamp-1 pt-1">
         <p className="text-[10.5px] font-semibold leading-4 text-brand">
           {projectedRate}
-          {!opportunity.interestModeEnabled ? (
+          {!opportunity.interestModeEnabled && !opportunity.assetLifecycleEnabled ? (
             <span className="font-medium text-muted-foreground">
               {' '}
               {formatReturnSchedule(opportunity.returnSchedule).toLowerCase()}
@@ -122,11 +138,6 @@ function OpportunityCardDetails({
       </div>
     </>
   );
-}
-
-function isPlaytivesCollective(opportunity: Opportunity): boolean {
-  const title = opportunity.title.trim().toLowerCase();
-  return title.includes('playtives') && title.includes('collective');
 }
 
 function opportunityHref(opportunity: Opportunity): string {

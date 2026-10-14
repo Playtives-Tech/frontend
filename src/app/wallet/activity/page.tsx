@@ -119,6 +119,7 @@ function ActivityRow({ log }: Readonly<{ log: ActivityLog }>): React.JSX.Element
   const amount =
     typeof log.metadata?.amountMinorUnits === 'number' ? log.metadata.amountMinorUnits / 100 : null;
   const presentation = activityPresentation(log.action);
+  const balanceAfter = numericMetadata(log, 'balanceAfterMinorUnits');
 
   return (
     <Link
@@ -137,15 +138,27 @@ function ActivityRow({ log }: Readonly<{ log: ActivityLog }>): React.JSX.Element
           {formatActivityTimestamp(log.createdAt)}
         </small>
       </span>
-      {amount !== null ? (
-        <strong className={`font-sans text-xs ${presentation.amountClass}`}>
-          {presentation.prefix}
-          {formatAmount(amount)}
-        </strong>
-      ) : null}
+      <span className="shrink-0 text-right">
+        {amount !== null ? (
+          <strong className={`block font-sans text-xs ${presentation.amountClass}`}>
+            {presentation.prefix}
+            {formatAmount(amount)}
+          </strong>
+        ) : null}
+        {balanceAfter !== null ? (
+          <small className="mt-0.5 block text-[11px] text-muted-foreground">
+            Balance {formatAmount(balanceAfter / 100)}
+          </small>
+        ) : null}
+      </span>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
     </Link>
   );
+}
+
+function numericMetadata(log: ActivityLog, key: string): number | null {
+  const value = log.metadata?.[key];
+  return typeof value === 'number' ? value : null;
 }
 
 function formatActivityTimestamp(value: string): string {

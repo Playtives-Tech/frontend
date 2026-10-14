@@ -373,7 +373,7 @@ function InterestCard({
   const money = (amount: number | null) =>
     new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'NGN',
+      currency: interest.currency ?? 'NGN',
       maximumFractionDigits: 0,
     }).format(amount ?? 0);
   return (

@@ -69,6 +69,12 @@ export default function ActivityDetailPage(): React.JSX.Element {
               {details.reference ? (
                 <DetailRow label="Reference" value={details.reference} copyable />
               ) : null}
+              {details.balanceBefore ? (
+                <DetailRow label="Balance before" value={details.balanceBefore} />
+              ) : null}
+              {details.balanceAfter ? (
+                <DetailRow label="Balance after" value={details.balanceAfter} />
+              ) : null}
               <DetailRow label="Activity ID" value={details.activityId} copyable />
             </dl>
           </section>
@@ -136,11 +142,17 @@ function getActivityDetails(activity: ActivityLog) {
     stringMetadata(activity, 'paymentReference') ??
     stringMetadata(activity, 'paystackReference') ??
     stringMetadata(activity, 'requestId');
+  const balanceBeforeMinorUnits = numberMetadata(activity, 'balanceBeforeMinorUnits');
+  const balanceAfterMinorUnits = numberMetadata(activity, 'balanceAfterMinorUnits');
 
   return {
     ...presentation,
     amount: amountMinorUnits === null ? null : formatAmount(amountMinorUnits / 100),
     reference,
+    balanceBefore:
+      balanceBeforeMinorUnits === null ? null : formatAmount(balanceBeforeMinorUnits / 100),
+    balanceAfter:
+      balanceAfterMinorUnits === null ? null : formatAmount(balanceAfterMinorUnits / 100),
     activityId: activity._id,
     timestamp: new Intl.DateTimeFormat('en-NG', {
       hour: 'numeric',
@@ -156,6 +168,11 @@ function getActivityDetails(activity: ActivityLog) {
         : 'Approved',
     description: descriptionFor(activity.action),
   };
+}
+
+function numberMetadata(activity: ActivityLog, key: string): number | null {
+  const value = activity.metadata?.[key];
+  return typeof value === 'number' ? value : null;
 }
 
 function stringMetadata(activity: ActivityLog, key: string): string | null {
