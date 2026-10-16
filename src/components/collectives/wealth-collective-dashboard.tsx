@@ -391,6 +391,11 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 >
                   <Icon className="size-4" />
                   {label}
+                  {key === 'updates' && data.unreadUpdateCount > 0 ? (
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-red-600 text-[10px] font-bold leading-none text-white">
+                      {data.unreadUpdateCount > 9 ? '9+' : data.unreadUpdateCount}
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </nav>
@@ -905,15 +910,31 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
                       Collective updates
                     </p>
-                    <h2 className="mt-1 text-xl font-semibold">Deployment and programme updates</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <h2 className="mt-1 text-xl font-semibold">Published updates</h2>
+                    {/* <p className="text-sm text-muted-foreground">
                       Upcoming funding windows and confirmed monthly results.
-                    </p>
+                    </p> */}
                   </div>
                   <RefreshCcw className="size-6 text-brand" />
                 </div>
                 <div className="mt-5">
-                  <CollectiveUpdates cycles={data.cycles} limit={4} updates={data.updates} />
+                  <CollectiveUpdates
+                    limit={4}
+                    updates={data.updates}
+                    onRead={(updateId) =>
+                      setData((current) =>
+                        current
+                          ? {
+                              ...current,
+                              unreadUpdateCount: Math.max(0, current.unreadUpdateCount - 1),
+                              updates: current.updates.map((item) =>
+                                item._id === updateId ? { ...item, isRead: true } : item,
+                              ),
+                            }
+                          : current,
+                      )
+                    }
+                  />
                 </div>
                 <Link
                   className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"

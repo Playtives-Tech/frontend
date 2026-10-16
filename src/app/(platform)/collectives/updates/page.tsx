@@ -11,7 +11,9 @@ import {
 export default function CollectiveUpdatesPage(): React.JSX.Element {
   const [data, setData] = useState<CollectiveDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [openUpdateId, setOpenUpdateId] = useState<string | null>(null);
   useEffect(() => {
+    setOpenUpdateId(new URLSearchParams(window.location.search).get('update'));
     void getCollectiveDashboard()
       .then(setData)
       .catch((cause: unknown) =>
@@ -20,7 +22,7 @@ export default function CollectiveUpdatesPage(): React.JSX.Element {
   }, []);
   return (
     <CollectiveDetailLayout
-      description="Deployment dates, confirmed results, and announcements from the Playtives team."
+      description="Published announcements and progress updates from the Playtives team."
       title="Collective updates"
     >
       {error ? (
@@ -29,7 +31,7 @@ export default function CollectiveUpdatesPage(): React.JSX.Element {
         <p className="text-sm text-muted-foreground">Loading updates…</p>
       ) : (
         <section className="bg-card rounded-2xl border px-5 sm:px-7">
-          <CollectiveUpdates cycles={data.cycles} updates={data.updates} />
+          <CollectiveUpdates updates={data.updates} openUpdateId={openUpdateId} />
         </section>
       )}
     </CollectiveDetailLayout>

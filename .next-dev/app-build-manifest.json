@@ -46,40 +46,35 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(platform)/discover/[slug]/page.js"
     ],
-    "/(platform)/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/profile/page.js"
-    ],
-    "/profile/name-change/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/profile/name-change/page.js"
-    ],
-    "/wallet/activity/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/wallet/activity/page.js"
-    ],
-    "/wallet/activity/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/wallet/activity/[id]/page.js"
-    ],
-    "/wallet/deposit/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/wallet/deposit/page.js"
-    ],
     "/(platform)/collectives/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(platform)/collectives/page.js"
     ],
-    "/(platform)/collectives/activity/page": [
+    "/(platform)/collectives/updates/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/collectives/activity/page.js"
+      "static/chunks/app/(platform)/collectives/updates/page.js"
+    ],
+    "/(platform)/collectives/cycles/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/collectives/cycles/page.js"
+    ],
+    "/(platform)/ownership/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/ownership/page.js"
+    ],
+    "/(platform)/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/profile/page.js"
+    ],
+    "/wallet/activity/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/wallet/activity/[id]/page.js"
     ]
   }
 }
