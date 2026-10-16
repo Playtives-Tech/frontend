@@ -1,8 +1,9 @@
 {
-  "/sign-in/page": "app/sign-in/page.js",
-  "/wallet/activity/page": "app/wallet/activity/page.js",
-  "/wallet/activity/[id]/page": "app/wallet/activity/[id]/page.js",
   "/page": "app/page.js",
+  "/wallet/activity/[id]/page": "app/wallet/activity/[id]/page.js",
+  "/sign-in/page": "app/sign-in/page.js",
+  "/(platform)/discover/page": "app/(platform)/discover/page.js",
+  "/(platform)/ownership/page": "app/(platform)/ownership/page.js",
   "/(platform)/collectives/page": "app/(platform)/collectives/page.js",
-  "/(platform)/collectives/activity/page": "app/(platform)/collectives/activity/page.js"
+  "/(platform)/profile/page": "app/(platform)/profile/page.js"
 }

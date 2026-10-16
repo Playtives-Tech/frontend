@@ -21,6 +21,7 @@ import {
   type MaintenanceStatus,
 } from '@/lib/services/platform-settings-service';
 import { MaintenanceOverlay } from './maintenance-overlay';
+import { CollectiveUpdateAlert } from '@/components/collectives/collective-update-alert';
 
 type AppShellProps = Readonly<{ children: ReactNode }>;
 
@@ -288,6 +289,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       </main>
 
       <RecentActivityRail userKey={user?.email ?? null} />
+      <CollectiveUpdateAlert />
 
       <a
         href={whatsappDestination}

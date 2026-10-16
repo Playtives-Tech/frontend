@@ -460,12 +460,17 @@ function InterestForm({
     existing?.capitalReadiness ?? 'available_now',
   );
   const [accepted, setAccepted] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>(() =>
+    Object.fromEntries((existing?.answers ?? []).map((item) => [item.questionId, item.answer])),
+  );
   const [saving, setSaving] = useState(false);
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
+    const customQuestions = opportunity.interestQuestions ?? [];
     if (
-      (opportunity.collectOpeningCapital && !openingCapital) ||
-      (opportunity.collectRecurringAmount && !recurringAmount) ||
+      customQuestions.some((question) => question.required && !answers[question.id]) ||
+      (customQuestions.length === 0 && opportunity.collectOpeningCapital && !openingCapital) ||
+      (customQuestions.length === 0 && opportunity.collectRecurringAmount && !recurringAmount) ||
       !accepted
     )
       return notify.error('Complete all fields and acknowledge the interest terms.');
@@ -478,6 +483,10 @@ function InterestForm({
           : undefined,
         capitalReadiness,
         acknowledgementVersion: opportunity.interestAcknowledgementVersion,
+        answers: customQuestions.map((question) => ({
+          questionId: question.id,
+          answer: answers[question.id] ?? '',
+        })),
       })
       .then((record) => {
         notify.success('Interest registered');
@@ -494,7 +503,23 @@ function InterestForm({
       <p className="mt-1 text-sm text-muted-foreground">
         This is only an expression of interest. No payment will be taken.
       </p>
-      {opportunity.collectOpeningCapital || opportunity.collectRecurringAmount ? (
+      {(opportunity.interestQuestions ?? []).length > 0 ? (
+        <div className="mt-5 grid gap-5">
+          {opportunity.interestQuestions.map((question) => (
+            <fieldset key={question.id}>
+              <legend className="text-sm font-semibold">{question.label}{question.required ? <span className="text-red-600"> *</span> : null}</legend>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {question.options.map((option) => (
+                  <label key={option} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm transition ${answers[question.id] === option ? 'border-brand bg-brand/5' : 'hover:border-brand/30'}`}>
+                    <input type="radio" name={question.id} checked={answers[question.id] === option} onChange={() => setAnswers((current) => ({ ...current, [question.id]: option }))} />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+        </div>
+      ) : opportunity.collectOpeningCapital || opportunity.collectRecurringAmount ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {opportunity.collectOpeningCapital ? (
             <MoneyInput
@@ -514,7 +539,7 @@ function InterestForm({
           ) : null}
         </div>
       ) : null}
-      {opportunity.collectCapitalReadiness ? (
+      {(opportunity.interestQuestions ?? []).length === 0 && opportunity.collectCapitalReadiness ? (
         <fieldset className="mt-5">
           <legend className="text-sm font-semibold">Capital readiness</legend>
           <div className="mt-3 grid gap-2">

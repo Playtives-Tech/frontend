@@ -123,6 +123,7 @@ export type Opportunity = Readonly<{
   collectCapitalReadiness: boolean;
   interestAcknowledgementText: string;
   interestAcknowledgementVersion: string;
+  interestQuestions: ReadonlyArray<{ id: string; label: string; options: string[]; required: boolean }>;
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
@@ -170,7 +171,13 @@ export function getOpportunityUpdates(slug: string): Promise<OpportunityUpdate[]
 
 export function isPlaytivesCollective(opportunity: Opportunity): boolean {
   const title = opportunity.title.trim().toLowerCase();
-  return title.includes('playtives') && title.includes('collective');
+  const slug = opportunity.slug.trim().toLowerCase();
+  return (
+    (title.includes('collective') &&
+      (title.includes('wealth') || title.includes('playtives'))) ||
+    slug.includes('wealth-collective') ||
+    slug.includes('playtives-collective')
+  );
 }
 
 export function isInterestOpportunityOpen(
@@ -201,6 +208,7 @@ export type OpportunityInterest = Readonly<{
   capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure';
   status: string;
   acknowledgementVersion: string;
+  answers: ReadonlyArray<{ questionId: string; question: string; answer: string }>;
   createdAt: string;
   updatedAt: string;
 }>;
@@ -232,6 +240,7 @@ export const opportunityInterestService = {
       recurringAmount?: number;
       capitalReadiness: OpportunityInterest['capitalReadiness'];
       acknowledgementVersion: string;
+      answers?: Array<{ questionId: string; answer: string }>;
     },
   ) =>
     api<OpportunityInterest>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, {

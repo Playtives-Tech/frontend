@@ -68,6 +68,8 @@ export type CollectiveUpdate = Readonly<{
   _id: string;
   title: string;
   body: string;
+  format: 'TEXT' | 'MARKDOWN';
+  isRead: boolean;
   publishedAt: string;
 }>;
 export type CollectiveDashboard = Readonly<{
@@ -119,6 +121,7 @@ export type CollectiveDashboard = Readonly<{
   }> | null;
   transactions: CollectiveTransaction[];
   updates: CollectiveUpdate[];
+  unreadUpdateCount: number;
   contributedMinorUnits: number;
   currentCycleContributionMinorUnits: number;
   agreement: Readonly<{
@@ -184,6 +187,18 @@ export function getCollectivePortfolioPosition(
 const key = (): string => crypto.randomUUID();
 export function getCollectiveDashboard(): Promise<CollectiveDashboard> {
   return api('/v1/collectives/dashboard', { cache: 'no-store' });
+}
+export function getCollectiveUpdateStatus(): Promise<{
+  unreadCount: number;
+  latestUnread: CollectiveUpdate | null;
+}> {
+  return api('/v1/collectives/updates/status', { cache: 'no-store' });
+}
+export function markCollectiveUpdateRead(updateId: string): Promise<{
+  unreadCount: number;
+  latestUnread: CollectiveUpdate | null;
+}> {
+  return api(`/v1/collectives/updates/${updateId}/read`, { method: 'POST' });
 }
 export function acceptCollectiveAgreement(input: {
   version: number;
