@@ -41,6 +41,9 @@ export function OpportunityInterestFlow({
           totalCommitted: 0,
           targetAmount: opportunity.interestTargetAmount ?? 0,
           memberCount: 0,
+          minimumCount: 0,
+          unknownCount: 0,
+          otherCurrencyCount: 0,
           totalMonthlyCommitment: 0,
           currency: opportunity.interestCurrency ?? 'NGN',
         }),
@@ -124,7 +127,10 @@ export function OpportunityInterestFlow({
             </div>
             <p className="mt-2 text-sm font-semibold text-brand">
               {progress
-                ? `${formatInterestMoney(progress.totalCommitted, progress.currency ?? opportunity.interestCurrency)} of ${formatInterestMoney(progress.targetAmount, progress.currency ?? opportunity.interestCurrency)} target`
+                ? progress.memberCount > 0 &&
+                  progress.unknownCount + progress.otherCurrencyCount === progress.memberCount
+                  ? 'Indicative amounts not yet available'
+                  : `${progress.minimumCount || progress.unknownCount || progress.otherCurrencyCount ? 'At least ' : ''}${formatInterestMoney(progress.totalCommitted, progress.currency ?? opportunity.interestCurrency)} of ${formatInterestMoney(progress.targetAmount, progress.currency ?? opportunity.interestCurrency)} indicative target`
                 : 'Loading interest progress…'}
             </p>
           </div>
@@ -136,6 +142,10 @@ export function OpportunityInterestFlow({
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             {progress?.memberCount ?? 0} members have signified interest
+            {progress?.unknownCount ? ` · ${progress.unknownCount} without a specified amount` : ''}
+            {progress?.otherCurrencyCount
+              ? ` · ${progress.otherCurrencyCount} recorded in another currency`
+              : ''}
           </p>
         </section>
       ) : null}
@@ -388,7 +398,13 @@ function Confirmation({
         You’re interested
       </div>
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-        {opportunity.collectOpeningCapital ? (
+        {interest.participationAmount != null ? (
+          <Detail
+            label="Indicative participation"
+            value={`${interest.participationAmountKind === 'minimum' ? 'At least ' : ''}${formatInterestMoney(interest.participationAmount, interest.currency ?? opportunity.interestCurrency)}`}
+          />
+        ) : null}
+        {!opportunity.interestQuestions?.length && opportunity.collectOpeningCapital ? (
           <Detail
             label="Opening capital"
             value={formatInterestMoney(
@@ -397,7 +413,7 @@ function Confirmation({
             )}
           />
         ) : null}
-        {opportunity.collectRecurringAmount ? (
+        {!opportunity.interestQuestions?.length && opportunity.collectRecurringAmount ? (
           <Detail
             label="Recurring commitment"
             value={formatInterestMoney(
@@ -406,7 +422,9 @@ function Confirmation({
             )}
           />
         ) : null}
-        {opportunity.collectCapitalReadiness ? (
+        {!opportunity.interestQuestions?.length &&
+        opportunity.collectCapitalReadiness &&
+        interest.capitalReadiness ? (
           <Detail
             label="Capital readiness"
             value={
@@ -416,6 +434,23 @@ function Confirmation({
           />
         ) : null}
       </div>
+      {interest.answers?.length ? (
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          {interest.answers
+            .filter((item) => item.answer)
+            .map((item) => (
+              <div key={item.questionId} className="min-w-0 rounded-xl bg-background/70 p-3">
+                <dt className="text-xs text-muted-foreground">{item.question}</dt>
+                <dd className="mt-1 break-words font-semibold">
+                  {item.answer}
+                  {item.customAmount
+                    ? ` · ${formatInterestMoney(item.customAmount, interest.currency ?? opportunity.interestCurrency)}`
+                    : ''}
+                </dd>
+              </div>
+            ))}
+        </dl>
+      ) : null}
       <p className="mt-4 text-sm text-muted-foreground">
         No payment is required yet. We’ll notify you when this opportunity moves to its next stage.
       </p>
@@ -456,12 +491,20 @@ function InterestForm({
 }>): React.JSX.Element {
   const [openingCapital, setOpeningCapital] = useState(String(existing?.openingCapital ?? ''));
   const [recurringAmount, setRecurringAmount] = useState(String(existing?.recurringAmount ?? ''));
-  const [capitalReadiness, setCapitalReadiness] = useState<OpportunityInterest['capitalReadiness']>(
-    existing?.capitalReadiness ?? 'available_now',
-  );
+  const [capitalReadiness, setCapitalReadiness] = useState<
+    Exclude<OpportunityInterest['capitalReadiness'], null>
+  >(existing?.capitalReadiness ?? 'available_now');
   const [accepted, setAccepted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries((existing?.answers ?? []).map((item) => [item.questionId, item.answer])),
+  );
+  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      (existing?.answers ?? []).map((item) => [
+        item.questionId,
+        item.customAmount ? String(item.customAmount) : '',
+      ]),
+    ),
   );
   const [saving, setSaving] = useState(false);
   const submit = (event: React.FormEvent) => {
@@ -469,6 +512,14 @@ function InterestForm({
     const customQuestions = opportunity.interestQuestions ?? [];
     if (
       customQuestions.some((question) => question.required && !answers[question.id]) ||
+      customQuestions.some(
+        (question) =>
+          question.purpose === 'participation_amount' &&
+          question.amountOptions?.[question.options.indexOf(answers[question.id])]?.amount ===
+            null &&
+          (!Number.isSafeInteger(Number(customAmounts[question.id])) ||
+            Number(customAmounts[question.id]) <= 0),
+      ) ||
       (customQuestions.length === 0 && opportunity.collectOpeningCapital && !openingCapital) ||
       (customQuestions.length === 0 && opportunity.collectRecurringAmount && !recurringAmount) ||
       !accepted
@@ -477,15 +528,25 @@ function InterestForm({
     setSaving(true);
     void opportunityInterestService
       .save(opportunity.slug, {
-        openingCapital: opportunity.collectOpeningCapital ? Math.round(Number(openingCapital)) : 0,
-        recurringAmount: opportunity.collectRecurringAmount
-          ? Math.round(Number(recurringAmount))
-          : undefined,
-        capitalReadiness,
+        openingCapital:
+          customQuestions.length === 0 && opportunity.collectOpeningCapital
+            ? Math.round(Number(openingCapital))
+            : 0,
+        recurringAmount:
+          customQuestions.length === 0 && opportunity.collectRecurringAmount
+            ? Math.round(Number(recurringAmount))
+            : undefined,
+        capitalReadiness: customQuestions.length === 0 ? capitalReadiness : undefined,
         acknowledgementVersion: opportunity.interestAcknowledgementVersion,
         answers: customQuestions.map((question) => ({
           questionId: question.id,
           answer: answers[question.id] ?? '',
+          customAmount:
+            question.purpose === 'participation_amount' &&
+            question.amountOptions?.[question.options.indexOf(answers[question.id])]?.amount ===
+              null
+              ? Number(customAmounts[question.id])
+              : undefined,
         })),
       })
       .then((record) => {
@@ -507,15 +568,41 @@ function InterestForm({
         <div className="mt-5 grid gap-5">
           {opportunity.interestQuestions.map((question) => (
             <fieldset key={question.id}>
-              <legend className="text-sm font-semibold">{question.label}{question.required ? <span className="text-red-600"> *</span> : null}</legend>
+              <legend className="text-sm font-semibold">
+                {question.label}
+                {question.required ? <span className="text-red-600"> *</span> : null}
+              </legend>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {question.options.map((option) => (
-                  <label key={option} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm transition ${answers[question.id] === option ? 'border-brand bg-brand/5' : 'hover:border-brand/30'}`}>
-                    <input type="radio" name={question.id} checked={answers[question.id] === option} onChange={() => setAnswers((current) => ({ ...current, [question.id]: option }))} />
+                  <label
+                    key={option}
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm transition ${answers[question.id] === option ? 'border-brand bg-brand/5' : 'hover:border-brand/30'}`}
+                  >
+                    <input
+                      type="radio"
+                      name={question.id}
+                      checked={answers[question.id] === option}
+                      onChange={() =>
+                        setAnswers((current) => ({ ...current, [question.id]: option }))
+                      }
+                    />
                     {option}
                   </label>
                 ))}
               </div>
+              {question.purpose === 'participation_amount' &&
+              question.amountOptions?.[question.options.indexOf(answers[question.id])]?.amount ===
+                null ? (
+                <MoneyInput
+                  label="Your indicative amount"
+                  currency={opportunity.interestCurrency ?? 'NGN'}
+                  value={customAmounts[question.id] ?? ''}
+                  positive
+                  onChange={(value) =>
+                    setCustomAmounts((current) => ({ ...current, [question.id]: value }))
+                  }
+                />
+              ) : null}
             </fieldset>
           ))}
         </div>
@@ -578,11 +665,13 @@ function MoneyInput({
   label,
   currency,
   value,
+  positive = false,
   onChange,
 }: Readonly<{
   label: string;
   currency: 'NGN' | 'GBP' | 'USD';
   value: string;
+  positive?: boolean;
   onChange: (value: string) => void;
 }>): React.JSX.Element {
   return (
@@ -592,7 +681,8 @@ function MoneyInput({
         <span className="text-muted-foreground">{currencySymbol(currency)}</span>
         <input
           required
-          min="0"
+          min={positive ? 1 : 0}
+          step="1"
           type="number"
           inputMode="decimal"
           value={value}
@@ -642,10 +732,7 @@ function AboutModal({
     </div>
   );
 }
-function formatInterestMoney(
-  amount: number,
-  currency: 'NGN' | 'GBP' | 'USD' = 'NGN',
-): string {
+function formatInterestMoney(amount: number, currency: 'NGN' | 'GBP' | 'USD' = 'NGN'): string {
   return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency,
