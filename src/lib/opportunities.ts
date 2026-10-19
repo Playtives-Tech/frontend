@@ -123,7 +123,14 @@ export type Opportunity = Readonly<{
   collectCapitalReadiness: boolean;
   interestAcknowledgementText: string;
   interestAcknowledgementVersion: string;
-  interestQuestions: ReadonlyArray<{ id: string; label: string; options: string[]; required: boolean }>;
+  interestQuestions: ReadonlyArray<{
+    id: string;
+    label: string;
+    options: string[];
+    required: boolean;
+    purpose?: 'participation_amount' | null;
+    amountOptions?: ReadonlyArray<{ amount: number | null; minimum: boolean }>;
+  }>;
   imageUrl: string;
   imageWidth: number;
   imageHeight: number;
@@ -163,27 +170,22 @@ export function getOpportunity(slug: string): Promise<Opportunity> {
 }
 
 export function getOpportunityUpdates(slug: string): Promise<OpportunityUpdate[]> {
-  return api<OpportunityUpdate[]>(
-    `/v1/member/opportunities/${encodeURIComponent(slug)}/updates`,
-    { cache: 'no-store' },
-  );
+  return api<OpportunityUpdate[]>(`/v1/member/opportunities/${encodeURIComponent(slug)}/updates`, {
+    cache: 'no-store',
+  });
 }
 
 export function isPlaytivesCollective(opportunity: Opportunity): boolean {
   const title = opportunity.title.trim().toLowerCase();
   const slug = opportunity.slug.trim().toLowerCase();
   return (
-    (title.includes('collective') &&
-      (title.includes('wealth') || title.includes('playtives'))) ||
+    (title.includes('collective') && (title.includes('wealth') || title.includes('playtives'))) ||
     slug.includes('wealth-collective') ||
     slug.includes('playtives-collective')
   );
 }
 
-export function isInterestOpportunityOpen(
-  opportunity: Opportunity,
-  now = new Date(),
-): boolean {
+export function isInterestOpportunityOpen(opportunity: Opportunity, now = new Date()): boolean {
   if (!isPlaytivesCollective(opportunity)) return opportunity.status === 'INTEREST_OPEN';
 
   const startsAt =
@@ -202,13 +204,20 @@ export function isInterestOpportunityOpen(
 export type OpportunityInterest = Readonly<{
   _id: string;
   openingCapital: number;
+  participationAmount: number | null;
+  participationAmountKind: 'exact' | 'minimum' | null;
   recurringAmount: number | null;
   recurringFrequency: 'monthly' | null;
   currency: InterestCurrency;
-  capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure';
+  capitalReadiness: 'available_now' | 'within_7_days' | 'not_sure' | null;
   status: string;
   acknowledgementVersion: string;
-  answers: ReadonlyArray<{ questionId: string; question: string; answer: string }>;
+  answers: ReadonlyArray<{
+    questionId: string;
+    question: string;
+    answer: string;
+    customAmount?: number | null;
+  }>;
   createdAt: string;
   updatedAt: string;
 }>;
@@ -216,6 +225,9 @@ export type InterestProgress = Readonly<{
   totalCommitted: number;
   targetAmount: number;
   memberCount: number;
+  minimumCount: number;
+  unknownCount: number;
+  otherCurrencyCount: number;
   totalMonthlyCommitment: number;
   currency: InterestCurrency;
 }>;
@@ -238,9 +250,9 @@ export const opportunityInterestService = {
     input: {
       openingCapital: number;
       recurringAmount?: number;
-      capitalReadiness: OpportunityInterest['capitalReadiness'];
+      capitalReadiness?: Exclude<OpportunityInterest['capitalReadiness'], null>;
       acknowledgementVersion: string;
-      answers?: Array<{ questionId: string; answer: string }>;
+      answers?: Array<{ questionId: string; answer: string; customAmount?: number }>;
     },
   ) =>
     api<OpportunityInterest>(`/v1/opportunities/${encodeURIComponent(slug)}/interest`, {
