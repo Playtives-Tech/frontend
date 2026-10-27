@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- Blog image URLs are managed by the backend media service. */
 
 import {
   ArrowLeft,
@@ -315,46 +316,222 @@ function CommentCard({
 }
 
 function MarkdownContent({ value }: Readonly<{ value: string }>): React.JSX.Element {
-  return (
-    <div className="mt-8 space-y-4 text-[15px] leading-7 text-foreground">
-      {value.split('\n').map((line, index) => {
-        if (line.startsWith('## '))
-          return (
-            <h2 key={index} className="mt-8 text-2xl font-bold">
-              {line.slice(3)}
-            </h2>
-          );
-        if (line.startsWith('- '))
-          return (
-            <p key={index} className="pl-5 before:mr-2 before:content-['•']">
-              {inline(line.slice(2))}
-            </p>
-          );
-        if (line.startsWith('> '))
-          return (
-            <blockquote
-              key={index}
-              className="border-l-4 border-brand/40 bg-brand/5 px-4 py-3 italic"
-            >
-              {inline(line.slice(2))}
-            </blockquote>
-          );
-        if (!line.trim()) return <div key={index} className="h-2" />;
-        return <p key={index}>{inline(line)}</p>;
-      })}
-    </div>
-  );
+  const lines = value.replace(/\r/g, '').split('\n');
+  const blocks: React.ReactNode[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index].trim();
+    if (!line) {
+      index += 1;
+      continue;
+    }
+    if (
+      index + 1 < lines.length &&
+      /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(lines[index + 1].trim())
+    ) {
+      const cells = (row: string) =>
+        row
+          .trim()
+          .replace(/^\||\|$/g, '')
+          .split('|')
+          .map((cell) => cell.trim());
+      const headers = cells(line);
+      index += 2;
+      const rows: string[][] = [];
+      while (index < lines.length && lines[index].includes('|') && lines[index].trim()) {
+        rows.push(cells(lines[index]));
+        index += 1;
+      }
+      blocks.push(
+        <div key={`table-${index}`} className="my-6 overflow-x-auto rounded-xl border">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-muted">
+              <tr>
+                {headers.map((cell, cellIndex) => (
+                  <th key={cellIndex} className="border px-3 py-2 font-semibold">
+                    {inline(cell)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {headers.map((_, cellIndex) => (
+                    <td key={cellIndex} className="border px-3 py-2">
+                      {inline(row[cellIndex] ?? '')}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      blocks.push(
+        heading[1].length === 3 ? (
+          <h3 key={index} className="mt-7 text-xl font-semibold">
+            {inline(heading[2])}
+          </h3>
+        ) : (
+          <h2 key={index} className="mt-8 text-2xl font-bold">
+            {inline(heading[2])}
+          </h2>
+        ),
+      );
+      index += 1;
+      continue;
+    }
+
+    const image = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (image) {
+      const src = safeBlogUrl(image[2]);
+      if (src) {
+        blocks.push(
+          <figure key={index} className="my-6 overflow-hidden rounded-xl bg-muted">
+            <img src={src} alt={image[1]} className="max-h-[440px] w-full object-cover" />
+            {image[1] ? (
+              <figcaption className="px-3 py-2 text-xs text-muted-foreground">
+                {image[1]}
+              </figcaption>
+            ) : null}
+          </figure>,
+        );
+      }
+      index += 1;
+      continue;
+    }
+
+    if (/^>\s?/.test(line)) {
+      const quote: string[] = [];
+      while (index < lines.length && /^>\s?/.test(lines[index].trim())) {
+        quote.push(lines[index++].trim().replace(/^>\s?/, ''));
+      }
+      blocks.push(
+        <blockquote
+          key={`quote-${index}`}
+          className="border-l-4 border-brand/40 bg-brand/5 px-4 py-3 italic"
+        >
+          {quote.map((item, quoteIndex) => (
+            <p key={quoteIndex}>{inline(item)}</p>
+          ))}
+        </blockquote>,
+      );
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index].trim())) {
+        items.push(lines[index++].trim().replace(/^[-*]\s+/, ''));
+      }
+      blocks.push(
+        <ul key={`list-${index}`} className="list-disc space-y-1 pl-6">
+          {items.map((item, itemIndex) => (
+            <li key={itemIndex}>{inline(item)}</li>
+          ))}
+        </ul>,
+      );
+      continue;
+    }
+
+    if (/^\d+[.)]\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^\d+[.)]\s+/.test(lines[index].trim())) {
+        items.push(lines[index++].trim().replace(/^\d+[.)]\s+/, ''));
+      }
+      blocks.push(
+        <ol key={`ordered-${index}`} className="list-decimal space-y-1 pl-6">
+          {items.map((item, itemIndex) => (
+            <li key={itemIndex}>{inline(item)}</li>
+          ))}
+        </ol>,
+      );
+      continue;
+    }
+
+    const paragraph = [line];
+    index += 1;
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !/^(#{1,3}\s|>\s?|[-*]\s+|\d+[.)]\s+|!\[)/.test(lines[index].trim())
+    ) {
+      paragraph.push(lines[index++].trim());
+    }
+    blocks.push(<p key={`paragraph-${index}`}>{inline(paragraph.join(' '))}</p>);
+  }
+
+  return <div className="mt-8 space-y-4 text-[15px] leading-7 text-foreground">{blocks}</div>;
 }
 function inline(line: string): React.ReactNode[] {
-  return line
-    .split(/(\*\*[^*]+\*\*)/)
-    .map((part, index) =>
-      part.startsWith('**') && part.endsWith('**') ? (
-        <strong key={index}>{part.slice(2, -2)}</strong>
+  const parts = line
+    .split(
+      /(<u>[^<]*<\/u>|<sub>[^<]*<\/sub>|<sup>[^<]*<\/sup>|!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g,
+    )
+    .filter(Boolean);
+  return parts.map((part, index) => {
+    const image = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (image) {
+      const src = safeBlogUrl(image[2]);
+      return src ? (
+        <img
+          key={index}
+          src={src}
+          alt={image[1]}
+          className="my-5 block max-h-[440px] w-full rounded-xl object-cover"
+        />
+      ) : null;
+    }
+    const markup = part.match(/^<(u|sub|sup)>(.*?)<\/\1>$/);
+    if (markup) {
+      if (markup[1] === 'u') return <u key={index}>{markup[2]}</u>;
+      if (markup[1] === 'sub') return <sub key={index}>{markup[2]}</sub>;
+      return <sup key={index}>{markup[2]}</sup>;
+    }
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      const href = safeBlogUrl(link[2]);
+      return href ? (
+        <a
+          key={index}
+          href={href}
+          target={href.startsWith('/') ? undefined : '_blank'}
+          rel={href.startsWith('/') ? undefined : 'noopener noreferrer'}
+          className="text-brand underline underline-offset-2"
+        >
+          {link[1]}
+        </a>
       ) : (
-        part
-      ),
-    );
+        <span key={index}>{link[1]}</span>
+      );
+    }
+    if (part.startsWith('**') && part.endsWith('**'))
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={index}>{part.slice(1, -1)}</em>;
+    if (part.startsWith('`') && part.endsWith('`'))
+      return (
+        <code key={index} className="rounded bg-muted px-1.5 py-0.5 text-[.9em]">
+          {part.slice(1, -1)}
+        </code>
+      );
+    return part;
+  });
+}
+function safeBlogUrl(value: string): string | null {
+  if (value.startsWith('/') && !value.startsWith('//')) return value;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
 function initials(name: string): string {
   return name.replace(/\s+/g, '').slice(0, 2).toUpperCase() || 'PL';

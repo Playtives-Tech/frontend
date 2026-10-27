@@ -42,7 +42,9 @@ function NavigationLink({
       href={href}
       className={cn(
         'group flex items-center gap-3 rounded-[.5rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-        compact ? 'flex-col gap-1 px-2 py-2 text-[10px]' : 'h-12 px-3.5 text-[.85rem]',
+        compact
+          ? 'min-w-0 flex-1 flex-col gap-1 px-1 py-2 text-[9px]'
+          : 'h-12 px-3.5 text-[.85rem]',
         inverse
           ? active
             ? 'border border-l-[2px] border-white/15 border-l-amber-500 bg-[linear-gradient(105deg,rgb(225_170_44_/_0.16),rgb(255_255_255_/_0.14))] px-[0.625rem] text-white shadow-sm'
@@ -56,7 +58,7 @@ function NavigationLink({
       aria-current={active ? 'page' : undefined}
     >
       <Icon className={compact ? 'size-5' : 'size-5 shrink-0'} strokeWidth={active ? 2.5 : 2} />
-      <span>{label}</span>
+      <span className={compact ? 'max-w-full truncate' : undefined}>{label}</span>
     </Link>
   );
 }

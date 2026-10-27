@@ -1183,6 +1183,10 @@ video {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
 }
+.my-5 {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
 .-mt-4 {
   margin-top: -1rem;
 }
@@ -1302,6 +1306,9 @@ video {
 }
 .aspect-\[16\/9\] {
   aspect-ratio: 16/9;
+}
+.aspect-\[3\/1\] {
+  aspect-ratio: 3/1;
 }
 .aspect-video {
   aspect-ratio: 16 / 9;
@@ -1480,6 +1487,9 @@ video {
 .max-h-\[calc\(80vh-82px\)\] {
   max-height: calc(80vh - 82px);
 }
+.max-h-\[440px\] {
+  max-height: 440px;
+}
 .min-h-11 {
   min-height: 2.75rem;
 }
@@ -1491,6 +1501,9 @@ video {
 }
 .min-h-20 {
   min-height: 5rem;
+}
+.min-h-32 {
+  min-height: 8rem;
 }
 .min-h-36 {
   min-height: 9rem;
@@ -1643,6 +1656,9 @@ video {
 .basis-\[14rem\] {
   flex-basis: 14rem;
 }
+.border-collapse {
+  border-collapse: collapse;
+}
 .-translate-x-1\/2 {
   --tw-translate-x: -50%;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -1718,6 +1734,9 @@ video {
 }
 .list-disc {
   list-style-type: disc;
+}
+.list-decimal {
+  list-style-type: decimal;
 }
 .appearance-none {
   -webkit-appearance: none;
@@ -2530,6 +2549,10 @@ video {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
+.px-1\.5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -2607,6 +2630,9 @@ video {
 }
 .pt-8 {
   padding-top: 2rem;
+}
+.pl-6 {
+  padding-left: 1.5rem;
 }
 .text-left {
   text-align: left;
@@ -2747,6 +2773,9 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+.text-\[\.9em\] {
+  font-size: .9em;
 }
 .\!font-semibold {
   font-weight: 600 !important;
@@ -2978,6 +3007,9 @@ video {
 }
 .underline {
   text-decoration-line: underline;
+}
+.underline-offset-2 {
+  text-underline-offset: 2px;
 }
 .accent-\[var\(--brand\)\] {
   accent-color: var(--brand);
@@ -3464,6 +3496,10 @@ video {
   opacity: 0.75;
 }
 
+.hover\:opacity-90:hover {
+  opacity: 0.9;
+}
+
 .hover\:shadow-md:hover {
   --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
@@ -3798,6 +3834,10 @@ video {
     display: none;
   }
 
+  .sm\:aspect-auto {
+    aspect-ratio: auto;
+  }
+
   .sm\:aspect-square {
     aspect-ratio: 1 / 1;
   }
@@ -3843,6 +3883,10 @@ video {
     min-height: 10rem;
   }
 
+  .sm\:min-h-44 {
+    min-height: 11rem;
+  }
+
   .sm\:w-1\/2 {
     width: 50%;
   }
@@ -3886,6 +3930,10 @@ video {
 
   .sm\:grid-cols-\[5rem_1fr_auto_auto\] {
     grid-template-columns: 5rem 1fr auto auto;
+  }
+
+  .sm\:grid-cols-\[9rem_1fr\] {
+    grid-template-columns: 9rem 1fr;
   }
 
   .sm\:grid-cols-\[minmax\(0\2c 0\.9fr\)_minmax\(0\2c 1\.4fr\)\] {

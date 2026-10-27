@@ -99,16 +99,22 @@ export function OwnershipPositionDetail({
       </Link>
       <section className="mt-5 overflow-hidden rounded-xl border bg-background">
         <div className="relative aspect-[16/7] min-h-44 bg-muted">
-          <Image
-            src={opportunity.imageUrl}
-            unoptimized
-            alt={opportunity.imageAlt}
-            fill
-            priority
-            sizes="(min-width: 1024px) 960px, 100vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+          {opportunity.imageUrl ? (
+            <Image
+              src={opportunity.imageUrl}
+              unoptimized
+              alt={opportunity.imageAlt}
+              fill
+              priority
+              sizes="(min-width: 1024px) 960px, 100vw"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm font-semibold text-muted-foreground">
+              {opportunity.historicalOnly ? 'Historical ownership' : 'Opportunity ownership'}
+            </div>
+          )}
+          {opportunity.imageUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />}
         </div>
         <div className="relative -mt-5 rounded-t-xl bg-background p-4 sm:p-5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
@@ -135,7 +141,7 @@ export function OwnershipPositionDetail({
           <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
             <CalendarDays className="mt-0.5 size-4 shrink-0 text-brand" />
             <span>
-              Acquired {formatDate(ownership.createdAt)} ·{' '}
+              {opportunity.historicalOnly ? 'Recorded' : 'Acquired'} {formatDate(ownership.createdAt)} ·{' '}
               {ownership.termType === 'LIFE_OF_ASSET'
                 ? `Capital returns — ${getOwnershipCapitalReturn(ownership)}`
                 : `Principal return ${formatDate(ownership.maturityAt)}`}
