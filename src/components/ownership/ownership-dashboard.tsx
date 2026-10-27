@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronRight, SlidersHorizontal, Sprout } from 'lucide-react';
+import { Archive, ChevronDown, ChevronRight, SlidersHorizontal, Sprout } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -14,6 +14,7 @@ import { BalanceAmount } from '@/components/ui/balance-amount';
 import { formatReturnSchedule } from '@/lib/opportunities';
 import { opportunityInterestService, type OpportunityInterest } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
+import { getLegacyOwnerships, type LegacyOwnership } from '@/lib/services/legacy-ownership-service';
 import {
   getCollectiveDashboard,
   getCollectivePortfolioPosition,
@@ -162,6 +163,7 @@ export function OwnershipDashboard(): React.JSX.Element {
   const [tab, setTab] = useState<OwnershipTab>('active');
   const [structureFilter, setStructureFilter] = useState<OwnershipStructureFilter>('ALL');
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
+  const [legacyOwnerships, setLegacyOwnerships] = useState<LegacyOwnership[]>([]);
   const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
     null,
   );
@@ -175,6 +177,7 @@ export function OwnershipDashboard(): React.JSX.Element {
       .catch((value: unknown) =>
         setError(value instanceof Error ? value.message : 'Could not load ownerships'),
       );
+    void getLegacyOwnerships().then(setLegacyOwnerships).catch(() => setLegacyOwnerships([]));
     void opportunityInterestService
       .listMine()
       .then(setInterests)
@@ -183,11 +186,12 @@ export function OwnershipDashboard(): React.JSX.Element {
       .then((dashboard) => setCollectivePosition(getCollectivePortfolioPosition(dashboard)))
       .catch(() => setCollectivePosition(null));
   }, []);
-  const active = useMemo(() => ownerships.filter((item) => item.status === 'ACTIVE'), [ownerships]);
+  const active = useMemo(() => ownerships.filter((item) => item.status === 'ACTIVE' && !item.opportunityId.historicalOnly), [ownerships]);
   const visible = ownerships.filter(
     (item) =>
       tab !== 'awaiting' &&
       item.status === tab.toUpperCase() &&
+      !item.opportunityId.historicalOnly &&
       structureFilter !== 'COLLECTIVE' &&
       (structureFilter === 'ALL' || ownershipStructure(item) === structureFilter),
   );
@@ -239,6 +243,26 @@ export function OwnershipDashboard(): React.JSX.Element {
           </p>
         </div>
       </section>
+      {legacyOwnerships.length > 0 && (
+        <section className="mt-10 rounded-2xl border bg-background p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand"><Archive className="size-4" aria-hidden="true" /> Historical records</p>
+              <h2 className="mt-2 text-lg font-semibold">Legacy opportunities</h2>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Your earlier ownerships and payments made outside Playtives. These records are separate from the portfolio value above.</p>
+            </div>
+            <Link href="/ownership/legacy" className="inline-flex items-center gap-2 rounded-xl border border-brand/25 px-4 py-2.5 text-sm font-semibold text-brand hover:bg-brand/5">View all {legacyOwnerships.length} <ChevronRight className="size-4" aria-hidden="true" /></Link>
+          </div>
+          <div className="mt-5 grid gap-2">
+            {legacyOwnerships.slice(0, 2).map((position) => (
+              <Link key={position._id} href={`/ownership/legacy/${position._id}`} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3 text-sm hover:bg-brand/10">
+                <span className="min-w-0"><span className="block truncate font-semibold">{position.opportunity.title}</span><span className="text-xs text-muted-foreground">Months {position.firstCycle}–{position.lastCycle} · {position.status.toLowerCase()}</span></span>
+                <ChevronRight className="size-4 shrink-0 text-brand" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
           {tabs.map(({ value, label }) => (

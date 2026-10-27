@@ -162,6 +162,24 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   type __Unused = __Check
 }
 
+// Validate ../../src/app/(platform)/ownership/legacy/[id]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/ownership/legacy/[id]">> = Specific
+  const handler = {} as typeof import("../../src/app/(platform)/ownership/legacy/[id]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/(platform)/ownership/legacy/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/ownership/legacy">> = Specific
+  const handler = {} as typeof import("../../src/app/(platform)/ownership/legacy/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/(platform)/ownership/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/ownership">> = Specific

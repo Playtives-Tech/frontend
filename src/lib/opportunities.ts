@@ -44,6 +44,7 @@ export type OpportunityExecutionProgress = Readonly<{
 
 export type Opportunity = Readonly<{
   _id: string;
+  historicalOnly?: boolean;
   slug: string;
   title: string;
   category: string;
