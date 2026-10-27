@@ -473,10 +473,30 @@ function MarkdownContent({ value }: Readonly<{ value: string }>): React.JSX.Elem
 function inline(line: string): React.ReactNode[] {
   const parts = line
     .split(
-      /(<u>[^<]*<\/u>|<sub>[^<]*<\/sub>|<sup>[^<]*<\/sup>|!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g,
+      /(@\[youtube\]\([^)]+\)|<u>[^<]*<\/u>|<sub>[^<]*<\/sub>|<sup>[^<]*<\/sup>|!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g,
     )
     .filter(Boolean);
   return parts.map((part, index) => {
+    const video = part.match(/^@\[youtube\]\(([^)]+)\)$/);
+    if (video) {
+      const videoId = youtubeVideoId(video[1]);
+      return videoId ? (
+        <span
+          key={index}
+          className="my-5 block aspect-video w-full overflow-hidden rounded-xl bg-black"
+        >
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+            title="YouTube video"
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="size-full border-0"
+          />
+        </span>
+      ) : null;
+    }
     const image = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (image) {
       const src = safeBlogUrl(image[2]);
@@ -523,6 +543,25 @@ function inline(line: string): React.ReactNode[] {
       );
     return part;
   });
+}
+function youtubeVideoId(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    const host = url.hostname.toLowerCase();
+    let id: string | null = null;
+    if (host === 'youtu.be' || host === 'www.youtu.be') {
+      id = url.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)) {
+      id =
+        url.pathname === '/watch'
+          ? url.searchParams.get('v')
+          : (url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1] ?? null);
+    }
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
 }
 function safeBlogUrl(value: string): string | null {
   if (value.startsWith('/') && !value.startsWith('//')) return value;
