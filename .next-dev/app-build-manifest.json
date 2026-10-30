@@ -80,6 +80,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/community-membership/page.js"
+    ],
+    "/(platform)/discover/[slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/discover/[slug]/page.js"
     ]
   }
 }

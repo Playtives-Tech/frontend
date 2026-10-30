@@ -112,6 +112,7 @@ export type Opportunity = Readonly<{
     createdAt: string;
   }>;
   interestModeEnabled: boolean;
+  hideInterestFromDashboard: boolean;
   interestCurrency: InterestCurrency;
   interestTargetAmount: number | null;
   interestOpensAt: string | null;

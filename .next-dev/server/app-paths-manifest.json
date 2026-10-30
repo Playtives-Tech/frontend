@@ -1,9 +1,9 @@
 {
+  "/icon.png/route": "app/icon.png/route.js",
   "/sign-in/page": "app/sign-in/page.js",
-  "/community-membership/page": "app/community-membership/page.js",
   "/page": "app/page.js",
+  "/community-membership/page": "app/community-membership/page.js",
   "/(platform)/ownership/page": "app/(platform)/ownership/page.js",
-  "/(platform)/ownership/legacy/page": "app/(platform)/ownership/legacy/page.js",
   "/(platform)/ownership/[id]/page": "app/(platform)/ownership/[id]/page.js",
-  "/(platform)/ownership/legacy/[id]/page": "app/(platform)/ownership/legacy/[id]/page.js"
+  "/(platform)/discover/page": "app/(platform)/discover/page.js"
 }

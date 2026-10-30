@@ -44,14 +44,16 @@ export function OpportunityCatalogue(): React.JSX.Element {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = opportunities.filter(
       (opportunity) =>
-        (!opportunity.interestModeEnabled || isPlaytivesCollective(opportunity)) &&
-        (isPlaytivesCollective(opportunity)
-          ? availability === 'OPEN'
-            ? isInterestOpportunityOpen(opportunity)
-            : !isInterestOpportunityOpen(opportunity)
-          : availability === 'OPEN'
-            ? opportunity.acquisitionStatus === 'OPEN'
-            : opportunity.acquisitionStatus !== 'OPEN') &&
+        !opportunity.hideInterestFromDashboard &&
+        (opportunity.interestModeEnabled
+          ? availability === 'OPEN' && isInterestOpportunityOpen(opportunity)
+          : isPlaytivesCollective(opportunity)
+            ? availability === 'OPEN'
+              ? isInterestOpportunityOpen(opportunity)
+              : !isInterestOpportunityOpen(opportunity)
+            : availability === 'OPEN'
+              ? opportunity.acquisitionStatus === 'OPEN'
+              : opportunity.acquisitionStatus !== 'OPEN') &&
         (sector === 'All' || opportunity.category === sector) &&
         (!normalizedQuery ||
           `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
@@ -60,21 +62,6 @@ export function OpportunityCatalogue(): React.JSX.Element {
     );
     return filtered;
   }, [availability, sector, opportunities, query]);
-  const interestOpportunities = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return opportunities.filter(
-      (opportunity) =>
-        opportunity.interestModeEnabled &&
-        (availability === 'OPEN'
-          ? isInterestOpportunityOpen(opportunity)
-          : !isInterestOpportunityOpen(opportunity)) &&
-        (sector === 'All' || opportunity.category === sector) &&
-        (!normalizedQuery ||
-          `${opportunity.title} ${opportunity.summary} ${opportunity.location}`
-            .toLowerCase()
-            .includes(normalizedQuery)),
-    );
-  }, [availability, opportunities, query, sector]);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header className="max-w-2xl">
@@ -115,33 +102,6 @@ export function OpportunityCatalogue(): React.JSX.Element {
           ))}
         </div>
       </div>
-
-      {!loading && interestOpportunities.length > 0 ? (
-        <section className="mt-9 rounded-2xl border border-amber-500/25 bg-amber-500/[.045] p-4 sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 text-amber-700">
-                <h2 className="font-sans text-[14px] font-semibold sm:text-[18px]">
-                  {availability === 'OPEN' ? 'JOIN NOW' : 'CLOSED INTERESTS'}
-                </h2>
-              </div>
-              <p className="text-[12px] leading-6 text-muted-foreground">
-                {availability === 'OPEN'
-                  ? 'Explore upcoming opportunities and register your interest without making a payment.'
-                  : 'Review opportunities that are no longer accepting registrations.'}
-              </p>
-            </div>
-            <p className="text-[12px] font-semibold text-muted-foreground">
-              {interestOpportunities.length} available
-            </p>
-          </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {interestOpportunities.map((opportunity) => (
-              <OpportunityCard key={opportunity.slug} opportunity={opportunity} />
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
