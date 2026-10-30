@@ -1,8 +1,8 @@
 {
   "/sign-in/page": "app/sign-in/page.js",
+  "/wallet/deposit/page": "app/wallet/deposit/page.js",
   "/page": "app/page.js",
-  "/wallet/withdraw/page": "app/wallet/withdraw/page.js",
-  "/(platform)/profile/page": "app/(platform)/profile/page.js",
-  "/(platform)/discover/page": "app/(platform)/discover/page.js",
-  "/(platform)/profile/verification/page": "app/(platform)/profile/verification/page.js"
+  "/sign-up/page": "app/sign-up/page.js",
+  "/(platform)/access-request/page": "app/(platform)/access-request/page.js",
+  "/(platform)/notifications/page": "app/(platform)/notifications/page.js"
 }
