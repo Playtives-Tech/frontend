@@ -21,6 +21,31 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
+    "/(platform)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/layout.js"
+    ],
+    "/(platform)/ownership/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/ownership/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
+    ],
+    "/(platform)/collectives/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/collectives/page.js"
+    ],
+    "/(platform)/discover/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/discover/page.js"
+    ],
     "/sign-in/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -31,65 +56,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/sign-up/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/sign-up/page.js"
-    ],
-    "/verify-email/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/verify-email/page.js"
-    ],
-    "/(platform)/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/layout.js"
-    ],
     "/(platform)/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(platform)/profile/page.js"
     ],
-    "/wallet/page": [
+    "/(platform)/ownership/legacy/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/wallet/page.js"
+      "static/chunks/app/(platform)/ownership/legacy/page.js"
     ],
-    "/wallet/withdraw/page": [
+    "/(platform)/ownership/legacy/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/wallet/withdraw/page.js"
+      "static/chunks/app/(platform)/ownership/legacy/[id]/page.js"
     ],
-    "/(platform)/profile/bank-account/page": [
+    "/(platform)/ownership/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/profile/bank-account/page.js"
+      "static/chunks/app/(platform)/ownership/[id]/page.js"
     ],
-    "/wallet/deposit/page": [
+    "/community-membership/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/wallet/deposit/page.js"
-    ],
-    "/welcome/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/welcome/page.js"
-    ],
-    "/(platform)/access-request/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/access-request/page.js"
-    ],
-    "/wallet/activity/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/wallet/activity/[id]/page.js"
-    ],
-    "/(platform)/notifications/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/notifications/page.js"
+      "static/chunks/app/community-membership/page.js"
     ]
   }
 }

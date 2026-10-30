@@ -33,6 +33,16 @@ function ownershipStructure(ownership: Ownership): Ownership['opportunityStructu
   return ownership.opportunityId.opportunityStructure ?? ownership.opportunityStructure;
 }
 
+function legacySummary(position: LegacyOwnership) {
+  const paid = position.periods.reduce((total, period) => total + period.paidMinorUnits, 0);
+  const rolled = position.periods.reduce((total, period) => total + period.rolledOverMinorUnits, 0);
+  const expected = position.periods.reduce(
+    (total, period) => total + (period.expectedReturnMinorUnits ?? 0),
+    0,
+  );
+  return { paid, rolled, expected, capital: Math.max(0, position.principalMinorUnits + rolled - position.capitalReturnedMinorUnits) };
+}
+
 function OwnershipCard({ ownership }: Readonly<{ ownership: Ownership }>): React.JSX.Element {
   const opportunity = ownership.opportunityId;
   const projection = getOwnershipProjection(ownership);
@@ -164,6 +174,8 @@ export function OwnershipDashboard(): React.JSX.Element {
   const [structureFilter, setStructureFilter] = useState<OwnershipStructureFilter>('ALL');
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
   const [legacyOwnerships, setLegacyOwnerships] = useState<LegacyOwnership[]>([]);
+  const [legacyLoading, setLegacyLoading] = useState(true);
+  const [legacyError, setLegacyError] = useState('');
   const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
     null,
   );
@@ -177,7 +189,13 @@ export function OwnershipDashboard(): React.JSX.Element {
       .catch((value: unknown) =>
         setError(value instanceof Error ? value.message : 'Could not load ownerships'),
       );
-    void getLegacyOwnerships().then(setLegacyOwnerships).catch(() => setLegacyOwnerships([]));
+    void getLegacyOwnerships()
+      .then(setLegacyOwnerships)
+      .catch((value: unknown) => {
+        setLegacyOwnerships([]);
+        setLegacyError(value instanceof Error ? value.message : 'Could not load legacy opportunities');
+      })
+      .finally(() => setLegacyLoading(false));
     void opportunityInterestService
       .listMine()
       .then(setInterests)
@@ -243,26 +261,42 @@ export function OwnershipDashboard(): React.JSX.Element {
           </p>
         </div>
       </section>
-      {legacyOwnerships.length > 0 && (
-        <section className="mt-10 rounded-2xl border bg-background p-5 sm:p-6">
+      {(legacyLoading || legacyError || legacyOwnerships.length > 0) ? <section className="mt-10 rounded-2xl border bg-background p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand"><Archive className="size-4" aria-hidden="true" /> Historical records</p>
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand"><Archive className="size-4" aria-hidden="true" /> Your legacy positions</p>
               <h2 className="mt-2 text-lg font-semibold">Legacy opportunities</h2>
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Your earlier ownerships and payments made outside Playtives. These records are separate from the portfolio value above.</p>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Ongoing and completed opportunities linked to your account. Open any position for its month-by-month history and recorded outcomes. Historical payments were made outside Playtives and are not wallet credits.</p>
             </div>
-            <Link href="/ownership/legacy" className="inline-flex items-center gap-2 rounded-xl border border-brand/25 px-4 py-2.5 text-sm font-semibold text-brand hover:bg-brand/5">View all {legacyOwnerships.length} <ChevronRight className="size-4" aria-hidden="true" /></Link>
+            {legacyOwnerships.length > 0 ? <Link href="/ownership/legacy" className="inline-flex items-center gap-2 rounded-xl border border-brand/25 px-4 py-2.5 text-sm font-semibold text-brand hover:bg-brand/5">View all {legacyOwnerships.length} <ChevronRight className="size-4" aria-hidden="true" /></Link> : null}
           </div>
-          <div className="mt-5 grid gap-2">
-            {legacyOwnerships.slice(0, 2).map((position) => (
-              <Link key={position._id} href={`/ownership/legacy/${position._id}`} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3 text-sm hover:bg-brand/10">
-                <span className="min-w-0"><span className="block truncate font-semibold">{position.opportunity.title}</span><span className="text-xs text-muted-foreground">Months {position.firstCycle}–{position.lastCycle} · {position.status.toLowerCase()}</span></span>
-                <ChevronRight className="size-4 shrink-0 text-brand" aria-hidden="true" />
-              </Link>
-            ))}
+          {legacyError ? <p role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">Legacy opportunities could not be loaded. Refresh this page or sign out and back in; if it continues, contact support.</p> : null}
+          {legacyLoading && !legacyError ? <p className="mt-4 text-sm text-muted-foreground">Loading positions linked to your account…</p> : null}
+          <div className="mt-5 grid gap-3">
+            {legacyOwnerships.map((position) => {
+              const summary = legacySummary(position);
+              const liveOwnership = ownerships.find((item) => item._id === position.ownershipId);
+              return (
+                <Link key={position._id} href={`/ownership/legacy/${position._id}`} className="group rounded-xl bg-surface p-4 transition hover:bg-brand/5 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold">{position.opportunity.title}</span>
+                      <span className="mt-1 block text-xs text-muted-foreground">{position.status === 'ACTIVE' ? 'Ongoing' : position.status === 'COMPLETED' ? 'Completed' : 'Exited'} · Months {position.firstCycle}–{position.lastCycle} · {position.remainingCycles} {position.remainingCycles === 1 ? 'month' : 'months'} remaining</span>
+                    </span>
+                    <ChevronRight className="mt-1 size-4 shrink-0 text-brand transition group-hover:translate-x-0.5" aria-hidden="true" />
+                  </div>
+                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                    <div><p className="text-xs text-muted-foreground">Capital still in position*</p><p className="mt-1 font-semibold"><BalanceAmount value={formatNaira(summary.capital / 100)} /></p></div>
+                    <div><p className="text-xs text-muted-foreground">Paid outside Playtives</p><p className="mt-1 font-semibold"><BalanceAmount value={formatNaira(summary.paid / 100)} /></p></div>
+                    <div><p className="text-xs text-muted-foreground">Recorded as rolled over</p><p className="mt-1 font-semibold"><BalanceAmount value={formatNaira(summary.rolled / 100)} /></p></div>
+                    <div><p className="text-xs text-muted-foreground">Projected return**</p><p className="mt-1 font-semibold">{liveOwnership?.projectedReturnMinorUnits != null ? <BalanceAmount value={formatNaira(liveOwnership.projectedReturnMinorUnits / 100)} /> : summary.expected > 0 ? <BalanceAmount value={formatNaira(summary.expected / 100)} /> : 'Not available'}</p></div>
+                  </div>
+                  <p className="mt-3 text-[11px] leading-5 text-muted-foreground">*Based on documented principal, rollovers and capital returned; not a wallet balance. **Projection is not a guaranteed payout. Tap to view monthly records and resolved amounts.</p>
+                </Link>
+              );
+            })}
           </div>
-        </section>
-      )}
+      </section> : null}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
           {tabs.map(({ value, label }) => (
