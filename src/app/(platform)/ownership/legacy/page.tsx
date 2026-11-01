@@ -1,5 +1,5 @@
-import { LegacyOwnershipsPage } from '@/components/ownership/legacy-ownerships';
+import { redirect } from 'next/navigation';
 
-export default function Page(): React.JSX.Element {
-  return <LegacyOwnershipsPage />;
+export default function Page(): never {
+  redirect('/ownership');
 }
