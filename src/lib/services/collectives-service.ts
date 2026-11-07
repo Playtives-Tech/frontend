@@ -54,6 +54,11 @@ export type CollectiveTransaction = Readonly<{
   amountMinorUnits: number;
   note: string;
   createdAt: string;
+  cycleId?: string | null;
+  reference?: string;
+  sourceCycleId?: string | null;
+  cycleNumber?: number | null;
+  nextCycleNumber?: number | null;
 }>;
 export type CollectiveScheduledContribution = Readonly<{
   id: string;
