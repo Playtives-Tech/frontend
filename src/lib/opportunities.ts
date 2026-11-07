@@ -67,6 +67,8 @@ export type Opportunity = Readonly<{
   fundingTargetMinorUnits: number;
   ownershipPerUnitPercent: number | null;
   availableUnits: number;
+  fullyFundedAt?: string | null;
+  relatedOpportunityId?: string | null;
   memberCount?: number;
   durationMonths: number | null;
   termType: TermType;
@@ -102,7 +104,7 @@ export type Opportunity = Readonly<{
   expectedActivationMaxDays: number | null;
   currentMilestone: string;
   nextMilestone: string;
-  acquisitionStatus: 'OPEN' | 'CLOSED' | 'COMMENCED';
+  acquisitionStatus: 'OPEN' | 'FULLY_FUNDED' | 'CLOSED' | 'COMMENCED';
   executionProgress: OpportunityExecutionProgress | null;
   executionCustomSteps?: ReadonlyArray<{
     _id: string;

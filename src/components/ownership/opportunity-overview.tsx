@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AgreementPreview } from './agreement-preview';
 import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
 import { OpportunityUpdates } from '@/components/opportunities/opportunity-updates';
@@ -24,6 +24,7 @@ import {
   formatProjectedDistribution,
   formatProjectedReturnRate,
   formatReturnSchedule,
+  getOpportunities,
   isVariableDistribution,
   type Opportunity,
 } from '@/lib/opportunities';
@@ -48,6 +49,17 @@ export function OpportunityOverview({
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [selectedHighlight, setSelectedHighlight] = useState<HighlightDetail | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [nextOpportunity, setNextOpportunity] = useState<Opportunity | null>(null);
+  const fullyFunded = opportunity.acquisitionStatus === 'FULLY_FUNDED';
+  const linkedNextOpportunity = nextOpportunity?._id === opportunity.relatedOpportunityId ? nextOpportunity : null;
+  useEffect(() => {
+    if (!fullyFunded || !opportunity.relatedOpportunityId) return;
+    let active = true;
+    void getOpportunities().then((items) => {
+      if (active) setNextOpportunity(items.find((item) => item._id === opportunity.relatedOpportunityId && item.acquisitionStatus === 'OPEN' && item.availableUnits >= item.minimumUnits && !item.interestModeEnabled) ?? null);
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [fullyFunded, opportunity.relatedOpportunityId]);
   const availablePercentage =
     opportunity.totalUnits > 0
       ? Math.max(0, Math.min(100, (opportunity.availableUnits / opportunity.totalUnits) * 100))
@@ -57,7 +69,9 @@ export function OpportunityOverview({
   const canContinue = opportunity.availableUnits >= opportunity.minimumUnits;
   const continueLabel =
     continueLabelOverride ??
-    (opportunity.availableUnits < opportunity.minimumUnits
+    (fullyFunded
+      ? 'Fully funded'
+      : opportunity.availableUnits < opportunity.minimumUnits
       ? 'Currently unavailable'
       : isCoFunded
         ? 'Co-fund now'
@@ -88,6 +102,11 @@ export function OpportunityOverview({
               className="object-cover"
             />
           ) : null}
+          {fullyFunded ? (
+            <span className="absolute bottom-4 left-4 z-10 max-w-[calc(100%-2rem)] rounded-lg border border-white/25 bg-brand px-4 py-2 text-xs font-extrabold tracking-wide text-brand-foreground shadow-lg sm:bottom-6 sm:left-6">
+              SOLD OUT — FULLY FUNDED
+            </span>
+          ) : null}
         </div>
 
         <div className="relative -mt-4 rounded-2xl border border-border/70 bg-background px-4 py-5 shadow-[0_18px_45px_rgb(31_47_40/0.08)] dark:shadow-none sm:-mt-8 sm:rounded-[1.75rem] sm:px-8 sm:py-8 lg:px-10">
@@ -95,7 +114,9 @@ export function OpportunityOverview({
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
                 <Check className="size-3.5" />
-                {opportunity.acquisitionStatus === 'OPEN'
+                {fullyFunded
+                  ? '✓ FULLY FUNDED'
+                  : opportunity.acquisitionStatus === 'OPEN'
                   ? 'Open for ownership'
                   : opportunity.assetLifecycleEnabled && !opportunity.distributionStartAt
                     ? 'Activation in progress'
@@ -118,6 +139,16 @@ export function OpportunityOverview({
               <h1 className="max-w-5xl font-sans text-[18px] font-semibold leading-tight tracking-tight sm:text-[18px]">
                 {opportunity.title}
               </h1>
+              {fullyFunded ? (
+                <div className="mt-3 rounded-xl border border-brand/25 bg-brand/5 px-4 py-3">
+                  <p className="font-semibold text-brand">Fully Funded 🎉</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {opportunity.fullyFundedAt && opportunity.offerClosesAt && new Date(opportunity.fullyFundedAt) < new Date(opportunity.offerClosesAt)
+                      ? `All available units were taken ahead of the scheduled ${new Date(opportunity.offerClosesAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })} closing date.`
+                      : 'All available units have been taken. This opportunity is closed to new participation.'}
+                  </p>
+                </div>
+              ) : null}
               <p
                 className={`mt-1 max-w-4xl text-[13px] font-normal leading-4 text-muted-foreground sm:text-[12px] sm:leading-5 ${summaryExpanded ? '' : 'line-clamp-2'}`}
               >
@@ -147,7 +178,20 @@ export function OpportunityOverview({
             </p>
           </div>
 
-          {onContinue ? (
+          {fullyFunded ? (
+            <div className="mt-4 rounded-xl border border-brand/25 bg-brand/5 px-4 py-4">
+              <p className="text-sm font-bold text-brand">100% Funded</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand/15"><div className="h-full w-full bg-brand" /></div>
+              <p className="mt-2 text-xs text-muted-foreground">All available {isCoFunded ? 'co-funding ' : ''}units have been taken.</p>
+              <div className="mt-5 border-t border-brand/15 pt-4">
+                <p className="font-semibold">{linkedNextOpportunity ? 'Missed this opportunity?' : 'Want the next one?'}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{linkedNextOpportunity ? `${linkedNextOpportunity.title} is now open.` : 'Similar opportunities may become available soon.'}</p>
+                <Link href={linkedNextOpportunity ? `/discover/${linkedNextOpportunity.slug}` : '/discover'} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
+                  {linkedNextOpportunity ? 'View next opportunity' : 'Browse open opportunities'} <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </div>
+          ) : onContinue ? (
             <div className="mt-4 sm:mt-5">
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -175,7 +219,7 @@ export function OpportunityOverview({
                   />
                 </div>
                 <p className="mt-5 text-xs font-medium text-muted-foreground">
-                  {availablePercentage.toFixed(0)}% of co-own units are available
+                  {availablePercentage.toFixed(0)}% of {isCoFunded ? 'co-funding' : 'co-own'} units are available
                 </p>
               </div>
             </div>

@@ -106,12 +106,12 @@ export function OpportunityCatalogue(): React.JSX.Element {
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h2 className="font-sans text-[15px] font-semibold leading-7 sm:text-[19px]">
-            {availability === 'OPEN' ? 'Open opportunities' : 'Closed opportunities'}
+            {availability === 'OPEN' ? 'Open opportunities' : 'Fully funded & closed'}
           </h2>
           <p className="text-[12px] leading-6 text-muted-foreground">
             {availability === 'OPEN'
               ? 'Explore opportunities that are available for you to own.'
-              : 'These opportunities are closed to new owners or already in progress.'}
+              : 'Fully funded and closed opportunities remain available to explore.'}
           </p>
         </div>
         <p className="shrink-0 text-[12px] font-semibold text-muted-foreground">
@@ -152,7 +152,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
           )}
         >
           <LockKeyhole className="size-4" aria-hidden="true" />
-          <span className="font-semibold">Closed opportunities</span>
+          <span className="font-semibold">Fully funded & closed</span>
         </button>
       </div>
 
