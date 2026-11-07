@@ -18,6 +18,7 @@ import { getVerificationSteps } from '@/lib/services/profile-service';
 import { getCurrentUser } from '@/lib/services/registration-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { formatNaira } from './formatters';
+import { UnitQuantityInput } from './unit-quantity-input';
 
 type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
@@ -118,7 +119,7 @@ export function WalletCheckout({
               {opportunity.opportunityStructure.replaceAll('_', '-')}
             </dd>
           </div>
-          <div className="flex items-center justify-between gap-4 py-3">
+          <div className="flex items-center justify-between gap-4 pb-3 pt-8">
             <dt className="text-sm font-semibold">Units</dt>
             <dd className="flex items-center gap-3">
               <button
@@ -130,9 +131,7 @@ export function WalletCheckout({
               >
                 <Minus className="size-3.5" />
               </button>
-              <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
-                {quantity}
-              </span>
+              <UnitQuantityInput quantity={quantity} minimum={minimumUnits} maximum={maximumUnits} onQuantityChange={onQuantityChange} compact />
               <button
                 type="button"
                 onClick={() => onQuantityChange(Math.min(maximumUnits, quantity + 1))}

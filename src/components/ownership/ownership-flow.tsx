@@ -16,7 +16,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [step, setStep] = useState<OwnershipStep>('overview');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(() => opportunity.minimumUnits);
   const [rolloverElection, setRolloverElection] = useState<'PAYOUT' | 'COMPOUND'>('PAYOUT');
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const canAcquire = isOpportunityOpenForAcquisition(opportunity);

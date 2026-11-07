@@ -7,6 +7,7 @@ import {
   type Opportunity,
 } from '@/lib/opportunities';
 import { formatNaira } from './formatters';
+import { UnitQuantityInput } from './unit-quantity-input';
 
 type PositionSelectorProps = Readonly<{
   opportunity: Opportunity;
@@ -28,6 +29,7 @@ export function PositionSelector({
   onBack,
 }: PositionSelectorProps): React.JSX.Element {
   const maximum = opportunity.availableUnits;
+  const minimum = opportunity.minimumUnits;
   const unitPrice = opportunity.pricePerUnitMinorUnits / 100;
   const total = unitPrice * quantity;
   const availablePercentage =
@@ -102,20 +104,22 @@ export function PositionSelector({
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Number of units</p>
-            <div className="mt-3 flex items-center gap-4">
+            <div className="mt-8 flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
-                disabled={quantity === 1}
+                onClick={() => onQuantityChange(Math.max(minimum, quantity - 1))}
+                disabled={quantity <= minimum}
+                aria-label="Decrease units"
                 className="grid size-10 place-items-center rounded-[10px] border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Minus className="size-3" />
               </button>
-              <span className="w-8 text-center text-xl font-semibold">{quantity}</span>
+              <UnitQuantityInput quantity={quantity} minimum={minimum} maximum={maximum} onQuantityChange={onQuantityChange} />
               <button
                 type="button"
                 onClick={() => onQuantityChange(Math.min(maximum, quantity + 1))}
                 disabled={quantity === maximum}
+                aria-label="Increase units"
                 className="grid size-10 place-items-center rounded-[10px] border bg-surface text-brand disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Plus className="size-3" />

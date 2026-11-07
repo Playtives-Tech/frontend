@@ -26,7 +26,7 @@ export default function WelcomePage(): React.JSX.Element {
     try {
       const result = await updateMemberIntent(
         intent,
-        intent === 'LEARN_FIRST' ? whatsappLearningCommunityUrl : undefined,
+        whatsappLearningCommunityUrl,
       );
       if (intent === 'LEARN_FIRST') {
         signOut();

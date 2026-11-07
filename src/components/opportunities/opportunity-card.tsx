@@ -61,6 +61,7 @@ function OpportunityCardImage({
   const isCardOpen = opportunity.interestModeEnabled
     ? isInterestOpen
     : opportunity.acquisitionStatus === 'OPEN';
+  const fullyFunded = opportunity.acquisitionStatus === 'FULLY_FUNDED';
 
   return (
     <div className="relative h-32 shrink-0 overflow-hidden bg-muted">
@@ -74,8 +75,13 @@ function OpportunityCardImage({
           className="object-cover"
         />
       ) : null}
+      {fullyFunded ? (
+        <span className="absolute bottom-3 left-3 z-10 max-w-[calc(100%-1.5rem)] rounded-lg border border-white/25 bg-brand px-3 py-1.5 text-[10px] font-extrabold tracking-wide text-brand-foreground shadow-lg">
+          SOLD OUT — FULLY FUNDED
+        </span>
+      ) : null}
       <span
-        className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${isCardOpen ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
+        className={`absolute right-2 top-3 rounded-[200px] border px-4 py-1 text-[9px] font-bold tracking-wide text-white shadow-md ${isCardOpen || fullyFunded ? 'border-[#819f3b] bg-[#819f3b]' : 'border-red-600 bg-red-600'}`}
       >
         {opportunity.interestModeEnabled
           ? isInterestOpen
@@ -84,11 +90,14 @@ function OpportunityCardImage({
               : 'REGISTER INTEREST'
             : 'INTEREST CLOSED'
           : opportunity.assetLifecycleEnabled &&
+              !fullyFunded &&
               opportunity.acquisitionStatus !== 'OPEN' &&
               !opportunity.distributionStartAt
             ? 'ACTIVATION IN PROGRESS'
             : opportunity.acquisitionStatus === 'OPEN'
             ? `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${structureLabel(opportunity)}`
+            : fullyFunded
+              ? '100% FUNDED'
             : `${formatCompactNaira(opportunity.pricePerUnitMinorUnits)} · ${opportunity.acquisitionStatus === 'COMMENCED' ? 'DEAL LIVE' : 'OFFER CLOSED'}`}
       </span>
     </div>

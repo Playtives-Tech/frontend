@@ -17,8 +17,9 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { notify } from '@/lib/notify';
 import {
   acceptCollectiveAgreement,
@@ -597,7 +598,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       detail={
                         data.earlyExit
                           ? 'Not included in your Early Exit repayment'
-                          : 'Compounds in your position; accessible at maturity under the terms'
+                          : 'Your allocated, reconciled profit. Compounded amounts earn in later trades; held amounts do not. Neither is spendable in your wallet before maturity.'
                       }
                     />
                     <CapitalBreakdown
@@ -638,9 +639,9 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
                       Monthly positions
                     </p>
-                    <h2 className="mt-1 text-lg font-semibold">Your Collective by month</h2>
+                    <h2 className="mt-1 text-lg font-semibold">Your Collective by month <SectionHelp label="Your Collective by month">Each row shows your capital for that month and, once reconciled, your own attributed profit. The programme-wide return is not automatically the amount you personally earned.</SectionHelp></h2>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Contributions to the same month are combined into one position.
+                      Contributions to the same month are combined. Reconciled profit below is your own allocation, not the programme-wide result or a wallet payment.
                     </p>
                   </div>
                   <div className="mt-3 divide-y">
@@ -652,6 +653,8 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                       .filter(
                         ({ month, position: monthPosition }) =>
                           (monthPosition?.activeMinorUnits ?? 0) > 0 ||
+                          ((monthPosition?.profitMinorUnits ?? 0) !== 0 &&
+                            month.status === 'RECONCILED') ||
                           (monthPosition?.awaitingDeploymentMinorUnits ?? 0) > 0 ||
                           month._id === cycle?._id,
                       )
@@ -688,6 +691,16 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                                   </p>
                                 </div>
                               )}
+                              {month.status === 'RECONCILED' &&
+                                ((monthPosition?.activeMinorUnits ?? 0) > 0 ||
+                                  (monthPosition?.profitMinorUnits ?? 0) !== 0) && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Your profit</p>
+                                    <p className="text-sm font-semibold text-brand">
+                                      {formatCollectiveMoney(monthPosition?.profitMinorUnits ?? 0)}
+                                    </p>
+                                  </div>
+                                )}
                               {monthAwaiting > 0 && (
                                 <div>
                                   <p className="text-xs text-muted-foreground">
@@ -699,7 +712,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                                 </div>
                               )}
                               <div>
-                                <p className="text-xs text-muted-foreground">Month total</p>
+                                <p className="text-xs text-muted-foreground">Capital in month</p>
                                 <p className="text-sm font-semibold text-brand">
                                   {formatCollectiveMoney(monthActive + monthAwaiting)}
                                 </p>
@@ -752,7 +765,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 <section className="bg-card order-5 rounded-2xl border p-5 sm:p-7">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-[1.1rem] font-semibold">Latest activity</h2>
+                    <h2 className="text-[1.1rem] font-semibold">Latest activity <SectionHelp label="Latest activity">Recent Collective ledger entries for your account, such as funding, profit attribution, and rollovers. An attributed profit entry is not a wallet payout.</SectionHelp></h2>
                       <p className="text-[.8rem] text-muted-foreground">
                         Recent changes to your position.
                       </p>
@@ -778,7 +791,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 </section>
                 {data.maturity && (
                   <section className="order-6 rounded-2xl border border-brand/30 bg-brand/5 p-5">
-                    <h2 className="font-semibold">Matured Collective</h2>
+                    <h2 className="font-semibold">Matured Collective <SectionHelp label="Matured Collective">After the final month is reconciled, your invested balance and any held profit are settled to your Playtives Wallet.</SectionHelp></h2>
                     <p className="mt-2 text-sm">
                       Capital contributed:{' '}
                       {formatCollectiveMoney(data.maturity.capitalContributedMinorUnits)}
@@ -804,7 +817,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
                     Actual performance
                   </p>
-                  <h2 className="mt-1 text-xl font-semibold">Monthly results</h2>
+                  <h2 className="mt-1 text-xl font-semibold">Monthly results <SectionHelp label="Monthly results">The chart shows programme return rates. Your personal amount depends on how much capital you had deployed and how long it was eligible; see Your profit in each monthly position.</SectionHelp></h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Actual results are separate from the projected monthly target of{' '}
                     {data.programme?.projectedTargetRateBps == null
@@ -861,7 +874,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 </section>
                 <section className="bg-card rounded-2xl border p-5 sm:p-7">
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-[1rem] font-semibold">Month history</h2>
+                    <h2 className="text-[1rem] font-semibold">Month history <SectionHelp label="Month history">The amounts here are profit allocated to your account for each month, not total profit across all members or spendable wallet funds.</SectionHelp></h2>
                     <Link
                       className="text-sm font-semibold text-brand hover:underline"
                       href="/collectives/cycles"
@@ -910,7 +923,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
                       Collective updates
                     </p>
-                    <h2 className="mt-1 text-xl font-semibold">Published updates</h2>
+                    <h2 className="mt-1 text-xl font-semibold">Published updates <SectionHelp label="Published updates">Announcements from the Playtives team. They do not change your capital, profit, or wallet balance.</SectionHelp></h2>
                     {/* <p className="text-sm text-muted-foreground">
                       Upcoming funding windows and confirmed monthly results.
                     </p> */}
@@ -1174,6 +1187,42 @@ function collectiveStatusMessage(
   return 'Your Collective position is ready. Add funds to participate in the next eligible deployment.';
 }
 
+function SectionHelp({ label, children }: Readonly<{ label: string; children: string }>): React.JSX.Element {
+  const [open, setOpen] = useState(false);
+  const titleId = useId();
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', dismiss);
+    return () => window.removeEventListener('keydown', dismiss);
+  }, [open]);
+  return (
+    <>
+      <button aria-expanded={open} aria-label={`Information about ${label}`} className="inline-flex size-6 items-center justify-center rounded-full align-middle text-muted-foreground hover:bg-brand/10 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" onClick={() => setOpen(true)} type="button"><Info aria-hidden="true" className="size-4" /></button>
+      {open && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 p-4 backdrop-blur-sm" onMouseDown={() => setOpen(false)} role="presentation">
+          <div aria-labelledby={titleId} aria-modal="true" className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl" onMouseDown={(event) => event.stopPropagation()} role="dialog">
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-xl font-semibold" id={titleId}>{label}</h2>
+              <button aria-label="Close information" autoFocus className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900" onClick={() => setOpen(false)} type="button"><X aria-hidden="true" className="size-5" /></button>
+            </div>
+            <p className="mt-4 text-sm font-normal leading-7 text-slate-700">{children}</p>
+          </div>
+        </div>, document.body,
+      )}
+    </>
+  );
+}
+
+const factHelp: Record<string, string> = {
+  'Current Collective Month': 'The scheduled programme month currently in progress. It does not mean every member has funds deployed in that month.',
+  'Next Expected Deployment': 'The next eligible time new funds may start participating. Funds do not earn before they are deployed.',
+  'Collective Maturity Date': 'The scheduled end of the programme. Final settlement follows reconciliation and then credits member wallets.',
+  'Monthly Return Target*': 'An illustrative target, not a guaranteed result. Actual reconciled returns can differ.',
+};
+
 function CapitalBreakdown({
   label,
   value,
@@ -1183,36 +1232,22 @@ function CapitalBreakdown({
   value: string;
   detail: string;
 }>): React.JSX.Element {
-  const [showDetail, setShowDetail] = useState(false);
   return (
     <article className="min-w-0 rounded-lg bg-muted/50 px-3 py-2.5">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 text-xs font-medium leading-5 text-muted-foreground">{label}</p>
-        <button
-          aria-expanded={showDetail}
-          aria-label={`${showDetail ? 'Hide' : 'Show'} information about ${label}`}
-          className="grid size-6 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-brand/10 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-          onClick={() => setShowDetail((visible) => !visible)}
-          type="button"
-        >
-          <Info aria-hidden="true" className="size-3.5" />
-        </button>
+        <SectionHelp label={label}>{detail}</SectionHelp>
       </div>
       <p className="mt-1 break-words text-base font-bold tracking-tight sm:text-[1.05rem] lg:text-lg">
         {value}
       </p>
-      {showDetail && (
-        <p className="mt-2 border-t border-border/60 pt-2 text-[.7rem] leading-4 text-muted-foreground">
-          {detail}
-        </p>
-      )}
     </article>
   );
 }
 function Fact({ label, value }: Readonly<{ label: string; value: string }>): React.JSX.Element {
   return (
     <div className="bg-card rounded-xl border p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label} {factHelp[label] && <SectionHelp label={label}>{factHelp[label]}</SectionHelp>}</p>
       <p className="mt-1 text-sm font-semibold">{value}</p>
     </div>
   );

@@ -27,6 +27,7 @@ import { formatNaira } from './formatters';
 import { notify } from '@/lib/notify';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
+import { UnitQuantityInput } from './unit-quantity-input';
 
 type OwnershipPositionDetailProps = Readonly<{
   ownership: Ownership;
@@ -167,7 +168,7 @@ export function OwnershipPositionDetail({
               <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Additional units</p>
-                  <div className="mt-2 inline-flex items-center gap-3 rounded-xl border bg-background p-1.5">
+                  <div className="mt-4 inline-flex items-center gap-3 rounded-xl border bg-background px-1.5 pb-1.5 pt-6">
                     <button
                       type="button"
                       onClick={() => setAdditionalUnits((value) => Math.max(1, value - 1))}
@@ -177,9 +178,14 @@ export function OwnershipPositionDetail({
                     >
                       <Minus className="size-4" />
                     </button>
-                    <span className="min-w-8 text-center text-sm font-semibold tabular-nums">
-                      {additionalUnits}
-                    </span>
+                    <UnitQuantityInput
+                      quantity={additionalUnits}
+                      minimum={1}
+                      maximum={ownership.maximumAdditionalUnits}
+                      onQuantityChange={setAdditionalUnits}
+                      compact
+                      disabled={addingUnits}
+                    />
                     <button
                       type="button"
                       onClick={() =>
