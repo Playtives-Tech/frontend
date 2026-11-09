@@ -21,30 +21,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
-    "/sign-in/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/sign-in/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
+    ],
+    "/sign-in/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/sign-in/page.js"
     ],
     "/(platform)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(platform)/layout.js"
     ],
+    "/(platform)/collectives/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/collectives/page.js"
+    ],
     "/(platform)/ownership/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(platform)/ownership/page.js"
     ],
-    "/(platform)/collectives/page": [
+    "/(platform)/ownership/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(platform)/collectives/page.js"
+      "static/chunks/app/(platform)/ownership/[id]/page.js"
+    ],
+    "/(platform)/collectives/activity/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(platform)/collectives/activity/page.js"
     ]
   }
 }
