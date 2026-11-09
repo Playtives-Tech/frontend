@@ -1,6 +1,6 @@
 {
-  "/sign-in/page": "app/sign-in/page.js",
   "/page": "app/page.js",
-  "/(platform)/ownership/page": "app/(platform)/ownership/page.js",
-  "/(platform)/collectives/page": "app/(platform)/collectives/page.js"
+  "/sign-in/page": "app/sign-in/page.js",
+  "/(platform)/collectives/page": "app/(platform)/collectives/page.js",
+  "/(platform)/collectives/activity/page": "app/(platform)/collectives/activity/page.js"
 }
