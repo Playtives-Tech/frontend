@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
+import { showMilestone } from '@/components/ui/milestone-popup';
 import {
   createDepositRequest,
   getDepositRequests,
@@ -75,9 +76,7 @@ export function DepositRequest(): React.JSX.Element {
       setAmount('');
       setReceipt(null);
       setRequests((current) => [request, ...current]);
-      notify.success('Deposit request submitted', {
-        description: 'Your receipt is awaiting admin review.',
-      });
+      showMilestone({ id: request._id, title: 'Deposit submitted for review', message: 'Your payment receipt was received. Your wallet will update after the deposit is verified.', actionUrl: '/wallet/activity', actionLabel: 'View activity' });
     } catch (error: unknown) {
       notify.error(
         error instanceof Error ? error.message : 'Deposit request could not be submitted.',

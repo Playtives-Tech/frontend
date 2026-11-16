@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { WelcomeToast } from './welcome-toast';
+import { MilestonePopup } from '@/components/ui/milestone-popup';
 import { useProfileStore } from '@/stores/use-profile-store';
 import { useAuthStore } from '@/stores/use-auth-store';
 type AppProvidersProps = Readonly<{ children: ReactNode }>;
@@ -27,6 +28,7 @@ export function AppProviders({ children }: AppProvidersProps): React.JSX.Element
     <QueryClientProvider client={queryClient}>
       {children}
       <WelcomeToast />
+      <MilestonePopup />
       <Toaster />
     </QueryClientProvider>
   );

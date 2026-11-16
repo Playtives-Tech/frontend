@@ -1,1 +1,9 @@
-{}
+{
+  "/icon.png/route": "app/icon.png/route.js",
+  "/wallet/page": "app/wallet/page.js",
+  "/page": "app/page.js",
+  "/wallet/withdraw/page": "app/wallet/withdraw/page.js",
+  "/wallet/activity/[id]/page": "app/wallet/activity/[id]/page.js",
+  "/sign-in/page": "app/sign-in/page.js",
+  "/(platform)/notifications/page": "app/(platform)/notifications/page.js"
+}

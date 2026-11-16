@@ -8,6 +8,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { BalanceAmount } from '@/components/ui/balance-amount';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';
 import { notify } from '@/lib/notify';
+import { showMilestone } from '@/components/ui/milestone-popup';
 import { type LinkedAccount, useProfileStore } from '@/stores/use-profile-store';
 import {
   createWithdrawalRequest,
@@ -87,6 +88,7 @@ export default function WithdrawPage(): React.JSX.Element {
       setHistory((current) => [request, ...current.filter((item) => item._id !== request._id)]);
       setIdempotencyKey(crypto.randomUUID());
       setStep('result');
+      showMilestone({ id: request._id, title: 'Withdrawal requested', message: 'Your request is awaiting review. We will update you when it is processed.', actionUrl: '/wallet/withdraw', actionLabel: 'View request' });
     } catch (error: unknown) {
       notify.error(error instanceof Error ? error.message : 'Withdrawal request failed.');
       setResultStatus('error');

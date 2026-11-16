@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useId, useState } from 'react';
 import { notify } from '@/lib/notify';
+import { showMilestone } from '@/components/ui/milestone-popup';
 import {
   acceptCollectiveAgreement,
   getCollectiveDashboard,
@@ -108,6 +109,13 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
             ? 'You joined the Collective. Funds are awaiting deployment.'
             : 'Funds added to your Collective position. Awaiting deployment.',
       );
+      showMilestone({
+        id: contribution.id,
+        title: firstContribution ? 'Welcome to the Collective!' : 'Added to your Collective!',
+        message: contribution.status === 'PROCESSED' ? 'Your funds are active.' : 'Your funds are awaiting deployment.',
+        actionUrl: '/collectives',
+        actionLabel: 'View Collective',
+      });
       load();
       return true;
     } catch (cause) {
