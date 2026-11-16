@@ -1,14 +1,13 @@
 'use client';
 
 import {
+  Check,
   CheckCircle2,
   Clock3,
   Copy,
   Eye,
   EyeOff,
-  PartyPopper,
   Share2,
-  WalletCards,
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -89,11 +88,9 @@ export default function ActivityDetailPage(): React.JSX.Element {
         <>
           {details.isPayout ? (
             <section className="mt-6 overflow-hidden rounded-2xl border bg-background text-center">
-              <div className="px-5 pb-7 pt-8 sm:px-10 sm:pb-8 sm:pt-9">
-                <span className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600">
-                  <PartyPopper className="size-6" />
-                </span>
-                <h1 className="mt-4 text-2xl font-bold tracking-tight">Congratulations! 🎉</h1>
+              <div className="bg-gradient-to-b from-emerald-50 to-white px-5 pb-7 pt-8 sm:px-10 sm:pb-8 sm:pt-9">
+                <span className="mx-auto grid size-36 place-items-center rounded-full bg-white text-emerald-700 shadow-sm" aria-hidden="true"><Check className="size-20" strokeWidth={2.5} /></span>
+                <h1 className="mt-4 text-2xl font-bold tracking-tight">Congratulations!</h1>
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
                   Your {details.opportunityTitle} payout is in.
                 </p>
@@ -143,11 +140,12 @@ export default function ActivityDetailPage(): React.JSX.Element {
               </button>
             </section>
           ) : (
-            <section className="mt-6 rounded-2xl border bg-background p-5 text-center sm:p-7">
+            <section className="mt-6 rounded-2xl border bg-gradient-to-b from-emerald-50 to-white p-5 text-center sm:p-7">
               <span
-                className={`mx-auto grid size-12 place-items-center rounded-full ${details.iconClass}`}
+                className="mx-auto grid size-36 place-items-center rounded-full bg-white text-emerald-700 shadow-sm"
+                aria-hidden="true"
               >
-                <WalletCards className="size-5" />
+                <Check className="size-20" strokeWidth={2.5} />
               </span>
               <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 Wallet activity
