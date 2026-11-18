@@ -271,14 +271,13 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         <section className="mt-5 rounded-xl border border-brand/20 bg-brand/[0.035] p-4">
           <h2 className="font-sans text-sm font-semibold">Full account tools are locked</h2>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Next of Kin, password changes, linked bank accounts, withdrawals, and portfolio tools
-            unlock after your first confirmed co-ownership or co-funding opportunity.
+            Some account tools unlock after your first confirmed opportunity or Collective contribution. You can explore opportunities, verify your identity, and fund your wallet now.
           </p>
           <Link
-            href="/access-request"
+            href="/discover"
             className="mt-3 inline-flex h-9 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-white"
           >
-            Request participation access
+            Browse opportunities
           </Link>
         </section>
       ) : null}

@@ -90,6 +90,20 @@ export function getVerificationSteps(): Promise<VerificationSteps> {
   return api<VerificationSteps>('/v1/kyc/steps', { cache: 'no-store' });
 }
 
+export type ParticipationVerification = Readonly<{
+  checks: { phone: boolean; nin: boolean; bvn: boolean };
+  completed: number;
+  level: 'BASIC_ACCOUNT' | 'PARTICIPATION_ELIGIBLE' | 'FULLY_VERIFIED';
+  canFundWallet: boolean;
+  canJoinOpportunity: boolean;
+  canJoinCollective: boolean;
+  missingRequirements: string[];
+}>;
+
+export function getParticipationVerification(): Promise<ParticipationVerification> {
+  return api<ParticipationVerification>('/v1/member/verification-status', { cache: 'no-store' });
+}
+
 export function verifyIdentityNumber(
   type: 'bvn' | 'nin',
   input: { number: string; firstName: string; lastName: string; dateOfBirth: string },

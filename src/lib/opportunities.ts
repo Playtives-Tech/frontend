@@ -164,11 +164,11 @@ export type OpportunityUpdate = Readonly<{
 }>;
 
 export function getOpportunities(): Promise<Opportunity[]> {
-  return api<Opportunity[]>(`/v1/opportunities?fresh=${Date.now()}`, { cache: 'no-store' });
+  return api<Opportunity[]>(`/v1/member/opportunities?fresh=${Date.now()}`, { cache: 'no-store' });
 }
 
 export function getOpportunity(slug: string): Promise<Opportunity> {
-  return api<Opportunity>(`/v1/opportunities/${encodeURIComponent(slug)}?fresh=${Date.now()}`, {
+  return api<Opportunity>(`/v1/member/opportunities/${encodeURIComponent(slug)}?fresh=${Date.now()}`, {
     cache: 'no-store',
   });
 }

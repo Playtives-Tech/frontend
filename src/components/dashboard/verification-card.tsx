@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { getVerificationSteps } from '@/lib/services/profile-service';
+import { getParticipationVerification } from '@/lib/services/profile-service';
 import { useProfileStore } from '@/stores/use-profile-store';
 
 export function VerificationCard(): React.JSX.Element {
@@ -12,11 +12,11 @@ export function VerificationCard(): React.JSX.Element {
 
   useEffect(() => {
     void useProfileStore.persist.rehydrate();
-    void getVerificationSteps()
+    void getParticipationVerification()
       .then((status) => {
-        setVerificationStatus('bvn', status.bvn.verified ? 'verified' : 'not-verified');
-        setVerificationStatus('nin', status.nin.verified ? 'verified' : 'not-verified');
-        setVerificationStatus('phone', status.phone.verified ? 'verified' : 'not-verified');
+        setVerificationStatus('bvn', status.checks.bvn ? 'verified' : 'not-verified');
+        setVerificationStatus('nin', status.checks.nin ? 'verified' : 'not-verified');
+        setVerificationStatus('phone', status.checks.phone ? 'verified' : 'not-verified');
       })
       .catch(() => undefined);
   }, [setVerificationStatus]);
@@ -38,7 +38,7 @@ export function VerificationCard(): React.JSX.Element {
             <strong className="text-sm sm:text-[1rem]">
               {isComplete
                 ? 'Identity verification complete'
-                : 'Complete your identity verification'}
+                : completed > 0 ? 'Ready to participate' : 'Verify to start participating'}
             </strong>
             <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-wide text-brand">
               {completed} of 3 complete
@@ -47,7 +47,7 @@ export function VerificationCard(): React.JSX.Element {
           <span className="mt-1 block text-xs leading-5 text-muted-foreground sm:text-[.75rem]">
             {isComplete
               ? 'Your BVN, NIN and phone number are marked as verified.'
-              : 'Verify your BVN, NIN and phone number to secure your Playtives account.'}
+              : completed > 0 ? 'You can participate now; complete the remaining checks later to strengthen your account.' : 'Verify your phone, NIN, or BVN to become eligible for financial actions.'}
           </span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-brand transition-transform group-hover:translate-x-1" />

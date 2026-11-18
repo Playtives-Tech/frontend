@@ -293,9 +293,11 @@ export function OwnershipDashboard(): React.JSX.Element {
           </p>
         )}
         {!error && visible.length === 0 && !collectiveMatchesTab && (
-          <p className="rounded-2xl border bg-background p-8 text-center text-[13px] text-muted-foreground">
-            No {tab} {portfolioFilterLabel(structureFilter)}portfolio positions yet.
-          </p>
+          <div className="rounded-2xl border bg-background p-8 text-center">
+            <h2 className="text-lg font-semibold">{tab === 'active' && structureFilter === 'ALL' ? 'Your portfolio starts here' : 'No matching positions yet'}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{tab === 'active' && structureFilter === 'ALL' ? 'Build your portfolio through co-funding, co-ownership, and Wealth Collective.' : `No ${tab} ${portfolioFilterLabel(structureFilter)}portfolio positions yet.`}</p>
+            {tab === 'active' && structureFilter === 'ALL' ? <div className="mt-5 flex flex-wrap justify-center gap-3"><a className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white" href="/discover">Explore opportunities</a><a className="rounded-lg border px-4 py-2 text-sm font-semibold" href="/wealth-collectives">Explore Wealth Collective</a></div> : null}
+          </div>
         )}
         {collectiveMatchesTab && collectivePosition ? (
           <CollectivePositionCard position={collectivePosition} />

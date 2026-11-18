@@ -4,8 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bell,
-  Clock3,
-  LockKeyhole,
+  CheckCircle2,
   Newspaper,
   UsersRound,
   WalletCards,
@@ -15,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 import { VerificationCard } from '@/components/dashboard/verification-card';
 import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
+import { WealthGoalCard } from '@/components/dashboard/wealth-goal-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
 import {
   getActivityLogs,
@@ -37,11 +37,18 @@ import {
 } from '@/lib/services/collectives-service';
 import { notificationService } from '@/lib/services/notification-service';
 import { queryKeys } from '@/lib/query/query-keys';
+import {
+  getParticipationVerification,
+  type ParticipationVerification,
+} from '@/lib/services/profile-service';
 
 export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
+  const [ownershipsLoaded, setOwnershipsLoaded] = useState(false);
+  const [collectiveLoaded, setCollectiveLoaded] = useState(false);
+  const [verification, setVerification] = useState<ParticipationVerification | null>(null);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
     null,
@@ -60,11 +67,8 @@ export function DashboardHome(): React.JSX.Element {
   });
   const unreadNotificationCount = notificationCount.data?.count ?? 0;
   const isPending = user?.memberStatus === 'pending';
-  const participationApproved = user?.participationAccessApproved === true;
-  const participationExpiry = useMemo(
-    () => parseParticipationExpiry(user?.participationAccessExpiresAt),
-    [user?.participationAccessExpiresAt],
-  );
+  const hasParticipated = collectivePosition !== null || ownerships.some((ownership) => ownership.status === 'ACTIVE' || ownership.status === 'COMPLETED');
+  const needsActivation = !isGuest && user?.memberStatus !== 'active' && !hasParticipated;
   const firstName = user?.name.split(' ')[0];
   const communityDestination = isPending ? whatsappLearningCommunityUrl : whatsappTribeCommunityUrl;
   useEffect(() => {
@@ -75,23 +79,32 @@ export function DashboardHome(): React.JSX.Element {
       return;
     }
 
-    if (isPending) setOwnerships([]);
-    else
-      void getOwnerships()
-        .then(setOwnerships)
-        .catch(() => setOwnerships([]));
-    if (isPending) setCollectivePosition(null);
-    else
-      void getCollectiveDashboard()
-        .then((dashboard) => setCollectivePosition(getCollectivePortfolioPosition(dashboard)))
-        .catch(() => setCollectivePosition(null));
+    void getOwnerships()
+      .then((items) => {
+        setOwnerships(items);
+        setOwnershipsLoaded(true);
+      })
+      .catch(() => setOwnershipsLoaded(false));
+    void getCollectiveDashboard()
+      .then((dashboard) => {
+        const position = getCollectivePortfolioPosition(dashboard);
+        setCollectivePosition(position);
+        setCollectiveLoaded(true);
+        if (position) {
+          void getCurrentUser().then(updateUser).catch(() => undefined);
+        }
+      })
+      .catch(() => setCollectiveLoaded(false));
+    void getParticipationVerification()
+      .then(setVerification)
+      .catch(() => setVerification(null));
     void getWallet()
       .then(setWallet)
       .catch(() => setWallet(null));
     void getActivityLogs()
       .then((items) => setActivity(items.slice(0, 4)))
       .catch(() => setActivity([]));
-  }, [isGuest, isPending]);
+  }, [isGuest]);
   useEffect(() => {
     if (isGuest || !isPending) return;
     let cancelled = false;
@@ -126,7 +139,7 @@ export function DashboardHome(): React.JSX.Element {
   const currentCollectiveMinorUnits =
     collectivePosition?.status === 'COMPLETED'
       ? 0
-      : (collectivePosition?.displayValueMinorUnits ?? 0);
+      : (collectivePosition?.activeCapitalMinorUnits ?? 0);
   const coOwnedContributionMinorUnits = activeOwnerships
     .filter((ownership) => ownershipStructure(ownership) === 'CO_OWNERSHIP')
     .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
@@ -173,117 +186,205 @@ export function DashboardHome(): React.JSX.Element {
         </Link>
       </header>
 
-      <section className="mt-5 flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/[0.045] px-4 py-3.5 text-sm sm:mt-6">
+      {!isGuest ? (
+        <WealthGoalCard
+          memberId={user.id}
+          firstName={firstName ?? 'there'}
+          isActiveMember={user.memberStatus === 'active'}
+          productivePortfolioMinorUnits={
+            ownershipsLoaded && collectiveLoaded
+              ? activeOwnerships
+                  .filter((ownership) => !ownership.isFake)
+                  .reduce((total, ownership) => total + ownership.amountMinorUnits, 0) +
+                currentCollectiveMinorUnits
+              : null
+          }
+        />
+      ) : null}
+
+      {!isGuest && verification ? (
+        <section className="mt-5 rounded-2xl border border-brand/20 bg-background p-5">
+          <h2 className="font-semibold">
+            {!verification.canJoinOpportunity
+              ? "You're almost ready to start building"
+              : wallet?.totalAvailableBalanceMinorUnits
+                ? 'Your money is ready to work'
+                : 'You’re ready to start building'}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {!verification.canJoinOpportunity
+              ? 'Verify your phone, NIN, or BVN to participate. You can explore opportunities now.'
+              : wallet?.totalAvailableBalanceMinorUnits
+                ? `${formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)} is available in your wallet.`
+                : 'Explore opportunities or fund your wallet when you are ready.'}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white"
+              href={
+                !verification.canJoinOpportunity
+                  ? '/profile/verification'
+                  : wallet?.totalAvailableBalanceMinorUnits
+                    ? '/discover'
+                    : '/wallet'
+              }
+            >
+              {!verification.canJoinOpportunity
+                ? 'Continue verification'
+                : wallet?.totalAvailableBalanceMinorUnits
+                  ? 'Explore opportunities'
+                  : 'Fund your wallet'}
+            </Link>
+            {/* <Link className="rounded-lg border px-4 font-semibold py-2 text-sm" href="/discover">
+              Explore opportunities
+            </Link> */}
+          </div>
+        </section>
+      ) : null}
+
+      {/* <section className="mt-5 flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/[0.045] px-4 py-3.5 text-sm sm:mt-6">
         <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
           <UsersRound className="size-4.5" />
         </span>
         <div>
           <p className="text-[.95rem] font-semibold text-foreground">
-            {isPending ? 'Your Playtives participation account' : 'For active community members'}
+            {needsActivation ? 'Your Playtives participation account' : 'For active community members'}
           </p>
           <p className="mt-0.5 text-[.8rem] leading-5 text-muted-foreground sm:text-[.8rem]">
-            {isPending
-              ? 'Browse opportunities and complete your KYC while Playtives prepares your participation access. Your portfolio and inner Co-Owners Tribe access unlock after your first confirmed opportunity.'
+            {needsActivation
+              ? 'Explore opportunities, complete identity verification, fund your wallet, and make your first participation when you are ready.'
               : 'This platform is solely for active community members of Playtives Coowners Tribe (Playtives Cooperative Multipurpose Society Limited).'}
           </p>
         </div>
-      </section>
+      </section> */}
 
       <div className="mt-5 sm:mt-7">
-        {isPending ? (
+        {needsActivation ? (
           <section className="rounded-2xl border border-brand/20 bg-background p-5 shadow-sm sm:p-6">
-            <div className="flex items-start gap-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-                <LockKeyhole className="size-5" />
+            <div className="flex items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+                <WalletCards className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
-                  Pending member access
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">
-                  {participationApproved
-                    ? 'You are approved to continue'
-                    : 'Request approval before you participate'}
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  {participationApproved
-                    ? 'You can now fund your wallet and continue with an open opportunity. Your account becomes active after participation is confirmed.'
-                    : 'You can browse and complete KYC now. Wallet funding and opportunity participation remain locked until an administrator approves your request.'}
-                </p>
-                {participationApproved ? (
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-amber-500/15 text-amber-700">
-                        <Clock3 className="size-4.5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground">
-                          Complete your participation within 48 hours
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          {participationExpiry
-                            ? `Your approved access expires on ${formatParticipationExpiry(participationExpiry)}. Confirm a co-ownership or co-funding opportunity before then, or your account will return to community membership.`
-                            : 'Confirm a co-ownership or co-funding opportunity before your approval window closes, or your account will return to community membership.'}
-                        </p>
-                        {participationExpiry ? (
-                          <p className="mt-2 inline-flex rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-800">
-                            {participationTimeRemaining(participationExpiry)} remaining
-                          </p>
-                        ) : null}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-lg font-semibold">{verification?.canFundWallet ? 'Ready for your first opportunity' : 'Verify to start participating'}</h2>
+                  <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
+                    {2 +
+                      Number(Boolean(verification?.canJoinOpportunity)) +
+                      Number(Boolean(wallet?.totalAvailableBalanceMinorUnits)) +
+                      Number(hasParticipated)}{' '}
+                    / 5 complete
+                  </span>
+                </div>
+                <div
+                  className="mt-3 flex gap-1.5"
+                  role="progressbar"
+                  aria-label="Playtives setup"
+                  aria-valuenow={
+                    2 +
+                    Number(Boolean(verification?.canJoinOpportunity)) +
+                    Number(Boolean(wallet?.totalAvailableBalanceMinorUnits)) +
+                    Number(hasParticipated)
+                  }
+                  aria-valuemin={0}
+                  aria-valuemax={5}
+                >
+                  {[
+                    true,
+                    true,
+                    Boolean(verification?.canJoinOpportunity),
+                    Boolean(wallet?.totalAvailableBalanceMinorUnits),
+                    hasParticipated,
+                  ].map((done, index) => (
+                    <span
+                      key={index}
+                      className={`h-1.5 flex-1 rounded-full ${done ? 'bg-brand' : 'bg-brand/10'}`}
+                    />
+                  ))}
+                </div>
+                <ol className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  {[
+                    ['Account', true],
+                    ['Email', true],
+                    ['Verify', Boolean(verification?.canJoinOpportunity)],
+                    ['Fund', Boolean(wallet?.totalAvailableBalanceMinorUnits)],
+                    ['Participate', hasParticipated],
+                  ].map(([label, done]) => (
+                    <li
+                      key={String(label)}
+                      className={`inline-flex items-center gap-1.5 ${done ? 'text-brand' : ''}`}
+                    >
+                      {done ? (
+                        <CheckCircle2 className="size-3.5" />
+                      ) : (
+                        <span className="size-3.5 rounded-full border" />
+                      )}
+                      {label}
+                    </li>
+                  ))}
+                </ol>
+                {wallet ? (
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl bg-brand/[0.045] px-4 py-3">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Available to participate
+                      </p>
+                      <div className="mt-1 font-sans text-lg font-semibold tracking-tight text-foreground">
+                        <BalanceAmount
+                          value={
+                            wallet
+                              ? formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)
+                              : 'Loading…'
+                          }
+                          toggle={wallet !== null}
+                        />
                       </div>
                     </div>
-                    <div className="grid gap-2 rounded-xl border border-brand/10 bg-brand/[0.035] p-3 sm:grid-cols-2">
-                      <div className="rounded-lg bg-background px-3 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                          Available wallet balance
-                        </p>
-                        <div className="mt-1 font-sans text-xl font-semibold tracking-tight text-foreground">
-                          <BalanceAmount
-                            value={
-                              wallet
-                                ? formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)
-                                : 'Loading…'
-                            }
-                            toggle={wallet !== null}
-                          />
-                        </div>
-                        <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-                          Funds ready for your first co-ownership or co-funding opportunity.
-                        </p>
-                      </div>
-                      <div className="rounded-lg bg-background px-3 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                          Deposits awaiting approval
-                        </p>
-                        <div className="mt-1 font-sans text-xl font-semibold tracking-tight text-foreground">
-                          <BalanceAmount
-                            value={
-                              wallet
-                                ? formatNaira(wallet.deposit.pendingBalanceMinorUnits / 100)
-                                : 'Loading…'
-                            }
-                          />
-                        </div>
-                        <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-                          Approved deposits automatically move into your available balance.
-                        </p>
+                    <div className="rounded-xl bg-surface px-4 py-3">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Deposit pending approval
+                      </p>
+                      <div className="mt-1 font-sans text-lg font-semibold tracking-tight text-foreground">
+                        <BalanceAmount
+                          value={
+                            wallet
+                              ? formatNaira(wallet.deposit.pendingBalanceMinorUnits / 100)
+                              : 'Loading…'
+                          }
+                        />
                       </div>
                     </div>
                   </div>
                 ) : null}
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
-                    href={participationApproved ? '/wallet/deposit' : '/access-request'}
+                    href={
+                      !verification?.canFundWallet
+                        ? '/profile/verification'
+                        : wallet && wallet.totalAvailableBalanceMinorUnits > 0
+                        ? '/discover'
+                        : '/wallet/deposit'
+                    }
                     className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand px-4 text-xs font-semibold text-white"
                   >
-                    {participationApproved ? 'Fund wallet' : 'Request access'}{' '}
+                    {!verification?.canFundWallet
+                      ? 'Complete one verification'
+                      : wallet && wallet.totalAvailableBalanceMinorUnits > 0
+                      ? 'Co-own or co-fund'
+                      : 'Fund wallet'}{' '}
                     <ArrowRight className="size-4" />
                   </Link>
                   <Link
-                    href="/discover"
+                    href={
+                      wallet && wallet.totalAvailableBalanceMinorUnits > 0
+                        ? '/wealth-collectives'
+                        : '/discover'
+                    }
                     className="inline-flex h-10 items-center rounded-lg border px-4 text-xs font-semibold"
                   >
-                    Browse opportunities
+                    {wallet && wallet.totalAvailableBalanceMinorUnits > 0
+                      ? 'View Wealth Collective'
+                      : 'Browse opportunities'}
                   </Link>
                 </div>
               </div>
@@ -482,29 +583,6 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
       </span>
     </Link>
   );
-}
-
-function parseParticipationExpiry(value: string | null | undefined): Date | null {
-  if (!value) return null;
-  const expiry = new Date(value);
-  return Number.isNaN(expiry.getTime()) ? null : expiry;
-}
-
-function formatParticipationExpiry(value: Date): string {
-  return `${new Intl.DateTimeFormat('en-NG', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Africa/Lagos',
-  }).format(value)} WAT`;
-}
-
-function participationTimeRemaining(expiry: Date): string {
-  const remainingMinutes = Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 60_000));
-  if (remainingMinutes === 0) return 'less than 1m';
-  const hours = Math.floor(remainingMinutes / 60);
-  const minutes = remainingMinutes % 60;
-  if (hours === 0) return `${minutes}m`;
-  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
 }
 
 function formatAmount(amount: number): string {

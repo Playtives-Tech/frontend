@@ -14,7 +14,7 @@ import {
   type DepositRequestRecord,
   type WalletFundingDetails,
 } from '@/lib/services/wallet-service';
-import { getVerificationSteps } from '@/lib/services/profile-service';
+import { getParticipationVerification } from '@/lib/services/profile-service';
 
 export function DepositRequest(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
@@ -25,17 +25,21 @@ export function DepositRequest(): React.JSX.Element {
   const [isStartingCardPayment, setIsStartingCardPayment] = useState(false);
   const [requests, setRequests] = useState<DepositRequestRecord[]>([]);
   const [fundingDetails, setFundingDetails] = useState<WalletFundingDetails | null>(null);
-  const [kycVerified, setKycVerified] = useState(false);
+  const [kycVerified, setKycVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     void getDepositRequests()
       .then(setRequests)
       .catch(() => undefined);
-    void getWalletFundingDetails()
-      .then(setFundingDetails)
-      .catch(() => notify.error('Wallet funding details could not be loaded.'));
-    void getVerificationSteps()
-      .then((status) => setKycVerified(status.completed === 3))
+    void getParticipationVerification()
+      .then((status) => {
+        setKycVerified(status.canFundWallet);
+        if (status.canFundWallet) {
+          void getWalletFundingDetails()
+            .then(setFundingDetails)
+            .catch(() => notify.error('Wallet funding details could not be loaded.'));
+        }
+      })
       .catch(() => setKycVerified(false));
   }, []);
 
@@ -113,17 +117,16 @@ export function DepositRequest(): React.JSX.Element {
         Make an instant online deposit, or use a bank transfer and submit your receipt.
       </p>
 
-      {!kycVerified ? (
+      {kycVerified === false ? (
         <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
-          your account security. You can still fund your wallet for now.{' '}
+          <strong>Verify before funding.</strong> Complete any one of the three checks—phone number, NIN, or BVN—to view our bank transfer details, fund your wallet, or join an opportunity or Wealth Collective. You can still explore the platform.{' '}
           <Link href="/profile/verification" className="font-semibold underline">
             Complete verification
           </Link>
         </div>
       ) : null}
 
-      <section className="mt-6 rounded-xl border bg-background p-5">
+      {kycVerified ? <section className="mt-6 rounded-xl border bg-background p-5">
         <p className="text-xs text-muted-foreground">Account number</p>
         <div className="mt-2 flex items-center justify-between gap-4">
           <p className="font-sans text-2xl font-semibold tracking-wider">
@@ -149,9 +152,9 @@ export function DepositRequest(): React.JSX.Element {
             <p className="mt-1 text-sm font-semibold">{fundingDetails?.accountName ?? '—'}</p>
           </div>
         </div>
-      </section>
+      </section> : null}
 
-      <form
+      {kycVerified ? <form
         onSubmit={(event) => void submit(event)}
         className="mt-5 rounded-xl border bg-background p-5"
       >
@@ -193,13 +196,13 @@ export function DepositRequest(): React.JSX.Element {
             Submit deposit request
           </ButtonLoadingContent>
         </button>
-      </form>
+      </form> : null}
 
-      <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+      {kycVerified ? <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
         Or fund online
-      </div>
+      </div> : null}
 
-      <form
+      {kycVerified ? <form
         onSubmit={(event) => void startCardPayment(event)}
         className="mt-6 overflow-hidden rounded-2xl border border-brand/20 bg-background shadow-sm"
       >
@@ -243,7 +246,7 @@ export function DepositRequest(): React.JSX.Element {
             </ButtonLoadingContent>
           </button>
         </div>
-      </form>
+      </form> : null}
 
       <section className="mt-6 rounded-xl border bg-background p-4">
         <h2 className="font-sans text-[16px] font-semibold">Deposit history</h2>

@@ -193,8 +193,8 @@ export function VerificationDashboard(): React.JSX.Element {
           Verify your identity
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-          Complete all three checks to protect your account and prepare your Playtives profile for
-          verified transactions.
+          Verify your phone, NIN, and BVN separately to strengthen your account. You can continue
+          exploring Playtives while completing any remaining checks.
         </p>
       </header>
 
@@ -205,6 +205,11 @@ export function VerificationDashboard(): React.JSX.Element {
               Your progress
             </p>
             <p className="mt-1 text-sm font-semibold">{completed} of 3 steps completed</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {completed === steps.length
+                ? 'Fully verified'
+                : 'Verification in progress. You can continue exploring and participating while you complete the remaining checks.'}
+            </p>
           </div>
           <span className="text-xl font-bold text-brand">{Math.round(progress)}%</span>
         </div>

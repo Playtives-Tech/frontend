@@ -30,6 +30,7 @@ export type Ownership = Readonly<{
   projectionType: string;
   termType: 'FIXED_TERM' | 'LIFE_OF_ASSET';
   status: OwnershipStatus;
+  isFake?: boolean;
   progressPercent: number;
   adminNote?: string;
   revision: number;

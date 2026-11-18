@@ -72,10 +72,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
   const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
   const [inactivitySecondsRemaining, setInactivitySecondsRemaining] = useState<number | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceStatus | null>(null);
-  const [communityPromptOpen, setCommunityPromptOpen] = useState(false);
-  const isCommunity = user?.memberStatus === 'community';
   const isPending = user?.memberStatus === 'pending';
-  const participationApproved = user?.participationAccessApproved === true;
   const isWelcomeRoute = pathname === '/welcome';
   const isNameChangeRoute = pathname === '/profile/name-change';
   const isPublicRoute =
@@ -88,19 +85,6 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     isNameChangeRoute;
   const token = getAccessToken();
   const hasValidSession = Boolean(user && token && !isAccessTokenExpired(token));
-  const restrictedPendingRoute =
-    pathname.startsWith('/ownership') ||
-    (pathname.startsWith('/wallet') &&
-      !(participationApproved && pathname.startsWith('/wallet/deposit'))) ||
-    pathname.startsWith('/profile/bank-account') ||
-    pathname.startsWith('/profile/change-password') ||
-    pathname.startsWith('/profile/name-change') ||
-    (!participationApproved && pathname.startsWith('/wallet/deposit'));
-  const suppressParticipationPrompt =
-    isWelcomeRoute ||
-    pathname.startsWith('/access-request') ||
-    pathname.startsWith('/profile/verification') ||
-    (participationApproved && pathname.startsWith('/wallet/deposit'));
   const endInactiveSession = useCallback((): void => {
     setInactivitySecondsRemaining(null);
     signOut();
@@ -148,26 +132,9 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
 
       if (!hasValidSession && user) signOut();
       if (!hasValidSession && !isPublicRoute) router.replace('/sign-in');
-      if (hasValidSession && isWelcomeRoute && user?.memberStatus === 'active') router.replace('/');
+      if (hasValidSession && isWelcomeRoute) router.replace('/');
       if (hasValidSession && isPublicRoute && !isNameChangeRoute)
-        router.replace(user?.memberStatus === 'community' && !user.memberIntent ? '/welcome' : '/');
-      if (
-        hasValidSession &&
-        !isPublicRoute &&
-        !isWelcomeRoute &&
-        user?.memberStatus === 'community' &&
-        !user.memberIntent
-      )
-        router.replace('/welcome');
-      if (
-        hasValidSession &&
-        !isPublicRoute &&
-        user?.memberStatus === 'community' &&
-        user.memberIntent === 'LEARN_FIRST'
-      ) {
-        signOut();
-        window.location.replace('/community-membership');
-      }
+        router.replace('/');
     };
 
     if (!hasHydrated) return;
@@ -180,35 +147,6 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     };
   }, [hasHydrated, isNameChangeRoute, isPublicRoute, isWelcomeRoute, router, signOut, user]);
 
-  useEffect(() => {
-    if (!hasHydrated || !hasValidSession || !isPending || !restrictedPendingRoute) return;
-    notify.info(
-      participationApproved
-        ? 'This feature unlocks after your first confirmed opportunity.'
-        : 'Request participation access before using this feature.',
-    );
-    router.replace('/');
-  }, [
-    hasHydrated,
-    hasValidSession,
-    isPending,
-    participationApproved,
-    restrictedPendingRoute,
-    router,
-  ]);
-
-  useEffect(() => {
-    if (!hasValidSession || !isPending || participationApproved || suppressParticipationPrompt) {
-      setCommunityPromptOpen(false);
-      return;
-    }
-    const initialTimer = window.setTimeout(() => setCommunityPromptOpen(true), 1200);
-    const timer = window.setInterval(() => setCommunityPromptOpen(true), 10 * 60 * 1000);
-    return () => {
-      window.clearTimeout(initialTimer);
-      window.clearInterval(timer);
-    };
-  }, [hasValidSession, isPending, participationApproved, suppressParticipationPrompt]);
 
   if (!hasHydrated)
     return (
@@ -245,17 +183,8 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
     return <>{children}</>;
   }
 
-  if (isCommunity) return <PageLoadingState label="Opening community access" />;
-
-  if (isPending && restrictedPendingRoute)
-    return <PageLoadingState label="Opening your pending member dashboard" />;
-
-  const visibleSidebarItems = isPending
-    ? sidebarNavigationItems.filter((item) => item.href !== '/ownership')
-    : sidebarNavigationItems;
-  const visibleMobileItems = isPending
-    ? navigationItems.filter((item) => item.href !== '/ownership')
-    : navigationItems;
+  const visibleSidebarItems = sidebarNavigationItems;
+  const visibleMobileItems = navigationItems;
   const whatsappDestination = isPending ? whatsappLearningCommunityUrl : whatsappTribeCommunityUrl;
 
   return (
@@ -286,7 +215,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </div>
       </aside>
 
-      <main className="w-full min-w-0 pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+10vw)] lg:w-auto lg:pb-8 lg:pt-0">
+      <main className="w-full min-w-0 pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
@@ -317,17 +246,6 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         title="Sign out of Playtives?"
         description="You will need to sign in again to access your account."
         confirmLabel="Sign out"
-      />
-      <ConfirmModal
-        open={communityPromptOpen}
-        onClose={() => setCommunityPromptOpen(false)}
-        onConfirm={() => {
-          setCommunityPromptOpen(false);
-          router.push('/access-request');
-        }}
-        title="Participation approval required"
-        description="Your pending account can browse opportunities and complete KYC, but wallet funding and participation stay locked until the Playtives team approves your request."
-        confirmLabel="Request access"
       />
       <ConfirmModal
         open={inactivitySecondsRemaining !== null}
@@ -375,7 +293,7 @@ function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.
   const signedIn = Boolean(userKey);
 
   return (
-    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+10vw)]">
+    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+5vw)]">
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold tracking-tight">Recent Activities</h2>

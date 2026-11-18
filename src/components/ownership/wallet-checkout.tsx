@@ -14,11 +14,12 @@ import {
 } from '@/lib/opportunities';
 import { acquireOpportunity } from '@/lib/services/ownership-service';
 import { getWallet, type WalletSummary } from '@/lib/services/wallet-service';
-import { getVerificationSteps } from '@/lib/services/profile-service';
+import { getParticipationVerification } from '@/lib/services/profile-service';
 import { getCurrentUser } from '@/lib/services/registration-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { formatNaira } from './formatters';
 import { UnitQuantityInput } from './unit-quantity-input';
+import { showMilestone } from '@/components/ui/milestone-popup';
 
 type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
@@ -46,12 +47,13 @@ export function WalletCheckout({
   const idempotencyKey = useRef(crypto.randomUUID());
   const router = useRouter();
   const updateUser = useAuthStore((state) => state.updateUser);
+  const wasActiveMember = useAuthStore((state) => state.user?.memberStatus === 'active');
   useEffect(() => {
     void getWallet()
       .then(setWallet)
       .catch(() => undefined);
-    void getVerificationSteps()
-      .then((status) => setKycVerified(status.completed === 3))
+    void getParticipationVerification()
+      .then((status) => setKycVerified(status.canJoinOpportunity))
       .catch(() => setKycVerified(false));
   }, []);
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
@@ -74,6 +76,9 @@ export function WalletCheckout({
       );
       const currentUser = await getCurrentUser();
       updateUser(currentUser);
+      if (!wasActiveMember && currentUser.memberStatus === 'active') {
+        showMilestone({ id: `first-ownership-${ownership._id}`, title: "You're officially building with Playtives", message: `${opportunity.title} is now part of your portfolio.`, actionUrl: '/ownership', actionLabel: 'View my portfolio' });
+      }
       router.replace(`/ownership/${ownership._id}`);
       router.refresh();
     } catch (value) {
@@ -99,8 +104,7 @@ export function WalletCheckout({
       </p>
       {!kycVerified ? (
         <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
-          your account security. You can still acquire this opportunity for now.{' '}
+          <strong>Verification needed.</strong> Verify your phone, NIN, or BVN before participating.{' '}
           <Link href="/profile/verification" className="font-semibold underline">
             Complete verification
           </Link>

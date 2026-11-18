@@ -18,7 +18,7 @@ import {
   type WalletSummary,
 } from '@/lib/services/wallet-service';
 import { listBankAccounts } from '@/lib/services/profile-service';
-import { getVerificationSteps } from '@/lib/services/profile-service';
+import { getParticipationVerification } from '@/lib/services/profile-service';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -43,8 +43,8 @@ export default function WithdrawPage(): React.JSX.Element {
     void listBankAccounts()
       .then(setAccounts)
       .catch(() => undefined);
-    void getVerificationSteps()
-      .then((status) => setKycVerified(status.completed === 3))
+    void getParticipationVerification()
+      .then((status) => setKycVerified(status.canFundWallet))
       .catch(() => setKycVerified(false));
     void getWithdrawalRequests()
       .then(setHistory)
@@ -127,8 +127,7 @@ export default function WithdrawPage(): React.JSX.Element {
 
       {!kycVerified ? (
         <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-5 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
-          <strong>Complete your KYC.</strong> Verify your BVN, NIN, and phone number to strengthen
-          your account security. You can still withdraw for now.{' '}
+          <strong>Verification needed.</strong> Verify your phone, NIN, or BVN before withdrawing.{' '}
           <Link href="/profile/verification" className="font-semibold underline">
             Complete verification
           </Link>
