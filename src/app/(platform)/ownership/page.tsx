@@ -1,4 +1,4 @@
-import { OwnershipDashboard } from '@/components/ownership/ownership-dashboard';
+import { PortfolioV2 } from '@/components/ownership/portfolio-v2';
 export default function OwnershipPage(): React.JSX.Element {
-  return <OwnershipDashboard />;
+  return <PortfolioV2 />;
 }

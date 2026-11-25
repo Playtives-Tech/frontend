@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
+import { IconExternalLink as ExternalLink } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import {
   getOpportunityUpdates,

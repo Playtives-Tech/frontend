@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { CheckCircle2, FilePenLine } from 'lucide-react';
+import { IconCircleCheck as CheckCircle2, IconFilePencil as FilePenLine } from '@tabler/icons-react';
 import { completeNameChange } from '@/lib/services/profile-service';
 
 export default function NameChangePage(): React.JSX.Element {

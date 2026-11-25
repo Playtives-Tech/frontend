@@ -1,20 +1,20 @@
 'use client';
 
 import {
-  ChevronRight,
-  Copy,
-  CreditCard,
-  KeyRound,
-  Landmark,
-  LogOut,
-  Mail,
-  Moon,
-  Trash2,
-  Phone,
-  ShieldCheck,
-  UserRound,
-  FilePenLine,
-} from 'lucide-react';
+  IconChevronRight as ChevronRight,
+  IconCopy as Copy,
+  IconCreditCard as CreditCard,
+  IconKey as KeyRound,
+  IconBuildingBank as Landmark,
+  IconLogout2 as LogOut,
+  IconMail as Mail,
+  IconMoon as Moon,
+  IconTrash as Trash2,
+  IconPhone as Phone,
+  IconFingerprint as IdentityIcon,
+  IconUserCircle as UserRound,
+  IconFilePencil as FilePenLine,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -256,7 +256,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         className="mt-5 flex items-center gap-3 rounded-xl border bg-background p-4 transition hover:border-brand/35 hover:bg-brand/[0.03]"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
-          <ShieldCheck className="size-5" />
+          <IdentityIcon className="size-5" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-sans text-sm font-semibold">Identity verification</span>

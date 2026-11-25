@@ -1,4 +1,12 @@
-import { ArrowLeft, ArrowRight, Check, CircleAlert, Minus, Plus, WalletCards } from 'lucide-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconArrowRight as ArrowRight,
+  IconCheck as Check,
+  IconAlertCircle as CircleAlert,
+  IconMinus as Minus,
+  IconPlus as Plus,
+  IconWallet as WalletCards,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -20,6 +28,7 @@ import { useAuthStore } from '@/stores/use-auth-store';
 import { formatNaira } from './formatters';
 import { UnitQuantityInput } from './unit-quantity-input';
 import { showMilestone } from '@/components/ui/milestone-popup';
+import { trackEvent } from '@/lib/product-analytics';
 
 type WalletCheckoutProps = Readonly<{
   opportunity: Opportunity;
@@ -49,13 +58,14 @@ export function WalletCheckout({
   const updateUser = useAuthStore((state) => state.updateUser);
   const wasActiveMember = useAuthStore((state) => state.user?.memberStatus === 'active');
   useEffect(() => {
+    trackEvent('opportunity_participation_reviewed', { opportunity_id: opportunity._id });
     void getWallet()
       .then(setWallet)
       .catch(() => undefined);
     void getParticipationVerification()
       .then((status) => setKycVerified(status.canJoinOpportunity))
       .catch(() => setKycVerified(false));
-  }, []);
+  }, [opportunity._id]);
   const walletBalance = (wallet?.totalAvailableBalanceMinorUnits ?? 0) / 100;
   const total = (opportunity.pricePerUnitMinorUnits / 100) * quantity;
   const hasFunds = wallet !== null && walletBalance >= total;
@@ -64,6 +74,7 @@ export function WalletCheckout({
   const minimumUnits = opportunity.minimumUnits;
   const maximumUnits = opportunity.availableUnits;
   const confirm = async () => {
+    trackEvent('opportunity_participation_confirmed', { opportunity_id: opportunity._id });
     setSubmitting(true);
     setError('');
     try {
@@ -74,14 +85,19 @@ export function WalletCheckout({
         idempotencyKey.current,
         rolloverElection,
       );
-      const currentUser = await getCurrentUser();
-      updateUser(currentUser);
-      if (!wasActiveMember && currentUser.memberStatus === 'active') {
-        showMilestone({ id: `first-ownership-${ownership._id}`, title: "You're officially building with Playtives", message: `${opportunity.title} is now part of your portfolio.`, actionUrl: '/ownership', actionLabel: 'View my portfolio' });
+      try {
+        const currentUser = await getCurrentUser();
+        updateUser(currentUser);
+        if (!wasActiveMember && currentUser.memberStatus === 'active') {
+          showMilestone({ id: `first-ownership-${ownership._id}`, title: "You're officially building with Playtives", message: `${opportunity.title} is now part of your portfolio.`, actionUrl: '/ownership', actionLabel: 'View my portfolio' });
+        }
+      } catch {
+        // The recorded purchase remains successful if refreshing the profile fails.
       }
       router.replace(`/ownership/${ownership._id}`);
       router.refresh();
     } catch (value) {
+      trackEvent('opportunity_participation_failed', { opportunity_id: opportunity._id, reason_code: 'system_error' });
       setError(value instanceof Error ? value.message : 'The acquisition could not be completed');
       setSubmitting(false);
     }
@@ -183,6 +199,18 @@ export function WalletCheckout({
           </div>
         </dl>
       </section>
+      {opportunity.feeSummary ? (
+        <section className="mt-5 rounded-xl border border-border bg-background p-4">
+          <h2 className="text-sm font-semibold">Fees and deductions</h2>
+          <p className="mt-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{opportunity.feeSummary}</p>
+        </section>
+      ) : null}
+      {opportunity.riskSummary ? (
+        <section className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <h2 className="text-sm font-semibold">Material risks</h2>
+          <p className="mt-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{opportunity.riskSummary}</p>
+        </section>
+      ) : null}
       <p className="mt-3 text-xs leading-5 text-muted-foreground">
         {isVariableDistribution(opportunity)
           ? 'The displayed amount is the projected monthly distribution for your selected units.'
@@ -232,7 +260,7 @@ export function WalletCheckout({
           <input
             type="checkbox"
             checked={agreementAccepted}
-            onChange={(event) => onAgreementAcceptedChange(event.target.checked)}
+            onChange={(event) => { onAgreementAcceptedChange(event.target.checked); if (event.target.checked) trackEvent('opportunity_agreement_accepted', { opportunity_id: opportunity._id }); }}
             className="peer sr-only"
           />
           <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border border-border bg-background text-white transition peer-checked:border-brand peer-checked:bg-brand">
@@ -262,7 +290,7 @@ export function WalletCheckout({
         ) : null}
         <button
           type="button"
-          disabled={!hasFunds || (agreementRequired && !agreementAccepted) || submitting}
+          disabled={!hasFunds || !kycVerified || (agreementRequired && !agreementAccepted) || submitting}
           onClick={() => void confirm()}
           className="mx-auto flex h-12 w-full max-w-3xl items-center justify-center gap-2 rounded-xl bg-brand px-5 font-semibold text-brand-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
         >

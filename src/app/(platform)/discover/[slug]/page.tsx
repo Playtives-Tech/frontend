@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OwnershipFlow } from '@/components/ownership/ownership-flow';
 import { OpportunityInterestFlow } from '@/components/opportunities/collective-interest-flow';
 import { PageLoadingState } from '@/components/ui/loading-indicator';
+import { trackEvent } from '@/lib/product-analytics';
 import {
   getOpportunity,
   subscribeToOpportunityChanges,
@@ -14,6 +15,15 @@ export default function OpportunityDetailPage(): React.JSX.Element {
   const router = useRouter();
   const [opportunity, setOpportunity] = useState<Opportunity>();
   const [error, setError] = useState('');
+  const viewed = useRef('');
+  useEffect(() => {
+    if (!opportunity) return;
+    const key = `${opportunity._id}:${opportunity.memberStatus}`;
+    if (viewed.current === key) return;
+    viewed.current = key;
+    trackEvent('opportunity_viewed', { opportunity_id: opportunity._id, product_type: opportunity.opportunityStructure, sector: opportunity.category });
+    if (opportunity.memberStatus === 'FULLY_FUNDED') trackEvent('opportunity_fully_funded_viewed', { opportunity_id: opportunity._id });
+  }, [opportunity]);
   useEffect(() => {
     const load = () =>
       getOpportunity(slug)

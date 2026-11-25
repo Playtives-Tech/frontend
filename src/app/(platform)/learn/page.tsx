@@ -1,4 +1,4 @@
-import { BookOpen } from 'lucide-react';
+import { IconBook as BookOpen } from '@tabler/icons-react';
 import { EmptyPage } from '@/components/navigation/empty-page';
 export default function LearnPage(): React.JSX.Element {
   return (

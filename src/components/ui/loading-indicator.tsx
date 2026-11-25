@@ -1,4 +1,4 @@
-import { LoaderCircle } from 'lucide-react';
+import { IconLoader2 as LoaderCircle } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 type LoadingSpinnerProps = Readonly<{

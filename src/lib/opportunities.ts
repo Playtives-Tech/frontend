@@ -1,7 +1,7 @@
 import { api } from './api';
 import { env } from './env';
 
-export type OpportunityStatus = 'PUBLISHED' | 'INTEREST_OPEN' | 'INTEREST_CLOSED';
+export type OpportunityStatus = 'PUBLISHED' | 'COMPLETED' | 'CANCELLED' | 'INTEREST_OPEN' | 'INTEREST_CLOSED';
 export type ReturnSchedule = 'MONTHLY' | 'YEARLY' | 'AT_MATURITY';
 export type InterestCurrency = 'NGN' | 'GBP' | 'USD';
 export type AssetLifecycleStatus =
@@ -52,6 +52,9 @@ export type Opportunity = Readonly<{
   returnModel: string;
   projectionType: string;
   summary: string;
+  transactionSummary?: string;
+  riskSummary?: string;
+  feeSummary?: string;
   about: string;
   agreement: string;
   agreementVersion?: string;
@@ -94,6 +97,7 @@ export type Opportunity = Readonly<{
   memberAvailabilityDate: string | null;
   offerClosesAt: string | null;
   commencementDate: string | null;
+  actualDeploymentAt?: string | null;
   assetLifecycleEnabled: boolean;
   assetLifecycleStatus: AssetLifecycleStatus | null;
   fundingClosedAt: string | null;
@@ -105,6 +109,7 @@ export type Opportunity = Readonly<{
   currentMilestone: string;
   nextMilestone: string;
   acquisitionStatus: 'OPEN' | 'FULLY_FUNDED' | 'CLOSED' | 'COMMENCED';
+  memberStatus?: 'COMING_SOON' | 'OPEN' | 'FULLY_FUNDED' | 'AWAITING_DEPLOYMENT' | 'ACTIVE' | 'AWAITING_SETTLEMENT' | 'COMPLETED' | 'CANCELLED';
   executionProgress: OpportunityExecutionProgress | null;
   executionCustomSteps?: ReadonlyArray<{
     _id: string;
@@ -314,14 +319,16 @@ export function formatOwnershipModel(structure: OpportunityStructure): string {
 }
 
 export function isOpportunityOpenForAcquisition(opportunity: Opportunity): boolean {
-  return opportunity.acquisitionStatus === 'OPEN';
+  return opportunity.acquisitionStatus === 'OPEN' &&
+    (!opportunity.memberStatus || opportunity.memberStatus === 'OPEN') &&
+    (!opportunity.memberAvailabilityDate || Date.parse(opportunity.memberAvailabilityDate) <= Date.now());
 }
 
 export function formatOpportunityTerm(opportunity: Opportunity): string {
   if (opportunity.termType === 'LIFE_OF_ASSET') return 'Life of asset';
 
   const duration = opportunity.durationValue ?? opportunity.durationMonths;
-  if (!duration) return 'Fixed term';
+  if (!duration) return 'Term information unavailable';
   const unit = (opportunity.durationUnit ?? 'MONTHS').toLowerCase();
   return `${duration} ${unit}`;
 }
@@ -342,7 +349,7 @@ export function formatProjectedReturnRate(opportunity: Opportunity): string {
     return formatPercentage(opportunity.equivalentProjectedPercentage);
   if (opportunity.projectedReturnRatePercent > 0)
     return formatPercentage(opportunity.projectedReturnRatePercent);
-  return 'Variable';
+  return isVariableDistribution(opportunity) ? 'Variable' : 'Information unavailable';
 }
 
 export function formatProjectedDistribution(opportunity: Opportunity, quantity = 1): string {

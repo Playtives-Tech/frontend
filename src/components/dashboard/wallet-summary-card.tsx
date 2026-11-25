@@ -1,4 +1,5 @@
-import { ArrowRight, Plus, Wallet } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconPlus as Plus } from '@tabler/icons-react';
+import { IconWallet } from '@tabler/icons-react';
 import Link from 'next/link';
 import { formatNaira } from '@/components/ownership/formatters';
 import { BalanceAmount } from '@/components/ui/balance-amount';
@@ -34,9 +35,7 @@ export function WalletSummaryCard({
             Funds available for your next ownership.
           </p>
         </div>
-        <span className="ml-auto grid size-11 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand">
-          <Wallet className="size-5 shrink-0" strokeWidth={2} aria-hidden="true" />
-        </span>
+        <IconWallet className="ml-auto size-7 shrink-0 text-brand" stroke={1.8} aria-hidden="true" />
       </div>
 
       {/* <div className="mt-6 grid grid-cols-2 gap-3 border-t pt-4">

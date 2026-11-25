@@ -1,16 +1,25 @@
 'use client';
 
-import { ArrowRight, Check, Download, FileText, X } from 'lucide-react';
+import {
+  IconArrowRight as ArrowRight,
+  IconCheck as Check,
+  IconDownload as Download,
+  IconFileText as FileText,
+  IconX as X,
+} from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
+import { trackEvent } from '@/lib/product-analytics';
 
 export function AgreementPreview({
   agreement,
+  opportunityId,
   resourceUrl,
   accepted,
   allowAcceptance = true,
   onAccept,
 }: Readonly<{
   agreement: string;
+  opportunityId?: string;
   resourceUrl?: string;
   accepted?: boolean;
   allowAcceptance?: boolean;
@@ -47,7 +56,7 @@ export function AgreementPreview({
       </div>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => { setIsOpen(true); trackEvent('opportunity_agreement_viewed', opportunityId ? { opportunity_id: opportunityId } : {}); }}
         className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-brand/25 bg-brand/5 px-4 text-sm font-semibold text-brand transition hover:bg-brand hover:text-brand-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:w-auto"
       >
         <FileText className="size-4" />

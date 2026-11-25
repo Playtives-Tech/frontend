@@ -1,6 +1,6 @@
 'use client';
 
-import { Megaphone, X } from 'lucide-react';
+import { IconSpeakerphone as Megaphone, IconX as X } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {

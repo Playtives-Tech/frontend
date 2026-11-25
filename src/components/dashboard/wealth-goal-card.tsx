@@ -1,21 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, ChartNoAxesCombined, X } from 'lucide-react';
+import {
+  IconArrowUpRight as ArrowUpRight,
+  IconChartLine as ChartNoAxesCombined,
+  IconX as X,
+} from '@tabler/icons-react';
 import { formatNaira } from '@/components/ownership/formatters';
 import { getWealthGoal, saveWealthGoal, type WealthGoal } from '@/lib/services/wealth-goal-service';
+import { trackEvent } from '@/lib/product-analytics';
 
 type Props = {
   productivePortfolioMinorUnits: number | null;
   memberId: string;
-  firstName: string;
   isActiveMember: boolean;
 };
 
 export function WealthGoalCard({
   productivePortfolioMinorUnits,
   memberId,
-  firstName,
   isActiveMember,
 }: Props): React.JSX.Element {
   const [goal, setGoal] = useState<WealthGoal | null>(null);
@@ -58,10 +61,13 @@ export function WealthGoalCard({
   }, [open]);
 
   const target = goal?.targetPortfolioMinorUnits ?? 0;
-  const progress =
+  const rawProgress =
     target > 0 && productivePortfolioMinorUnits !== null
-      ? Math.min(100, Math.round((productivePortfolioMinorUnits / target) * 100))
+      ? (productivePortfolioMinorUnits / target) * 100
       : null;
+  const progressLabel = rawProgress === null
+    ? '0%'
+    : `${new Intl.NumberFormat('en-NG', { maximumFractionDigits: 6 }).format(rawProgress)}%`;
   const monthlyAmount = Number(amount);
   const assumptionPercent = goal?.assumptionMonthlyPercent ?? 0;
   const previewTarget =
@@ -70,8 +76,10 @@ export function WealthGoalCard({
       : null;
 
   function close(): void {
-    if (!goal?.monthlyTargetMinorUnits)
+    if (!goal?.monthlyTargetMinorUnits) {
+      trackEvent('wealth_goal_skipped');
       window.sessionStorage.setItem(`playtives-wealth-goal-skipped:${memberId}`, 'true');
+    }
     setOpen(false);
     setPreview(false);
     setError('');
@@ -95,19 +103,29 @@ export function WealthGoalCard({
     }
   }
 
+  function startEditing(): void {
+    setAmount(goal?.monthlyTargetMinorUnits ? String(goal.monthlyTargetMinorUnits / 100) : '');
+    setError('');
+    setPreview(false);
+    setOpen(true);
+    trackEvent('wealth_goal_started');
+  }
+
   return (
     <>
-      <section className="mt-5 rounded-2xl border border-brand/20 bg-background p-5 sm:p-6">
-        <span
-          className="mb-4 grid size-11 place-items-center rounded-xl bg-brand/10 text-brand"
-          aria-hidden="true"
-        >
-          <ChartNoAxesCombined className="size-5" strokeWidth={1.8} />
-        </span>
-        <h2 className="text-lg font-semibold">
-          {goal?.monthlyTargetMinorUnits ? 'Your wealth goal' : 'Give your portfolio a destination'}
-        </h2>
-        {loading ? <p className="mt-2 text-sm text-muted-foreground">Loading your goal…</p> : null}
+      <section id="wealth-goal" className="mt-5 rounded-2xl border border-brand/20 bg-background p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <ChartNoAxesCombined className="size-5 text-brand" stroke={1.8} aria-hidden="true" />
+            <h2 className="text-base font-semibold">Wealth goal</h2>
+          </div>
+          {!loading && goal?.monthlyTargetMinorUnits ? (
+            <button type="button" onClick={startEditing} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-brand/20 bg-brand/10 px-3 text-sm font-semibold text-brand transition hover:bg-brand/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" aria-label="Edit wealth goal">
+              Edit goal <ArrowUpRight className="size-4" stroke={1.8} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+        {loading ? <p className="mt-4 text-sm text-muted-foreground">Loading your goal…</p> : null}
         {error && !open ? (
           <p role="alert" className="mt-2 text-sm text-red-600">
             {error}
@@ -115,47 +133,33 @@ export function WealthGoalCard({
         ) : null}
         {!loading && goal?.monthlyTargetMinorUnits ? (
           <>
-            <p className="mt-2 text-sm">
-              Monthly income goal: {formatNaira(goal.monthlyTargetMinorUnits / 100)}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Productive portfolio:{' '}
-              {productivePortfolioMinorUnits === null
-                ? 'Unavailable'
-                : formatNaira(productivePortfolioMinorUnits / 100)}{' '}
-              of {formatNaira(target / 100)}
-            </p>
-            {progress !== null ? (
-              <>
-                <div className="mt-3 h-2 rounded-full bg-brand/10">
-                  <div className="h-2 rounded-full bg-brand" style={{ width: `${progress}%` }} />
+            <div className="mt-5">
+              <p className="text-xs font-medium text-muted-foreground">Monthly income target</p>
+              <p className="mt-1 break-words font-sans text-[clamp(1.4rem,3vw,1.9rem)] font-black tracking-tight text-foreground tabular-nums">
+                {formatNaira(goal.monthlyTargetMinorUnits / 100)}
+              </p>
+            </div>
+            {rawProgress !== null ? (
+              <div className="mt-6">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-medium text-muted-foreground">Portfolio progress</p>
+                  <span className="shrink-0 text-sm font-bold text-brand tabular-nums">{progressLabel}</span>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {progress}% towards your illustrative target
+                <p className="mt-1 break-words text-sm font-semibold text-foreground tabular-nums">
+                  {formatNaira((productivePortfolioMinorUnits ?? 0) / 100)} <span className="font-normal text-muted-foreground">of {formatNaira(target / 100)}</span>
                 </p>
-              </>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-brand/10" role="progressbar" aria-label="Portfolio goal progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, rawProgress ?? 0))} aria-valuetext={progressLabel}>
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${Math.min(100, Math.max(0, rawProgress ?? 0))}%` }} />
+                </div>
+              </div>
             ) : null}
           </>
         ) : !loading ? (
-          <p className="text-sm text-muted-foreground">
-            Set a monthly income goal and track your progress. You can do this later.
-          </p>
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">Set a target for your portfolio.</p>
+            <button type="button" onClick={startEditing} className="mt-4 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">Set wealth goal</button>
+          </div>
         ) : null}
-        <button
-          type="button"
-          className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-          onClick={() => {
-            setAmount(
-              goal?.monthlyTargetMinorUnits ? String(goal.monthlyTargetMinorUnits / 100) : '',
-            );
-            setError('');
-            setPreview(false);
-            setOpen(true);
-          }}
-        >
-          {goal?.monthlyTargetMinorUnits ? 'Edit wealth goal' : 'Set my wealth goal'}
-          <ArrowUpRight className="size-4" aria-hidden="true" />
-        </button>
       </section>
       {open ? (
         <div

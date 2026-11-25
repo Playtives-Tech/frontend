@@ -6,6 +6,7 @@ import { isOpportunityOpenForAcquisition } from '@/lib/opportunities';
 import { OpportunityOverview } from './opportunity-overview';
 import { PositionSelector } from './position-selector';
 import { WalletCheckout } from './wallet-checkout';
+import { trackEvent } from '@/lib/product-analytics';
 
 type OwnershipStep = 'overview' | 'positions' | 'checkout';
 type OwnershipFlowProps = Readonly<{ opportunity: Opportunity }>;
@@ -24,7 +25,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
         onQuantityChange={setQuantity}
         rolloverElection={rolloverElection}
         onRolloverElectionChange={setRolloverElection}
-        onContinue={() => setStep('checkout')}
+        onContinue={() => { trackEvent('opportunity_units_selected', { opportunity_id: opportunity._id }); setStep('checkout'); }}
         onBack={() => setStep('overview')}
       />
     );
@@ -43,7 +44,7 @@ export function OwnershipFlow({ opportunity }: OwnershipFlowProps): React.JSX.El
   return (
     <OpportunityOverview
       opportunity={opportunity}
-      onContinue={canAcquire ? () => setStep('positions') : undefined}
+      onContinue={canAcquire ? () => { trackEvent('opportunity_participation_started', { opportunity_id: opportunity._id, product_type: opportunity.opportunityStructure }); setStep('positions'); } : undefined}
     />
   );
 }

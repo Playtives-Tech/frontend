@@ -1,14 +1,14 @@
 'use client';
 
 import {
-  ArrowRight,
-  BadgeCheck,
-  Check,
-  CheckCircle2,
-  Fingerprint,
-  KeyRound,
-  Phone,
-} from 'lucide-react';
+  IconArrowRight as ArrowRight,
+  IconCircleCheck as BadgeCheck,
+  IconCheck as Check,
+  IconCircleCheck as CheckCircle2,
+  IconFingerprint as Fingerprint,
+  IconKey as KeyRound,
+  IconPhone as Phone,
+} from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { notify } from '@/lib/notify';

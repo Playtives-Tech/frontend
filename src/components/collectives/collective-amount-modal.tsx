@@ -1,20 +1,22 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { IconX as X } from '@tabler/icons-react';
 import { useState } from 'react';
 import { notify } from '@/lib/notify';
 import type { CollectiveContributionPlanInput } from '@/lib/services/collectives-service';
 
 export type CollectiveAmountAction = 'monthlyPlan';
 
-const helper =
-  'This is your planned monthly amount, not a fixed obligation. You can contribute more, contribute less, skip a month, or add funds multiple times whenever you choose.';
+const helper = 'Set an intention, not a fixed obligation. Manual plans never debit your wallet. You can add funds, skip, or change your plan at any time.';
 
 export function CollectiveAmountModal({
   initialAmountMinorUnits,
   initialMethod,
   initialPreferredDebitDay,
   initialPreferredReminderDay,
+  initialFrequency,
+  initialPreferredReminderWeekday,
+  initialPreferredReminderHour,
   onClose,
   onSubmit,
 }: Readonly<{
@@ -24,6 +26,9 @@ export function CollectiveAmountModal({
   initialMethod?: 'MANUAL' | 'AUTOMATIC';
   initialPreferredDebitDay?: number | null;
   initialPreferredReminderDay?: number | null;
+  initialFrequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'FLEXIBLE';
+  initialPreferredReminderWeekday?: number | null;
+  initialPreferredReminderHour?: number;
   onClose: () => void;
   onSubmit: (input: CollectiveContributionPlanInput) => Promise<boolean>;
 }>): React.JSX.Element {
@@ -31,6 +36,10 @@ export function CollectiveAmountModal({
     initialAmountMinorUnits ? String(initialAmountMinorUnits / 100) : '',
   );
   const [method, setMethod] = useState<'MANUAL' | 'AUTOMATIC'>(initialMethod ?? 'MANUAL');
+  const [frequency, setFrequency] = useState(initialFrequency ?? 'MONTHLY');
+  const [reminderEnabled, setReminderEnabled] = useState(Boolean(initialPreferredReminderDay || initialPreferredReminderWeekday !== null && initialPreferredReminderWeekday !== undefined || initialFrequency === 'DAILY'));
+  const [reminderWeekday, setReminderWeekday] = useState(String(initialPreferredReminderWeekday ?? 1));
+  const [reminderHour, setReminderHour] = useState(String(initialPreferredReminderHour ?? 9));
   const [preferredDebitDay, setPreferredDebitDay] = useState(String(initialPreferredDebitDay ?? 1));
   const [preferredReminderDay, setPreferredReminderDay] = useState(
     String(initialPreferredReminderDay ?? 1),
@@ -46,9 +55,9 @@ export function CollectiveAmountModal({
   const valid =
     validAmount &&
     ((method === 'MANUAL' &&
-      Number.isSafeInteger(reminderDay) &&
-      reminderDay >= 1 &&
-      reminderDay <= 31) ||
+      (!reminderEnabled || (frequency === 'FLEXIBLE' ||
+      (frequency === 'MONTHLY' && Number.isSafeInteger(reminderDay) && reminderDay >= 1 && reminderDay <= 31) ||
+      (frequency === 'WEEKLY' && Number.isSafeInteger(Number(reminderWeekday)) && Number(reminderWeekday) >= 0 && Number(reminderWeekday) <= 6) || frequency === 'DAILY'))) ||
       (Number.isSafeInteger(debitDay) && debitDay >= 1 && debitDay <= 31 && authorized));
 
   const submit = async (): Promise<void> => {
@@ -65,9 +74,10 @@ export function CollectiveAmountModal({
       const saved = await onSubmit({
         amountMinorUnits,
         method,
+        frequency,
         ...(method === 'AUTOMATIC'
           ? { preferredDebitDay: debitDay, automaticDebitAuthorized: true as const }
-          : { preferredReminderDay: reminderDay }),
+          : { reminderEnabled, ...(reminderEnabled ? { preferredReminderHour: Number(reminderHour), ...(frequency === 'MONTHLY' ? { preferredReminderDay: reminderDay } : {}), ...(frequency === 'WEEKLY' ? { preferredReminderWeekday: Number(reminderWeekday) } : {}) } : {}) }),
       });
       if (saved) onClose();
     } finally {
@@ -99,8 +109,8 @@ export function CollectiveAmountModal({
             </p>
             <h2 className="mt-1 text-xl font-semibold" id="collective-amount-title">
               {initialAmountMinorUnits
-                ? 'Edit Monthly Contribution Plan'
-                : 'Set Monthly Contribution Plan'}
+                ? 'Edit contribution plan'
+                : 'Set contribution plan'}
             </h2>
           </div>
           <button
@@ -115,7 +125,7 @@ export function CollectiveAmountModal({
         </div>
         <p className="mt-4 text-sm leading-6 text-muted-foreground">{helper}</p>
         <label className="mt-5 block text-sm font-semibold">
-          Planned monthly contribution (₦)
+          Planned contribution (₦)
           <input
             autoFocus
             className="mt-2 h-12 w-full rounded-lg border bg-background px-3 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
@@ -128,17 +138,19 @@ export function CollectiveAmountModal({
             value={amount}
           />
         </label>
+        <label className="mt-5 block text-sm font-semibold">
+          How often would you like to contribute?
+          <select className="mt-2 h-11 w-full rounded-lg border bg-background px-3" value={frequency} onChange={(event) => { const next = event.target.value as typeof frequency; setFrequency(next); if (next !== 'MONTHLY') setMethod('MANUAL'); }}>
+            <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="FLEXIBLE">Flexible</option>
+          </select>
+        </label>
         <fieldset className="mt-5">
           <legend className="text-sm font-semibold">Contribution method</legend>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
             {(
               [
                 ['MANUAL', 'Manual', 'Add any amount whenever you choose.'],
-                [
-                  'AUTOMATIC',
-                  'Automatic from Playtives Wallet',
-                  'We attempt your plan on your preferred date.',
-                ],
+                ...(frequency === 'MONTHLY' ? [['AUTOMATIC', 'Automatic from Playtives Wallet', 'We attempt your plan on your preferred date.'] as const] : []),
               ] as const
             ).map(([value, title, description]) => (
               <label
@@ -206,7 +218,8 @@ export function CollectiveAmountModal({
         )}
         {method === 'MANUAL' && (
           <div className="mt-5 rounded-xl border border-brand/20 bg-brand/5 p-4">
-            <label className="block text-sm font-semibold">
+            <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={reminderEnabled} onChange={(event) => setReminderEnabled(event.target.checked)} /> Email me a reminder</label>
+            {reminderEnabled && frequency === 'MONTHLY' && <label className="mt-4 block text-sm font-semibold">
               Monthly reminder day
               <select
                 className="mt-2 h-11 w-full rounded-lg border bg-background px-3"
@@ -220,10 +233,11 @@ export function CollectiveAmountModal({
                   </option>
                 ))}
               </select>
-            </label>
+            </label>}
+            {reminderEnabled && frequency === 'WEEKLY' && <label className="mt-4 block text-sm font-semibold">Reminder weekday<select className="mt-2 h-11 w-full rounded-lg border bg-background px-3" value={reminderWeekday} onChange={(event) => setReminderWeekday(event.target.value)}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((name, index) => <option key={name} value={index}>{name}</option>)}</select></label>}
+            {reminderEnabled && frequency !== 'FLEXIBLE' && <label className="mt-4 block text-sm font-semibold">Reminder hour (Lagos time)<select className="mt-2 h-11 w-full rounded-lg border bg-background px-3" value={reminderHour} onChange={(event) => setReminderHour(event.target.value)}>{Array.from({ length: 24 }, (_, hour) => <option key={hour} value={hour}>{String(hour).padStart(2, '0')}:00</option>)}</select></label>}
             <p className="mt-3 text-xs leading-5 text-muted-foreground">
-              We’ll email you on this day each month. No debit will be made from your Playtives
-              Wallet.
+              {frequency === 'FLEXIBLE' ? 'Flexible plans have no fixed reminder.' : reminderEnabled ? 'We’ll email you at your chosen cadence. No debit will be made.' : 'No reminder will be sent. No debit will be made.'}
             </p>
           </div>
         )}

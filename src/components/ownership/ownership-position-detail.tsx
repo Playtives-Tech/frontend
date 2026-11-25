@@ -1,15 +1,15 @@
 'use client';
 
 import {
-  ArrowLeft,
-  CalendarDays,
-  CheckCircle2,
-  Clock3,
-  RefreshCw,
-  WalletCards,
-  Minus,
-  Plus,
-} from 'lucide-react';
+  IconArrowLeft as ArrowLeft,
+  IconCalendar as CalendarDays,
+  IconCircleCheck as CheckCircle2,
+  IconClock as Clock3,
+  IconRefresh as RefreshCw,
+  IconWallet as WalletCards,
+  IconMinus as Minus,
+  IconPlus as Plus,
+} from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';

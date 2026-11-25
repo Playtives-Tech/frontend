@@ -1,7 +1,7 @@
 /* KYC and identity verification are temporarily paused.
 'use client';
 
-import { ArrowRight, Phone } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconPhone as Phone } from '@tabler/icons-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';

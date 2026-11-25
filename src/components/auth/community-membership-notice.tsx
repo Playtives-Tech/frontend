@@ -1,4 +1,4 @@
-import { UsersRound } from 'lucide-react';
+import { IconUsersGroup as UsersRound } from '@tabler/icons-react';
 import Link from 'next/link';
 import { whatsappLearningCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';

@@ -1,4 +1,4 @@
-import { ArrowRight, Building2 } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconBuildingEstate as Building2 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { formatNaira } from '@/components/ownership/formatters';
 import { BalanceAmount } from '@/components/ui/balance-amount';

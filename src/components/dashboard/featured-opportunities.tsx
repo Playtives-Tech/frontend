@@ -1,9 +1,9 @@
 'use client';
 
-import { ArrowRight, Compass } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconChevronLeft, IconChevronRight, IconCompass as Compass } from '@tabler/icons-react';
 import Link from 'next/link';
 import { OpportunityCard } from '@/components/opportunities/opportunity-card';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   getOpportunities,
   subscribeToOpportunityChanges,
@@ -13,6 +13,9 @@ import {
 export function FeaturedOpportunities(): React.JSX.Element {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const railRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   useEffect(() => {
     const load = () =>
       getOpportunities()
@@ -31,6 +34,24 @@ export function FeaturedOpportunities(): React.JSX.Element {
     if (left.acquisitionStatus === right.acquisitionStatus) return 0;
     return left.acquisitionStatus === 'OPEN' ? -1 : 1;
   });
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const update = (): void => {
+      setCanScrollLeft(rail.scrollLeft > 2);
+      setCanScrollRight(rail.scrollLeft + rail.clientWidth < rail.scrollWidth - 2);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [featuredOpportunities.length]);
+
+  function scrollCards(direction: -1 | 1): void {
+    const rail = railRef.current;
+    if (!rail) return;
+    rail.scrollBy({ left: direction * Math.max(180, rail.clientWidth * 0.75), behavior: 'smooth' });
+  }
+
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between gap-5">
@@ -38,17 +59,34 @@ export function FeaturedOpportunities(): React.JSX.Element {
           <h2 className="font-sans text-lg font-bold tracking-normal">Discover opportunities</h2>
         </div>
 
-        <Link
-          href="/discover"
-          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
-        >
-          View all
-          <ArrowRight className="size-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {canScrollLeft ? (
+            <button type="button" onClick={() => scrollCards(-1)} aria-label="Scroll opportunities left" className="grid size-8 place-items-center rounded-full border border-brand/20 text-brand transition hover:bg-brand/5">
+              <IconChevronLeft className="size-4" stroke={1.8} />
+            </button>
+          ) : null}
+          {canScrollRight ? (
+            <button type="button" onClick={() => scrollCards(1)} aria-label="Scroll opportunities right" className="grid size-8 place-items-center rounded-full border border-brand/20 text-brand transition hover:bg-brand/5">
+              <IconChevronRight className="size-4" stroke={1.8} />
+            </button>
+          ) : null}
+          <Link
+            href="/discover"
+            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
+          >
+            View all
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
       </div>
 
       {featuredOpportunities.length > 0 ? (
-        <div className="scrollbar-none -mx-4 mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 sm:-mx-8 sm:scroll-px-8 sm:px-8">
+        <div ref={railRef} onScroll={() => {
+          const rail = railRef.current;
+          if (!rail) return;
+          setCanScrollLeft(rail.scrollLeft > 2);
+          setCanScrollRight(rail.scrollLeft + rail.clientWidth < rail.scrollWidth - 2);
+        }} className="scrollbar-none -mx-4 mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 sm:-mx-8 sm:scroll-px-8 sm:px-8">
           {featuredOpportunities.slice(0, 8).map((opportunity) => (
             <div key={opportunity.slug} className="snap-start">
               <OpportunityCard opportunity={opportunity} variant="compact" />

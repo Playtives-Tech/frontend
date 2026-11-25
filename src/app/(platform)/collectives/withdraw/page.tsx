@@ -1,6 +1,6 @@
 'use client';
 
-import { LockKeyhole } from 'lucide-react';
+import { IconLockAccess as LockKeyhole } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import {
   CollectiveDetailLayout,

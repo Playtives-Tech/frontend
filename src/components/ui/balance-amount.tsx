@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff } from 'lucide-react';
+import { IconEye as Eye, IconEyeOff as EyeOff } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { useBalanceVisibilityStore } from '@/stores/use-balance-visibility-store';
 

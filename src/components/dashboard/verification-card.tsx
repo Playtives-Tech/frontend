@@ -1,6 +1,10 @@
 'use client';
 
-import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import {
+  IconArrowRight as ArrowRight,
+  IconCircleCheck as CheckCircle2,
+  IconFingerprint as IdentityIcon,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { getParticipationVerification } from '@/lib/services/profile-service';
@@ -31,7 +35,7 @@ export function VerificationCard(): React.JSX.Element {
     >
       <div className="flex items-center gap-4">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-sm">
-          {isComplete ? <CheckCircle2 className="size-5" /> : <ShieldCheck className="size-5" />}
+          {isComplete ? <CheckCircle2 className="size-5" /> : <IdentityIcon className="size-5" />}
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center justify-between gap-2">

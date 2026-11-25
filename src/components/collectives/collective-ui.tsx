@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 

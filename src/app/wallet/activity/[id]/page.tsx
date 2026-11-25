@@ -1,14 +1,14 @@
 'use client';
 
 import {
-  Check,
-  CheckCircle2,
-  Clock3,
-  Copy,
-  Eye,
-  EyeOff,
-  Share2,
-} from 'lucide-react';
+  IconCheck as Check,
+  IconCircleCheck as CheckCircle2,
+  IconClock as Clock3,
+  IconCopy as Copy,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconShare2 as Share2,
+} from '@tabler/icons-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';

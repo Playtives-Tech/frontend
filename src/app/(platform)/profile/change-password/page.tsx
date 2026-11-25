@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, KeyRound } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconKey as KeyRound } from '@tabler/icons-react';
 import { type FormEvent, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';

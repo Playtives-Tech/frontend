@@ -1,21 +1,22 @@
 'use client';
 
 import {
-  ArrowLeft,
-  ArrowRight,
-  BadgeCheck,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Info,
-  X,
-} from 'lucide-react';
+  IconArrowLeft as ArrowLeft,
+  IconArrowRight as ArrowRight,
+  IconCircleCheck as BadgeCheck,
+  IconCheck as Check,
+  IconChevronDown as ChevronDown,
+  IconChevronUp as ChevronUp,
+  IconInfoCircle as Info,
+  IconX as X,
+} from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AgreementPreview } from './agreement-preview';
 import { OpportunityExecutionTimeline } from '@/components/opportunities/opportunity-execution-timeline';
 import { OpportunityUpdates } from '@/components/opportunities/opportunity-updates';
+import { trackEvent } from '@/lib/product-analytics';
 import {
   formatOpportunityMoney,
   formatCapitalReturn,
@@ -186,7 +187,7 @@ export function OpportunityOverview({
               <div className="mt-5 border-t border-brand/15 pt-4">
                 <p className="font-semibold">{linkedNextOpportunity ? 'Missed this opportunity?' : 'Want the next one?'}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{linkedNextOpportunity ? `${linkedNextOpportunity.title} is now open.` : 'Similar opportunities may become available soon.'}</p>
-                <Link href={linkedNextOpportunity ? `/discover/${linkedNextOpportunity.slug}` : '/discover'} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
+                <Link href={linkedNextOpportunity ? `/discover/${linkedNextOpportunity.slug}` : '/discover'} onClick={() => { if (linkedNextOpportunity) trackEvent('related_opportunity_clicked', { opportunity_id: opportunity._id, related_opportunity_id: linkedNextOpportunity._id }); }} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
                   {linkedNextOpportunity ? 'View next opportunity' : 'Browse open opportunities'} <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -322,15 +323,15 @@ export function OpportunityOverview({
                 onClick={setSelectedHighlight}
               />
             ) : null}
-            {!opportunity.assetLifecycleEnabled && opportunity.commencementDate ? (
+            {!opportunity.assetLifecycleEnabled && (opportunity.actualDeploymentAt || opportunity.commencementDate) ? (
               <Highlight
-                label="Deal starts"
-                value={new Date(opportunity.commencementDate).toLocaleDateString('en-NG', {
+                label={opportunity.actualDeploymentAt ? 'Actual deployment' : 'Expected deal start'}
+                value={new Date(opportunity.actualDeploymentAt ?? opportunity.commencementDate!).toLocaleDateString('en-NG', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                 })}
-                description="The expected date the opportunity becomes active and the deal term begins."
+                description={opportunity.actualDeploymentAt ? 'Recorded date the underlying transaction began. Existing payout schedules are unchanged.' : 'Planned start date; actual deployment may differ.'}
                 onClick={setSelectedHighlight}
               />
             ) : null}
@@ -399,9 +400,13 @@ export function OpportunityOverview({
 
           <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-7">
             <ContentSection title="" text={opportunity.about} />
+            {opportunity.transactionSummary ? <ContentSection title="Underlying transaction" text={opportunity.transactionSummary} /> : null}
+            {opportunity.feeSummary ? <ContentSection title="Fees and deductions" text={opportunity.feeSummary} /> : null}
+            {opportunity.riskSummary ? <ContentSection title="Material risks" text={opportunity.riskSummary} /> : null}
             {opportunity.agreement ? (
               <AgreementPreview
                 agreement={opportunity.agreement}
+                opportunityId={opportunity._id}
                 resourceUrl={opportunity.agreementResourceUrl}
                 allowAcceptance={opportunity.acquisitionStatus === 'OPEN'}
               />
@@ -463,6 +468,14 @@ function nextExpectedDistribution(opportunity: Opportunity): Date {
 }
 
 function closedOpportunityNotice(opportunity: Opportunity): { title: string; reason: string } {
+  if (opportunity.memberStatus === 'COMPLETED')
+    return { title: 'Opportunity completed', reason: 'This opportunity is no longer open for participation. Review its updates and recorded terms below.' };
+  if (opportunity.memberStatus === 'CANCELLED')
+    return { title: 'Opportunity cancelled', reason: 'This opportunity is no longer proceeding or accepting participation.' };
+  if (opportunity.memberStatus === 'COMING_SOON')
+    return { title: 'Coming soon', reason: 'Participation has not opened yet. You can review the opportunity details now.' };
+  if (opportunity.memberStatus === 'AWAITING_SETTLEMENT')
+    return { title: 'Awaiting settlement', reason: 'The underlying activity has ended and settlement is pending. New participation is closed.' };
   if (opportunity.assetLifecycleEnabled && !opportunity.distributionStartAt)
     return {
       title: 'Funding closed — activation in progress.',

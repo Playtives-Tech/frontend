@@ -1,6 +1,13 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, CheckCircle2, Pencil, TrendingUp, X } from 'lucide-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconArrowRight as ArrowRight,
+  IconCircleCheck as CheckCircle2,
+  IconPencil as Pencil,
+  IconChartLine as TrendingUp,
+  IconX as X,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';

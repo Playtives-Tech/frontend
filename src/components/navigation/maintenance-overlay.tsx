@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Wrench } from 'lucide-react';
+import { IconLogout2 as LogOut, IconTool as Wrench } from '@tabler/icons-react';
 
 export function MaintenanceOverlay({
   message,

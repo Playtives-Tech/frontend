@@ -1,4 +1,11 @@
-import { ArrowLeft, CheckCircle2, Minus, Plus, TrendingUp, Wallet } from 'lucide-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconCircleCheck as CheckCircle2,
+  IconMinus as Minus,
+  IconPlus as Plus,
+  IconChartLine as TrendingUp,
+  IconWallet as Wallet,
+} from '@tabler/icons-react';
 import {
   formatCapitalReturn,
   formatOpportunityTerm,

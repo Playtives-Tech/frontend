@@ -1,6 +1,11 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Archive, CalendarDays } from 'lucide-react';
+import {
+  IconArrowLeft as ArrowLeft,
+  IconArrowRight as ArrowRight,
+  IconArchive as Archive,
+  IconCalendar as CalendarDays,
+} from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';

@@ -1,6 +1,12 @@
 'use client';
 
-import { ArrowRight, Building2, Plus, Wallet, X } from 'lucide-react';
+import {
+  IconArrowRight as ArrowRight,
+  IconBuildingEstate as Building2,
+  IconPlus as Plus,
+  IconX as X,
+} from '@tabler/icons-react';
+import { IconWallet } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
@@ -120,10 +126,10 @@ export function PortfolioSummaryCard({
           <div className="ml-auto flex items-center gap-2">
             <Link
               href="/wallet"
-              className="group relative grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand transition hover:bg-brand hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              className="group relative grid size-10 shrink-0 place-items-center text-brand transition hover:text-brand/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               aria-label="Go to wallet"
             >
-              <Wallet className="size-5" />
+              <IconWallet className="size-6" stroke={1.8} />
               <span className="pointer-events-none absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-semibold text-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                 Wallet
               </span>

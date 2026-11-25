@@ -1,6 +1,10 @@
 'use client';
 
-import { ArrowRight, CalendarClock, X } from 'lucide-react';
+import {
+  IconArrowRight as ArrowRight,
+  IconCalendarClock as CalendarClock,
+  IconX as X,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { notify } from '@/lib/notify';
 import type { CollectiveContributionPlanInput } from '@/lib/services/collectives-service';

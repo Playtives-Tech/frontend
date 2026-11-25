@@ -1,6 +1,11 @@
 'use client';
 
-import { ChevronDown, ChevronRight, SlidersHorizontal, Sprout } from 'lucide-react';
+import {
+  IconChevronDown as ChevronDown,
+  IconChevronRight as ChevronRight,
+  IconAdjustmentsHorizontal as SlidersHorizontal,
+  IconPlant2 as Sprout,
+} from '@tabler/icons-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -296,7 +301,7 @@ export function OwnershipDashboard(): React.JSX.Element {
           <div className="rounded-2xl border bg-background p-8 text-center">
             <h2 className="text-lg font-semibold">{tab === 'active' && structureFilter === 'ALL' ? 'Your portfolio starts here' : 'No matching positions yet'}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{tab === 'active' && structureFilter === 'ALL' ? 'Build your portfolio through co-funding, co-ownership, and Wealth Collective.' : `No ${tab} ${portfolioFilterLabel(structureFilter)}portfolio positions yet.`}</p>
-            {tab === 'active' && structureFilter === 'ALL' ? <div className="mt-5 flex flex-wrap justify-center gap-3"><a className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white" href="/discover">Explore opportunities</a><a className="rounded-lg border px-4 py-2 text-sm font-semibold" href="/wealth-collectives">Explore Wealth Collective</a></div> : null}
+            {tab === 'active' && structureFilter === 'ALL' ? <div className="mt-5 flex flex-wrap justify-center gap-3"><Link className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white" href="/discover">Explore opportunities</Link><Link className="rounded-lg border px-4 py-2 text-sm font-semibold" href="/wealth-collectives">Explore Wealth Collective</Link></div> : null}
           </div>
         )}
         {collectiveMatchesTab && collectivePosition ? (

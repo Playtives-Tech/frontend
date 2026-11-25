@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import { IconArrowLeft as ArrowLeft } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 
 export function BackButton({ label = 'Back' }: Readonly<{ label?: string }>): React.JSX.Element {

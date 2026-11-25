@@ -1,4 +1,4 @@
-import { Check, Clock3 } from 'lucide-react';
+import { IconCheck as Check, IconClock as Clock3 } from '@tabler/icons-react';
 import type { OpportunityExecutionProgress } from '@/lib/opportunities';
 
 export function OpportunityExecutionTimeline({

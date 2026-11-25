@@ -1,16 +1,16 @@
 'use client';
 
 import {
-  ArrowRight,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  LogIn,
-  Mail,
-  MapPin,
-  UserPlus,
-  UsersRound,
-} from 'lucide-react';
+  IconArrowRight as ArrowRight,
+  IconChevronDown as ChevronDown,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconLogin2 as LogIn,
+  IconMail as Mail,
+  IconMapPin as MapPin,
+  IconUserPlus as UserPlus,
+  IconUsersGroup as UsersRound,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ComponentProps, type FormEvent, useEffect, useState } from 'react';
@@ -90,6 +90,11 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
 
       setIsSubmitting(true);
       try {
+        const params = new URLSearchParams(window.location.search);
+        const safeCampaignValue = (key: string): string | undefined => {
+          const value = params.get(key);
+          return value && /^(?!.*\d{7,})[a-zA-Z0-9_:-]{1,80}$/.test(value) ? value : undefined;
+        };
         const response = await register({
           name: name.trim(),
           email: email.trim(),
@@ -97,6 +102,10 @@ export function AuthScreen({ mode }: Readonly<{ mode: AuthMode }>): React.JSX.El
           country,
           gender: gender as 'female' | 'male' | 'non_binary' | 'prefer_not_to_say',
           password,
+          utmSource: safeCampaignValue('utm_source'),
+          utmMedium: safeCampaignValue('utm_medium'),
+          utmCampaign: safeCampaignValue('utm_campaign'),
+          utmContent: safeCampaignValue('utm_content'),
         });
         setPendingRegistration({
           email: response.user.email,

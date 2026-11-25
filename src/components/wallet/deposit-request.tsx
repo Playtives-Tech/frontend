@@ -1,6 +1,11 @@
 'use client';
 
-import { Check, CircleAlert, Copy, Upload } from 'lucide-react';
+import {
+  IconCheck as Check,
+  IconAlertCircle as CircleAlert,
+  IconCopy as Copy,
+  IconUpload as Upload,
+} from '@tabler/icons-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/back-button';
@@ -15,6 +20,7 @@ import {
   type WalletFundingDetails,
 } from '@/lib/services/wallet-service';
 import { getParticipationVerification } from '@/lib/services/profile-service';
+import { trackEvent } from '@/lib/product-analytics';
 
 export function DepositRequest(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
@@ -72,6 +78,7 @@ export function DepositRequest(): React.JSX.Element {
       return;
     }
     setIsSubmitting(true);
+    trackEvent('wallet_funding_started', { source: 'bank_transfer' });
     try {
       const request = await createDepositRequest({
         amountMinorUnits: amountInNaira * 100,
@@ -80,8 +87,10 @@ export function DepositRequest(): React.JSX.Element {
       setAmount('');
       setReceipt(null);
       setRequests((current) => [request, ...current]);
+      trackEvent('wallet_funding_submitted', { source: 'bank_transfer' });
       showMilestone({ id: request._id, title: 'Deposit submitted for review', message: 'Your payment receipt was received. Your wallet will update after the deposit is verified.', actionUrl: '/wallet/activity', actionLabel: 'View activity' });
     } catch (error: unknown) {
+      trackEvent('wallet_funding_failed', { source: 'bank_transfer', reason_code: 'system_error' });
       notify.error(
         error instanceof Error ? error.message : 'Deposit request could not be submitted.',
       );
@@ -208,9 +217,6 @@ export function DepositRequest(): React.JSX.Element {
       >
         <div className="border-b border-brand/10 bg-brand/[0.045] px-5 py-6 sm:px-6">
           <div className="flex flex-col">
-            {/* <span className="grid size-11 place-items-center rounded-xl bg-brand text-white shadow-sm">
-              <ShieldCheck className="size-5" />
-            </span> */}
             <h2 className="font-sans text-lg font-semibold">Deposit online</h2>
             <p className="max-w-lg text-[.8rem] leading-6 text-muted-foreground">
               Enter an amount to deposit securely. Your balance updates after verification.

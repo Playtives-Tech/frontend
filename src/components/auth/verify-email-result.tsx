@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { IconAlertCircle as AlertCircle, IconCircleCheck as CheckCircle2 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-indicator';

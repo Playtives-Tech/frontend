@@ -2,7 +2,15 @@ import { api } from '@/lib/api';
 
 export type CollectiveWallet = Readonly<{
   id: string;
+  leaderboardOptIn?: boolean;
+  leaderboardIdentity?: 'INITIAL' | 'NICKNAME' | 'ANONYMOUS';
+  leaderboardNickname?: string | null;
   monthlyPlanMinorUnits: number | null;
+  planFrequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'FLEXIBLE';
+  planReminderWeekday?: number | null;
+  planReminderHour?: number;
+  collectiveGoalMinorUnits?: number | null;
+  collectiveGoalTargetAt?: string | null;
   monthlyPlanMethod: 'MANUAL' | 'AUTOMATIC';
   monthlyPlanPreferredDebitDay: number | null;
   monthlyPlanNextDebitAt: string | null;
@@ -15,11 +23,15 @@ export type CollectiveWallet = Readonly<{
   currency: 'NGN';
 }>;
 export type CollectiveContributionPlanInput = Readonly<{
+  frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'FLEXIBLE';
   amountMinorUnits: number | null;
   method: 'MANUAL' | 'AUTOMATIC';
   preferredDebitDay?: number;
   automaticDebitAuthorized?: true;
   preferredReminderDay?: number;
+  reminderEnabled?: boolean;
+  preferredReminderWeekday?: number;
+  preferredReminderHour?: number;
 }>;
 export type CollectiveCycle = Readonly<{
   _id: string;
@@ -79,6 +91,16 @@ export type CollectiveUpdate = Readonly<{
 }>;
 export type CollectiveDashboard = Readonly<{
   wallet: CollectiveWallet;
+  engagement?: Readonly<{
+    streak: number;
+    streakUnit: 'day' | 'week' | 'month';
+    activePeriods: number;
+    score: number;
+    scoreBand: string;
+    goalProgressPercent: number | null;
+    totalContributions: number;
+    milestones: ReadonlyArray<Readonly<{ id: string; title: string; earnedAt: string }>>;
+  }>;
   playtivesWallet: Readonly<{ availableBalanceMinorUnits: number; currency: 'NGN' }>;
   programme: CollectiveProgramme | null;
   currentCycle: CollectiveCycle | null;
@@ -138,6 +160,7 @@ export type CollectiveDashboard = Readonly<{
   }> | null;
   socialProof?: Readonly<{
     memberCount: number;
+    activeThisMonthCount?: number;
   }>;
 }>;
 
@@ -232,6 +255,22 @@ export function updateCollectiveContributionPlan(
     method: 'PATCH',
     body: JSON.stringify(input),
   });
+}
+export function updateCollectiveGoal(input: { targetMinorUnits: number | null; targetAt?: string | null }): Promise<CollectiveWallet> {
+  return api('/v1/collectives/goal', { method: 'PATCH', body: JSON.stringify(input) });
+}
+export type CollectiveLeaderboard = Readonly<{
+  month: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  entries: ReadonlyArray<Readonly<{ rank: number; name: string; points: number; isYou: boolean }>>;
+}>;
+export function getCollectiveLeaderboard(page = 1): Promise<CollectiveLeaderboard> {
+  return api(`/v1/collectives/leaderboard?page=${page}`, { cache: 'no-store' });
+}
+export function updateCollectiveLeaderboard(input: { optIn: boolean; identity: 'INITIAL' | 'NICKNAME' | 'ANONYMOUS'; nickname?: string }): Promise<CollectiveWallet> {
+  return api('/v1/collectives/leaderboard', { method: 'PATCH', body: JSON.stringify(input) });
 }
 export function scheduleCollectiveContribution(
   amountMinorUnits: number,

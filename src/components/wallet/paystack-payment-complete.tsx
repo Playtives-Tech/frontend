@@ -1,7 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle2, Clock3, XCircle } from 'lucide-react';
+import {
+  IconCircleCheck as CheckCircle2,
+  IconClock as Clock3,
+  IconCircleX as XCircle,
+} from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import { verifyPaystackWalletFunding } from '@/lib/services/wallet-service';

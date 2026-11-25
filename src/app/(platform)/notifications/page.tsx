@@ -2,15 +2,15 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Bell,
-  ArrowLeft,
-  CheckCheck,
-  ChevronRight,
-  ExternalLink,
-  LoaderCircle,
-  MailOpen,
-  X,
-} from 'lucide-react';
+  IconBell as Bell,
+  IconArrowLeft as ArrowLeft,
+  IconChecks as CheckCheck,
+  IconChevronRight as ChevronRight,
+  IconExternalLink as ExternalLink,
+  IconLoader2 as LoaderCircle,
+  IconMailOpened as MailOpen,
+  IconX as X,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';

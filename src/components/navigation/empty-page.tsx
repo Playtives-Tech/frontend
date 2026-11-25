@@ -1,9 +1,10 @@
-import { ArrowUpRight, type LucideIcon } from 'lucide-react';
+import { IconArrowUpRight as ArrowUpRight } from '@tabler/icons-react';
+import type { TablerIcon } from '@tabler/icons-react';
 type EmptyPageProps = Readonly<{
   eyebrow: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: TablerIcon;
 }>;
 export function EmptyPage({
   eyebrow,

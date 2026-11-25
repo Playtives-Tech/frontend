@@ -1,6 +1,10 @@
 'use client';
 
-import { ChevronRight, Megaphone, X } from 'lucide-react';
+import {
+  IconChevronRight as ChevronRight,
+  IconSpeakerphone as Megaphone,
+  IconX as X,
+} from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import {
   markCollectiveUpdateRead,

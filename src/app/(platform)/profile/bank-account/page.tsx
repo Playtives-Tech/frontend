@@ -1,6 +1,12 @@
 'use client';
 
-import { CheckCircle2, ChevronDown, Landmark, Search, Trash2 } from 'lucide-react';
+import {
+  IconCircleCheck as CheckCircle2,
+  IconChevronDown as ChevronDown,
+  IconBuildingBank as Landmark,
+  IconSearch as Search,
+  IconTrash as Trash2,
+} from '@tabler/icons-react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BackButton } from '@/components/ui/back-button';

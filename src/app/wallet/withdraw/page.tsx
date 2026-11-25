@@ -1,6 +1,12 @@
 'use client';
 
-import { ArrowRight, CheckCircle2, ChevronRight, Info, Landmark } from 'lucide-react';
+import {
+  IconArrowRight as ArrowRight,
+  IconCircleCheck as CheckCircle2,
+  IconChevronRight as ChevronRight,
+  IconInfoCircle as Info,
+  IconBuildingBank as Landmark,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import { formatNaira } from '@/components/ownership/formatters';
@@ -19,6 +25,7 @@ import {
 } from '@/lib/services/wallet-service';
 import { listBankAccounts } from '@/lib/services/profile-service';
 import { getParticipationVerification } from '@/lib/services/profile-service';
+import { trackEvent } from '@/lib/product-analytics';
 
 type Step = 'select-account' | 'enter-amount' | 'review' | 'result';
 
@@ -28,7 +35,7 @@ export default function WithdrawPage(): React.JSX.Element {
   const [amountStr, setAmountStr] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
-  const [kycVerified, setKycVerified] = useState(false);
+  const [kycVerified, setKycVerified] = useState<boolean | null>(null);
   const [history, setHistory] = useState<WithdrawalRequestRecord[]>([]);
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -45,7 +52,7 @@ export default function WithdrawPage(): React.JSX.Element {
       .catch(() => undefined);
     void getParticipationVerification()
       .then((status) => setKycVerified(status.canFundWallet))
-      .catch(() => setKycVerified(false));
+      .catch(() => undefined);
     void getWithdrawalRequests()
       .then(setHistory)
       .catch(() => undefined);
@@ -67,7 +74,7 @@ export default function WithdrawPage(): React.JSX.Element {
       return;
     }
     if (totalDeduction > balance) {
-      notify.error('Insufficient funds');
+      notify.error(`You need ${formatNaira(totalDeduction)} available in your Wallet, including the ₦200 fee.`);
       return;
     }
     setStep('review');
@@ -76,6 +83,7 @@ export default function WithdrawPage(): React.JSX.Element {
   const handleConfirm = async () => {
     if (!selectedAccount) return;
     setIsSubmitting(true);
+    trackEvent('wallet_withdrawal_started');
 
     try {
       const request = await createWithdrawalRequest(
@@ -88,8 +96,10 @@ export default function WithdrawPage(): React.JSX.Element {
       setHistory((current) => [request, ...current.filter((item) => item._id !== request._id)]);
       setIdempotencyKey(crypto.randomUUID());
       setStep('result');
+      trackEvent('wallet_withdrawal_submitted');
       showMilestone({ id: request._id, title: 'Withdrawal requested', message: 'Your request is awaiting review. We will update you when it is processed.', actionUrl: '/wallet/withdraw', actionLabel: 'View request' });
     } catch (error: unknown) {
+      trackEvent('wallet_withdrawal_failed', { reason_code: 'request_failed' });
       notify.error(error instanceof Error ? error.message : 'Withdrawal request failed.');
       setResultStatus('error');
       setStep('result');
@@ -125,12 +135,28 @@ export default function WithdrawPage(): React.JSX.Element {
         </p>
       </header>
 
-      {!kycVerified ? (
+      {kycVerified === false ? (
         <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-50 p-5 text-sm text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
           <strong>Verification needed.</strong> Verify your phone, NIN, or BVN before withdrawing.{' '}
           <Link href="/profile/verification" className="font-semibold underline">
             Complete verification
           </Link>
+        </div>
+      ) : null}
+
+      {wallet ? (
+        <div className="mt-4 rounded-xl border border-brand/15 bg-brand/[0.035] p-4 text-xs leading-5 text-muted-foreground">
+          <p className="font-semibold text-foreground">What can be withdrawn?</p>
+          <p className="mt-1">
+            {wallet.status !== 'active'
+              ? 'Your Wallet is locked, so withdrawals are currently unavailable.'
+              : kycVerified === false
+                ? 'Complete verification before requesting a withdrawal.'
+              : balance < 1_200
+                ? 'Your available Wallet balance is below ₦1,200. A request needs at least ₦1,000 to send plus the ₦200 fee.'
+                : `Up to ${formatNaira(Math.max(0, balance - 200))} can be requested from your available Wallet balance after the ₦200 fee.`}
+          </p>
+          <p className="mt-1">Funds awaiting allocation, currently deployed, or pending settlement cannot be withdrawn until they return to your available Wallet balance.</p>
         </div>
       ) : null}
 

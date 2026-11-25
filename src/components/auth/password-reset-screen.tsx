@@ -1,6 +1,12 @@
 'use client';
 
-import { CheckCircle2, Eye, EyeOff, KeyRound, Mail } from 'lucide-react';
+import {
+  IconCircleCheck as CheckCircle2,
+  IconEye as Eye,
+  IconEyeOff as EyeOff,
+  IconKey as KeyRound,
+  IconMail as Mail,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { type FormEvent, useState } from 'react';
 import { ButtonLoadingContent } from '@/components/ui/loading-indicator';

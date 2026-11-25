@@ -1,6 +1,6 @@
 'use client';
 
-import { Coins } from 'lucide-react';
+import { IconCoins as Coins } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import {
   CollectiveDetailLayout,

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, LogOut, WalletCards } from 'lucide-react';
+import { IconArrowRight as ArrowRight, IconLogout2 as LogOut } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -11,6 +11,7 @@ import { navigationItems, sidebarNavigationItems, type NavigationItem } from './
 import { getAccessToken, isAccessTokenExpired } from '@/lib/session';
 import { getActivityLogs, type ActivityLog } from '@/lib/services/wallet-service';
 import { PageLoadingState } from '@/components/ui/loading-indicator';
+import { FinancialActivityIcon } from '@/components/wallet/financial-activity-icon';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { whatsappLearningCommunityUrl, whatsappTribeCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
@@ -57,7 +58,7 @@ function NavigationLink({
       )}
       aria-current={active ? 'page' : undefined}
     >
-      <Icon className={compact ? 'size-5' : 'size-5 shrink-0'} strokeWidth={active ? 2.5 : 2} />
+      <Icon className={compact ? 'size-5' : 'size-5 shrink-0'} stroke={active ? 2.2 : 1.8} />
       <span className={compact ? 'max-w-full truncate' : undefined}>{label}</span>
     </Link>
   );
@@ -338,11 +339,7 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
 
   return (
     <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-4">
-      <span
-        className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
-      >
-        <WalletCards className="size-4" />
-      </span>
+      <FinancialActivityIcon action={item.action} className={`size-5 shrink-0 ${presentation.iconClass}`} />
       <span className="min-w-0 flex-1">
         <strong className="block truncate font-sans text-[.8rem] font-semibold tracking-tight">
           {presentation.label}
@@ -421,10 +418,10 @@ function activityPresentation(action: string): {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
     prefix: incoming ? '+ ' : outgoing ? '- ' : '',
     iconClass: incoming
-      ? 'bg-emerald-500/10 text-emerald-600'
+      ? 'text-emerald-600'
       : outgoing
-        ? 'bg-amber-500/10 text-amber-700'
-        : 'bg-brand/10 text-brand',
+        ? 'text-foreground'
+        : 'text-muted-foreground',
     amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
   };
 }

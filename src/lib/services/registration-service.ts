@@ -8,6 +8,10 @@ export type RegistrationInput = Readonly<{
   country: string;
   gender: 'female' | 'male' | 'non_binary' | 'prefer_not_to_say';
   password: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
 }>;
 
 export type RegistrationResponse = Readonly<{

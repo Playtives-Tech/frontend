@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { IconCheck as Check, IconX as X } from '@tabler/icons-react';
 import { notificationService, type MemberNotification } from '@/lib/services/notification-service';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { getActivityLogPage, type ActivityLog } from '@/lib/services/wallet-service';
 
 export type Milestone = { id: string; title: string; message: string; actionUrl?: string | null; actionLabel?: string };
 
-const relevant = /deposit|credited|return|rollover|withdraw|ownership|interest|opportunity|update|payout/i;
+const relevant = /deposit|credited|return|rollover|withdraw|ownership|interest|opportunity|update|payout|milestone|wealth.goal/i;
 const storageKey = (userId: string) => `playtives:milestones:${userId}`;
 const activityKey = (userId: string) => `playtives:milestone-activities:${userId}`;
 const activityMessages: Record<string, { title: string; message: string }> = {

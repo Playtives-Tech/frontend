@@ -1,19 +1,19 @@
 'use client';
 
 import {
-  ArrowRight,
-  ArrowUpRight,
-  Bell,
-  CheckCircle2,
-  Newspaper,
-  UsersRound,
-  WalletCards,
-} from 'lucide-react';
+  IconArrowRight as ArrowRight,
+  IconArrowUpRight as ArrowUpRight,
+  IconBell as Bell,
+  IconCircleCheck as CheckCircle2,
+  IconNews as Newspaper,
+  IconUsersGroup as UsersRound,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { FeaturedOpportunities } from '@/components/dashboard/featured-opportunities';
 import { VerificationCard } from '@/components/dashboard/verification-card';
-import { PortfolioSummaryCard } from '@/components/dashboard/portfolio-summary-card';
+import { HomePortfolioCard } from '@/components/dashboard/home-portfolio-card';
+import { getPortfolio } from '@/lib/services/portfolio-service';
 import { WealthGoalCard } from '@/components/dashboard/wealth-goal-card';
 import { getOwnerships, type Ownership } from '@/lib/services/ownership-service';
 import {
@@ -26,8 +26,10 @@ import { useAuthStore } from '@/stores/use-auth-store';
 import { whatsappLearningCommunityUrl, whatsappTribeCommunityUrl } from '@/lib/community';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import { BalanceAmount } from '@/components/ui/balance-amount';
+import { FinancialActivityIcon } from '@/components/wallet/financial-activity-icon';
+import { IconWallet } from '@tabler/icons-react';
 import { formatNaira } from '@/components/ownership/formatters';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { blogService, type BlogPost } from '@/lib/services/blog-service';
 import { getCurrentUser } from '@/lib/services/registration-service';
 import {
@@ -46,8 +48,6 @@ export function DashboardHome(): React.JSX.Element {
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [ownerships, setOwnerships] = useState<Ownership[]>([]);
-  const [ownershipsLoaded, setOwnershipsLoaded] = useState(false);
-  const [collectiveLoaded, setCollectiveLoaded] = useState(false);
   const [verification, setVerification] = useState<ParticipationVerification | null>(null);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [collectivePosition, setCollectivePosition] = useState<CollectivePortfolioPosition | null>(
@@ -65,6 +65,7 @@ export function DashboardHome(): React.JSX.Element {
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
+  const portfolioQuery = useQuery({ queryKey: ['portfolio'], queryFn: getPortfolio, enabled: !isGuest });
   const unreadNotificationCount = notificationCount.data?.count ?? 0;
   const isPending = user?.memberStatus === 'pending';
   const hasParticipated = collectivePosition !== null || ownerships.some((ownership) => ownership.status === 'ACTIVE' || ownership.status === 'COMPLETED');
@@ -82,19 +83,17 @@ export function DashboardHome(): React.JSX.Element {
     void getOwnerships()
       .then((items) => {
         setOwnerships(items);
-        setOwnershipsLoaded(true);
       })
-      .catch(() => setOwnershipsLoaded(false));
+      .catch(() => setOwnerships([]));
     void getCollectiveDashboard()
       .then((dashboard) => {
         const position = getCollectivePortfolioPosition(dashboard);
         setCollectivePosition(position);
-        setCollectiveLoaded(true);
         if (position) {
           void getCurrentUser().then(updateUser).catch(() => undefined);
         }
       })
-      .catch(() => setCollectiveLoaded(false));
+      .catch(() => setCollectivePosition(null));
     void getParticipationVerification()
       .then(setVerification)
       .catch(() => setVerification(null));
@@ -128,28 +127,6 @@ export function DashboardHome(): React.JSX.Element {
     else if (hour < 17) setGreeting('Good afternoon');
     else setGreeting('Good evening');
   }, []);
-  const activeOwnerships = useMemo(
-    () => ownerships.filter((ownership) => ownership.status === 'ACTIVE'),
-    [ownerships],
-  );
-  const activeContributionMinorUnits = activeOwnerships.reduce(
-    (total, ownership) => total + ownership.amountMinorUnits,
-    0,
-  );
-  const currentCollectiveMinorUnits =
-    collectivePosition?.status === 'COMPLETED'
-      ? 0
-      : (collectivePosition?.activeCapitalMinorUnits ?? 0);
-  const coOwnedContributionMinorUnits = activeOwnerships
-    .filter((ownership) => ownershipStructure(ownership) === 'CO_OWNERSHIP')
-    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
-  const coFundedContributionMinorUnits = activeOwnerships
-    .filter((ownership) => ownershipStructure(ownership) === 'CO_FUNDING')
-    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
-  const fullOwnershipContributionMinorUnits = activeOwnerships
-    .filter((ownership) => ownershipStructure(ownership) === 'FULL_OWNERSHIP')
-    .reduce((total, ownership) => total + ownership.amountMinorUnits, 0);
-
   return (
     <div className="w-full px-4 py-4 sm:px-8 lg:py-6">
       <header className="flex items-start justify-between gap-5">
@@ -189,38 +166,31 @@ export function DashboardHome(): React.JSX.Element {
       {!isGuest ? (
         <WealthGoalCard
           memberId={user.id}
-          firstName={firstName ?? 'there'}
           isActiveMember={user.memberStatus === 'active'}
-          productivePortfolioMinorUnits={
-            ownershipsLoaded && collectiveLoaded
-              ? activeOwnerships
-                  .filter((ownership) => !ownership.isFake)
-                  .reduce((total, ownership) => total + ownership.amountMinorUnits, 0) +
-                currentCollectiveMinorUnits
-              : null
-          }
+          productivePortfolioMinorUnits={portfolioQuery.data?.productivePortfolioMinorUnits ?? null}
         />
       ) : null}
 
       {!isGuest && verification ? (
-        <section className="mt-5 rounded-2xl border border-brand/20 bg-background p-5">
-          <h2 className="font-semibold">
-            {!verification.canJoinOpportunity
-              ? "You're almost ready to start building"
-              : wallet?.totalAvailableBalanceMinorUnits
-                ? 'Your money is ready to work'
-                : 'You’re ready to start building'}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {!verification.canJoinOpportunity
-              ? 'Verify your phone, NIN, or BVN to participate. You can explore opportunities now.'
-              : wallet?.totalAvailableBalanceMinorUnits
-                ? `${formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)} is available in your wallet.`
-                : 'Explore opportunities or fund your wallet when you are ready.'}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <Link
-              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white"
+        <section className="mt-5 flex flex-col gap-4 rounded-2xl border border-brand/20 bg-background p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <h2 className="font-semibold">
+              {!verification.canJoinOpportunity
+                ? "You're almost ready to start building"
+                : wallet?.totalAvailableBalanceMinorUnits
+                  ? 'Your money is ready to work'
+                  : 'You’re ready to start building'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {!verification.canJoinOpportunity
+                ? 'Verify your phone, NIN, or BVN to participate. You can explore opportunities now.'
+                : wallet?.totalAvailableBalanceMinorUnits
+                  ? `${formatNaira(wallet.totalAvailableBalanceMinorUnits / 100)} is available in your wallet.`
+                  : 'Explore opportunities or fund your wallet when you are ready.'}
+            </p>
+          </div>
+          <Link
+              className="inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white sm:w-auto"
               href={
                 !verification.canJoinOpportunity
                   ? '/profile/verification'
@@ -234,11 +204,7 @@ export function DashboardHome(): React.JSX.Element {
                 : wallet?.totalAvailableBalanceMinorUnits
                   ? 'Explore opportunities'
                   : 'Fund your wallet'}
-            </Link>
-            {/* <Link className="rounded-lg border px-4 font-semibold py-2 text-sm" href="/discover">
-              Explore opportunities
-            </Link> */}
-          </div>
+          </Link>
         </section>
       ) : null}
 
@@ -262,9 +228,7 @@ export function DashboardHome(): React.JSX.Element {
         {needsActivation ? (
           <section className="rounded-2xl border border-brand/20 bg-background p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-                <WalletCards className="size-5" />
-              </span>
+              <IconWallet className="size-6 shrink-0 text-brand" stroke={1.8} aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 className="text-lg font-semibold">{verification?.canFundWallet ? 'Ready for your first opportunity' : 'Verify to start participating'}</h2>
@@ -391,18 +355,7 @@ export function DashboardHome(): React.JSX.Element {
             </div>
           </section>
         ) : (
-          <PortfolioSummaryCard
-            walletBalanceMinorUnits={wallet?.totalAvailableBalanceMinorUnits ?? null}
-            ownershipBalanceMinorUnits={activeContributionMinorUnits + currentCollectiveMinorUnits}
-            coOwnedContributionMinorUnits={coOwnedContributionMinorUnits}
-            coFundedContributionMinorUnits={coFundedContributionMinorUnits}
-            fullOwnershipContributionMinorUnits={fullOwnershipContributionMinorUnits}
-            activeOwnershipCount={
-              activeOwnerships.length + (currentCollectiveMinorUnits > 0 ? 1 : 0)
-            }
-            collectiveContributionMinorUnits={currentCollectiveMinorUnits}
-            isGuest={isGuest}
-          />
+          <HomePortfolioCard portfolio={portfolioQuery.data ?? null} />
         )}
       </div>
 
@@ -505,16 +458,21 @@ function MobileBlogPreview(): React.JSX.Element | null {
             href={`/blog/${post.slug}`}
             className="flex gap-3 rounded-xl border bg-background p-3 transition hover:border-brand/35"
           >
-            <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand/5 text-brand">
               {post.coverImageUrl ? (
                 <img src={post.coverImageUrl} alt="" className="size-full object-cover" />
-              ) : null}
+              ) : (
+                <Newspaper className="size-6" stroke={1.6} aria-hidden="true" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-wide text-brand">
                 {post.category}
               </p>
               <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-5">{post.title}</h3>
+              {post.excerpt ? (
+                <p className="mt-1 line-clamp-2 text-xs leading-4 text-muted-foreground">{post.excerpt}</p>
+              ) : null}
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {new Date(post.publishedAt).toLocaleDateString('en-NG', {
                   day: 'numeric',
@@ -535,10 +493,6 @@ function MobileBlogPreview(): React.JSX.Element | null {
   );
 }
 
-function ownershipStructure(ownership: Ownership): Ownership['opportunityStructure'] {
-  return ownership.opportunityId.opportunityStructure ?? ownership.opportunityStructure;
-}
-
 function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX.Element {
   const amount =
     typeof item.metadata?.amountMinorUnits === 'number'
@@ -551,11 +505,7 @@ function MobileActivityRow({ item }: Readonly<{ item: ActivityLog }>): React.JSX
       : null;
   return (
     <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-3.5">
-      <span
-        className={`grid size-9 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
-      >
-        <WalletCards className="size-4" />
-      </span>
+      <FinancialActivityIcon action={item.action} className={`size-5 shrink-0 ${presentation.iconClass}`} />
       <span className="min-w-0 flex-1">
         <strong className="block truncate text-xs font-semibold text-foreground">
           {presentation.label}
@@ -629,10 +579,10 @@ function activityPresentation(action: string): {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
     prefix: incoming ? '+ ' : outgoing ? '- ' : '',
     iconClass: incoming
-      ? 'bg-emerald-500/10 text-emerald-600'
+      ? 'text-emerald-600'
       : outgoing
-        ? 'bg-amber-500/10 text-amber-700'
-        : 'bg-brand/10 text-brand',
+        ? 'text-foreground'
+        : 'text-muted-foreground',
     amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
   };
 }

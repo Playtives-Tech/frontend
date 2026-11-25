@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, WalletCards } from 'lucide-react';
+import { IconChevronLeft as ChevronLeft, IconChevronRight as ChevronRight } from '@tabler/icons-react';
+import { FinancialActivityIcon } from '@/components/wallet/financial-activity-icon';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BackButton } from '@/components/ui/back-button';
@@ -127,11 +128,7 @@ function ActivityRow({ log }: Readonly<{ log: ActivityLog }>): React.JSX.Element
       className="group flex items-center gap-3 py-4 transition hover:bg-muted/40"
       aria-label={`View details for ${presentation.label}`}
     >
-      <span
-        className={`grid size-10 shrink-0 place-items-center rounded-full ${presentation.iconClass}`}
-      >
-        <WalletCards className="size-4" />
-      </span>
+      <FinancialActivityIcon action={log.action} className={`size-5 shrink-0 ${presentation.iconClass}`} />
       <span className="min-w-0 flex-1">
         <strong className="block truncate font-sans text-[.8rem]">{presentation.label}</strong>
         <small className="mt-0.5 block font-sans text-[.7rem] text-muted-foreground">
@@ -221,10 +218,10 @@ function activityPresentation(action: string): {
     label: `${label.charAt(0).toUpperCase()}${label.slice(1)}`,
     prefix: incoming ? '+ ' : outgoing ? '- ' : '',
     iconClass: incoming
-      ? 'bg-emerald-500/10 text-emerald-600'
+      ? 'text-emerald-600'
       : outgoing
-        ? 'bg-amber-500/10 text-amber-700'
-        : 'bg-brand/10 text-brand',
+        ? 'text-foreground'
+        : 'text-muted-foreground',
     amountClass: incoming ? 'text-emerald-600' : outgoing ? 'text-red-600' : 'text-brand',
   };
 }

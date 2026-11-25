@@ -2,14 +2,14 @@
 /* eslint-disable @next/next/no-img-element -- Blog image URLs are managed by the backend media service. */
 
 import {
-  ArrowLeft,
-  ArrowRight,
-  Eye,
-  Heart,
-  MessageCircle,
-  SendHorizontal,
-  Trash2,
-} from 'lucide-react';
+  IconArrowLeft as ArrowLeft,
+  IconArrowRight as ArrowRight,
+  IconEye as Eye,
+  IconHeart as Heart,
+  IconMessageCircle as MessageCircle,
+  IconSend as SendHorizontal,
+  IconTrash as Trash2,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import { notify } from '@/lib/notify';
