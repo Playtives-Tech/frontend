@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { IconArrowUpRight, IconChartBar, IconChartLine, IconChartPie, IconInfoCircle, IconListDetails, IconTrendingUp, IconX } from '@tabler/icons-react';
+import { IconActivity, IconArrowUpRight, IconBriefcase, IconChartBar, IconChartLine, IconChartPie, IconChevronDown, IconCircleCheck, IconClock, IconInfoCircle, IconLayoutGrid, IconListDetails, IconTrendingUp, IconX } from '@tabler/icons-react';
 import { trackEvent } from '@/lib/product-analytics';
 import { getPortfolio, type PortfolioPosition } from '@/lib/services/portfolio-service';
 import { getWealthGoal } from '@/lib/services/wealth-goal-service';
@@ -34,6 +34,7 @@ export function PortfolioV2(): React.JSX.Element {
   const goal = useQuery({ queryKey: ['wealth-goal'], queryFn: getWealthGoal });
   const [tab, setTab] = useState<Tab>('ACTIVE');
   const [kind, setKind] = useState<'ALL' | PortfolioPosition['kind']>('ALL');
+  const [positionPage, setPositionPage] = useState(1);
   const [exactGoalOpen, setExactGoalOpen] = useState(false);
   const [scoreDetailsOpen, setScoreDetailsOpen] = useState(false);
   const data = portfolio.data;
@@ -61,6 +62,10 @@ export function PortfolioV2(): React.JSX.Element {
     data?.positions.filter(
       (item) => (tab === 'ALL' || item.status === tab) && (kind === 'ALL' || item.kind === kind),
     ) ?? [];
+  const positionPageSize = 6;
+  const positionPageCount = Math.ceil(visible.length / positionPageSize);
+  const currentPositionPage = Math.min(positionPage, Math.max(1, positionPageCount));
+  const pagedPositions = visible.slice((currentPositionPage - 1) * positionPageSize, currentPositionPage * positionPageSize);
   const sectorTotal = data?.sectors.reduce((sum, item) => sum + item.amountMinorUnits, 0) ?? 0;
   const largestSector =
     data?.sectors.reduce<(typeof data.sectors)[number] | null>(
@@ -285,25 +290,28 @@ export function PortfolioV2(): React.JSX.Element {
           ) : null}
           <section>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Positions</h2>
-              <label className="text-sm">
+              <h2 className="flex items-center gap-2 text-lg font-semibold"><IconBriefcase className="size-5 text-brand" stroke={1.8} aria-hidden="true" />Positions</h2>
+              <label className="text-xs font-medium text-muted-foreground">
                 Type{' '}
-                <select
-                  value={kind}
-                  onChange={(event) => { setKind(event.target.value as typeof kind); trackEvent('portfolio_filter_used', { filter: `type:${event.target.value}` }); }}
-                  className="ml-2 rounded-lg border bg-background px-3 py-2"
-                >
-                  <option value="ALL">All</option>
-                  {Object.entries(names).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <span className="relative ml-2 inline-block">
+                  <select
+                    value={kind}
+                    onChange={(event) => { setKind(event.target.value as typeof kind); setPositionPage(1); trackEvent('portfolio_filter_used', { filter: `type:${event.target.value}` }); }}
+                    className="min-w-36 appearance-none rounded-lg border bg-background py-2 pl-3 pr-10 text-sm text-foreground"
+                  >
+                    <option value="ALL">All</option>
+                    {Object.entries(names).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" stroke={1.8} aria-hidden="true" />
+                </span>
               </label>
             </div>
             <div
-              className="mt-3 flex gap-2 overflow-x-auto pb-1"
+              className="mt-4 flex gap-1 overflow-x-auto rounded-xl bg-muted/70 p-1"
               role="tablist"
               aria-label="Position status"
             >
@@ -312,18 +320,29 @@ export function PortfolioV2(): React.JSX.Element {
                   key={value}
                   role="tab"
                   aria-selected={tab === value}
-                  onClick={() => { setTab(value); trackEvent('portfolio_filter_used', { filter: `status:${value}` }); }}
-                  className={`rounded-full px-4 py-2 text-sm ${tab === value ? 'bg-brand text-white' : 'bg-muted'}`}
+                  onClick={() => { setTab(value); setPositionPage(1); trackEvent('portfolio_filter_used', { filter: `status:${value}` }); }}
+                  className={`inline-flex min-w-20 shrink-0 items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition ${tab === value ? 'bg-brand text-white shadow-sm' : 'text-muted-foreground hover:bg-background hover:text-foreground'}`}
                 >
+                  {value === 'ACTIVE' ? <IconActivity className="size-4" stroke={1.8} aria-hidden="true" /> : value === 'PENDING' ? <IconClock className="size-4" stroke={1.8} aria-hidden="true" /> : value === 'COMPLETED' ? <IconCircleCheck className="size-4" stroke={1.8} aria-hidden="true" /> : <IconLayoutGrid className="size-4" stroke={1.8} aria-hidden="true" />}
                   {value[0] + value.slice(1).toLowerCase()}
                 </button>
               ))}
             </div>
             {visible.length ? (
-              <div className="mt-4 grid gap-3">
-                {visible.map((item) => (
+              <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {pagedPositions.map((item) => (
                   <PositionCard key={item.id} position={item} />
                 ))}
+                {positionPageCount > 1 ? (
+                  <nav aria-label="Position pages" className="col-span-full mt-2 flex items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground">{(currentPositionPage - 1) * positionPageSize + 1}–{Math.min(currentPositionPage * positionPageSize, visible.length)} of {visible.length}</p>
+                    <div className="flex items-center gap-2">
+                      <button type="button" disabled={currentPositionPage === 1} onClick={() => setPositionPage(currentPositionPage - 1)} className="rounded-lg border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+                      <span className="text-xs tabular-nums text-muted-foreground">{currentPositionPage} / {positionPageCount}</span>
+                      <button type="button" disabled={currentPositionPage === positionPageCount} onClick={() => setPositionPage(currentPositionPage + 1)} className="rounded-lg border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+                    </div>
+                  </nav>
+                ) : null}
               </div>
             ) : (
               <div className="mt-4 rounded-2xl border p-6">
@@ -354,18 +373,18 @@ export function PortfolioV2(): React.JSX.Element {
             )}
           </section>
           <div className="grid gap-4 lg:grid-cols-2">
-            <section className="rounded-2xl border p-5">
-              <h2 className="font-semibold">Confirmed Opportunity Returns</h2>
+            <section className="min-w-0 rounded-2xl border bg-background p-5">
+              <h2 className="text-sm font-semibold">Confirmed returns</h2>
               {data.returnsHistory.length ? (
                 <ul className="mt-3 divide-y">
                   {data.returnsHistory.map((event, index) => (
                     <li
                       key={`${event.title}-${event.occurredAt}-${index}`}
-                      className="flex flex-wrap justify-between gap-2 py-3 text-sm"
+                      className="flex min-w-0 items-center justify-between gap-3 py-3 text-xs"
                     >
-                      <span>
-                        {event.title}
-                        <span className="block text-xs text-muted-foreground">
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium" title={event.title}>{event.title}</span>
+                        <span className="mt-0.5 block text-[11px] text-muted-foreground">
                           {event.kind === 'MATURITY'
                             ? 'Maturity profit'
                             : event.kind === 'ROLLOVER'
@@ -374,7 +393,7 @@ export function PortfolioV2(): React.JSX.Element {
                           · {new Date(event.occurredAt).toLocaleDateString()}
                         </span>
                       </span>
-                      <strong>{money(event.amountMinorUnits)}</strong>
+                      <strong className="shrink-0 rounded-full bg-brand/5 px-2 py-1 text-xs tabular-nums text-brand" title={money(event.amountMinorUnits)}>{compactMoney(event.amountMinorUnits)}</strong>
                     </li>
                   ))}
                 </ul>
@@ -384,16 +403,16 @@ export function PortfolioV2(): React.JSX.Element {
                 </p>
               )}
             </section>
-            <section className="rounded-2xl border p-5">
-              <h2 className="font-semibold">Upcoming</h2>
+            <section className="min-w-0 rounded-2xl border bg-background p-5">
+              <h2 className="text-sm font-semibold">Upcoming</h2>
               {data.upcoming.length ? (
                 <ul className="mt-3 divide-y">
                   {data.upcoming.map((event) => (
-                    <li key={`${event.href}-${event.expectedAt}`} className="py-3 text-sm">
-                      <Link href={event.href} className="font-medium text-brand hover:underline">
+                    <li key={`${event.href}-${event.expectedAt}`} className="py-3 text-xs">
+                      <Link href={event.href} className="block truncate font-medium text-foreground hover:text-brand" title={event.title}>
                         {event.title}
                       </Link>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {event.label}: {new Date(event.expectedAt).toLocaleDateString()}
                       </p>
                     </li>
@@ -459,88 +478,27 @@ function PositionCard({ position }: Readonly<{ position: PortfolioPosition }>): 
     <Link
       href={position.href}
       onClick={() => trackEvent('portfolio_position_viewed', { product_type: position.kind })}
-      className="flex min-w-0 gap-4 rounded-2xl border bg-background p-4 transition hover:border-brand/40"
+      className="group flex h-full min-w-0 flex-col rounded-2xl border bg-background p-4 transition hover:border-brand/40 hover:shadow-sm"
     >
-      {position.imageUrl ? (
-        <div className="relative hidden h-20 w-20 shrink-0 overflow-hidden rounded-xl sm:block">
-          <Image
-            src={position.imageUrl}
-            alt=""
-            fill
-            unoptimized
-            sizes="80px"
-            className="object-cover"
-          />
-        </div>
-      ) : null}
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="break-words font-semibold">{position.title}</h3>
-            <p className="text-xs text-muted-foreground">
-              {names[position.kind]} · {returns[position.returnType]}
-            </p>
+      <div className="flex min-w-0 items-start gap-3">
+        {position.imageUrl ? (
+          <div className="relative size-14 shrink-0 overflow-hidden rounded-xl sm:size-16">
+            <Image src={position.imageUrl} alt="" fill unoptimized sizes="64px" className="object-cover" />
           </div>
-          <span className="rounded-full bg-brand/10 px-2 py-1 text-xs font-semibold text-brand">
-            {position.statusLabel}
-          </span>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <h3 className="break-words text-sm font-semibold leading-snug">{position.title}</h3>
+          <p className="mt-1 text-xs text-muted-foreground">{names[position.kind]} · {returns[position.returnType]}</p>
         </div>
-        <p className="mt-3 text-sm">
-          {position.status === 'COMPLETED'
-            ? 'Original capital'
-            : position.status === 'PENDING'
-              ? position.statusLabel
-              : position.kind === 'CO_OWNERSHIP'
-                ? 'Ownership basis'
-                : position.kind === 'COLLECTIVE'
-                  ? 'Deployed capital'
-                  : 'Capital'}
-          :{' '}
-          <strong className="break-words tabular-nums" title={money(amount)}>
-            {compactMoney(amount)}
-          </strong>
-        </p>
-        {position.kind === 'COLLECTIVE' &&
-        position.status === 'ACTIVE' &&
-        position.pendingMinorUnits > 0 ? (
-          <p className="mt-1 text-sm">
-            Pending deployment:{' '}
-            <strong className="tabular-nums" title={money(position.pendingMinorUnits)}>
-              {compactMoney(position.pendingMinorUnits)}
-            </strong>
-          </p>
-        ) : null}
-        {position.kind === 'COLLECTIVE' &&
-        position.status === 'ACTIVE' &&
-        position.pendingMinorUnits > 0 ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Total in Collective:{' '}
-            {compactMoney(position.capitalMinorUnits + position.pendingMinorUnits)}
-          </p>
-        ) : null}
-        {position.confirmedReturnMinorUnits > 0 ? (
-          <p className="mt-1 text-sm">
-            Confirmed return:{' '}
-            <span title={money(position.confirmedReturnMinorUnits)}>
-              {compactMoney(position.confirmedReturnMinorUnits)}
-            </span>
-          </p>
-        ) : null}
-        {position.projectedReturnMinorUnits != null && position.status !== 'COMPLETED' ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Projected return:{' '}
-            <span title={money(position.projectedReturnMinorUnits)}>
-              {compactMoney(position.projectedReturnMinorUnits)}
-            </span>
-          </p>
-        ) : null}
-        {position.maturityAt && position.status !== 'COMPLETED' ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Expected maturity: {new Date(position.maturityAt).toLocaleDateString()}
-          </p>
-        ) : null}
-        <span className="mt-3 inline-block text-xs font-semibold text-brand">
-          View {position.kind === 'COLLECTIVE' ? 'Collective' : 'position'} →
+      </div>
+      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-3 pt-4">
+        <div className="min-w-0">
+          <span className="inline-flex max-w-full rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">{position.statusLabel}</span>
+          <p className="mt-2 text-[11px] text-muted-foreground">{position.status === 'COMPLETED' ? 'Original capital' : position.status === 'PENDING' ? 'Pending capital' : 'Deployed capital'}</p>
+          <p className="mt-0.5 break-words text-sm font-semibold tabular-nums" title={money(amount)}>{compactMoney(amount)}</p>
+        </div>
+        <span className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-lg border border-brand/20 bg-brand/5 px-3 text-xs font-semibold text-brand transition group-hover:bg-brand group-hover:text-white">
+          View {position.kind === 'COLLECTIVE' ? 'Collective' : 'position'} <IconArrowUpRight className="size-3.5" stroke={1.8} aria-hidden="true" />
         </span>
       </div>
     </Link>
