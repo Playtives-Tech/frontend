@@ -45,7 +45,7 @@ function CompactOpportunityCard({ opportunity, fluid = false }: { opportunity: O
     <Link
       href={opportunityHref(opportunity)}
       onClick={() => trackEvent('opportunity_card_clicked', { opportunity_id: opportunity._id, sector: opportunity.category, product_type: opportunity.opportunityStructure })}
-      className={`group flex shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 ${fluid ? 'h-[17rem] w-full min-w-0 sm:h-[15.5rem]' : 'h-[19rem] w-[14.125rem]'}`}
+      className={`group flex shrink-0 flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-colors hover:border-brand/30 ${fluid ? 'h-[17rem] w-full min-w-0 sm:h-[15.5rem]' : 'h-[17rem] w-[14.125rem]'}`}
     >
       <OpportunityCardImage opportunity={opportunity} sizes={fluid ? '(min-width: 1024px) 22vw, 45vw' : '(min-width: 1024px) 16vw, 60vw'} compact catalogue={fluid} />
 

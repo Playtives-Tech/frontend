@@ -90,14 +90,14 @@ export function MilestonePopup(): React.JSX.Element | null {
   if (!active) return null;
   const actionUrl = active.actionUrl?.startsWith('/') && !active.actionUrl.startsWith('//') ? active.actionUrl : '/notifications';
   return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setActive(null); }}>
-    <div role="dialog" aria-modal="true" aria-labelledby="milestone-title" aria-describedby="milestone-message" className="relative flex max-h-[80vh] w-full max-w-xl flex-col items-center overflow-y-auto rounded-3xl bg-white px-6 py-8 text-center text-slate-900 shadow-2xl sm:px-10 sm:py-10">
-      <button type="button" onClick={() => setActive(null)} aria-label="Close" className="absolute right-4 top-4 rounded-full p-2 text-slate-500 hover:bg-slate-100"><X className="size-5" /></button>
-      <div className="mb-5 grid size-40 place-items-center rounded-full bg-emerald-50 text-emerald-700" aria-hidden="true"><Check className="size-20" strokeWidth={2.5} /></div>
-      <h2 id="milestone-title" className="font-sans text-xl font-bold sm:text-2xl">{active.title}</h2>
-      <p id="milestone-message" className="mt-3 max-w-md text-sm leading-6 text-slate-600">{active.message}</p>
-      <div className="mt-auto flex w-full flex-col gap-3 pt-7">
-        <Link href={actionUrl} onClick={() => setActive(null)} className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800">{active.actionLabel ?? 'View details'}</Link>
-        <button type="button" onClick={() => setActive(null)} className="rounded-xl px-5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Continue</button>
+    <div role="dialog" aria-modal="true" aria-labelledby="milestone-title" aria-describedby="milestone-message" className="relative flex max-h-[80vh] w-full max-w-md flex-col items-center overflow-y-auto rounded-2xl bg-white px-6 py-7 text-center text-slate-900 shadow-2xl sm:px-8 sm:py-8">
+      <button type="button" onClick={() => setActive(null)} aria-label="Close" className="absolute right-3 top-3 rounded-full p-1.5 text-slate-500 hover:bg-slate-100"><X className="size-4" /></button>
+      <div className="mb-4 grid size-12 place-items-center rounded-full border border-emerald-100 bg-emerald-50 text-emerald-700" aria-hidden="true"><Check className="size-6" strokeWidth={2} /></div>
+      <h2 id="milestone-title" className="font-sans text-lg font-bold">{active.title}</h2>
+      <p id="milestone-message" className="mt-2 max-w-sm text-[13px] leading-5 text-slate-600">{active.message}</p>
+      <div className="mt-auto flex w-full flex-col gap-1 pt-5">
+        <Link href={actionUrl} onClick={() => setActive(null)} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">{active.actionLabel ?? 'View details'}</Link>
+        <button type="button" onClick={() => setActive(null)} className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Continue</button>
       </div>
     </div>
   </div>;
