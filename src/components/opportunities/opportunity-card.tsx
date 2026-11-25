@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { IconChartPie, IconClock } from '@tabler/icons-react';
+import { IconArrowRight, IconChartPie, IconClock } from '@tabler/icons-react';
 import { trackEvent } from '@/lib/product-analytics';
 import {
   formatProjectedReturnRate,
@@ -49,7 +49,7 @@ function CompactOpportunityCard({ opportunity, fluid = false }: { opportunity: O
     >
       <OpportunityCardImage opportunity={opportunity} sizes={fluid ? '(min-width: 1024px) 22vw, 45vw' : '(min-width: 1024px) 16vw, 60vw'} compact catalogue={fluid} />
 
-      <div className="flex min-h-0 flex-1 flex-col px-3 py-2">
+      <div className={`flex min-h-0 flex-1 flex-col px-3 pt-2 ${fluid ? 'pb-2' : 'pb-3'}`}>
         <OpportunityCardDetails opportunity={opportunity} compact catalogue={fluid} />
       </div>
     </Link>
@@ -75,7 +75,7 @@ function OpportunityCardImage({
   const statusLabel = opportunity.memberStatus?.replaceAll('_', ' ') ?? opportunity.acquisitionStatus.replaceAll('_', ' ');
 
   return (
-    <div className={`relative shrink-0 overflow-hidden bg-muted ${catalogue ? 'h-[40%] sm:h-[45%]' : compact ? 'h-1/2' : 'h-32'}`}>
+    <div className={`relative shrink-0 overflow-hidden bg-muted ${catalogue ? 'h-[40%] sm:h-[45%]' : compact ? 'h-[45%]' : 'h-32'}`}>
       {opportunity.imageUrl ? (
         <Image
           src={opportunity.imageUrl}
@@ -138,6 +138,8 @@ function OpportunityCardDetails({
           <p className={`line-clamp-2 font-semibold leading-4 text-brand ${catalogue ? 'text-[9px]' : 'text-[10px]'}`}>
             {catalogue && isInterestOpen && isPlaytivesCollective(opportunity) ? (
               <span className="inline-flex min-h-7 items-center rounded-lg bg-brand px-3 text-[9px] font-semibold text-brand-foreground">Join now</span>
+            ) : catalogue && isInterestOpen && opportunity.interestModeEnabled ? (
+              <span className="inline-flex min-h-7 items-center gap-1.5 rounded-lg bg-brand px-3 text-[9px] font-semibold text-brand-foreground">Register interest <IconArrowRight className="size-3.5" stroke={1.8} aria-hidden="true" /></span>
             ) : projectedRate}
             {!opportunity.interestModeEnabled && !opportunity.assetLifecycleEnabled ? (
               <span className="font-medium text-muted-foreground">

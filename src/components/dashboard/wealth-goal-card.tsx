@@ -66,8 +66,8 @@ export function WealthGoalCard({
       ? (productivePortfolioMinorUnits / target) * 100
       : null;
   const progressLabel = rawProgress === null
-    ? '0%'
-    : `${new Intl.NumberFormat('en-NG', { maximumFractionDigits: 6 }).format(rawProgress)}%`;
+    ? '0.00%'
+    : `${new Intl.NumberFormat('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(rawProgress)}%`;
   const monthlyAmount = Number(amount);
   const assumptionPercent = goal?.assumptionMonthlyPercent ?? 0;
   const previewTarget =

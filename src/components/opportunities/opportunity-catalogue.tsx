@@ -1,6 +1,6 @@
 'use client';
 
-import { IconAdjustmentsHorizontal, IconChevronDown as ChevronDown, IconChevronLeft, IconChevronRight, IconSearch as Search } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconBookmark, IconChevronDown as ChevronDown, IconChevronLeft, IconChevronRight, IconSearch as Search } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -23,6 +23,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
   const [availability, setAvailability] = useState<'OPEN' | 'CLOSED' | 'COMPLETED' | 'ALL'>('OPEN');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [interestPage, setInterestPage] = useState(1);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,10 +83,20 @@ export function OpportunityCatalogue(): React.JSX.Element {
         ? (a.offerClosesAt ? Date.parse(a.offerClosesAt) : Number.MAX_SAFE_INTEGER) - (b.offerClosesAt ? Date.parse(b.offerClosesAt) : Number.MAX_SAFE_INTEGER)
         : Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
   }, [availability, sector, structure, sort, opportunities, query]);
-  useEffect(() => setPage(1), [availability, sector, structure, sort, query]);
-  const pageCount = Math.ceil(visibleOpportunities.length / pageSize);
+  useEffect(() => { setPage(1); setInterestPage(1); }, [availability, sector, structure, sort, query]);
+  const separateInterests = availability === 'ALL' || availability === 'OPEN';
+  const regularOpportunities = separateInterests
+    ? visibleOpportunities.filter((opportunity) => !opportunity.interestModeEnabled || isPlaytivesCollective(opportunity))
+    : visibleOpportunities;
+  const interestOpportunities = separateInterests
+    ? visibleOpportunities.filter((opportunity) => opportunity.interestModeEnabled && !isPlaytivesCollective(opportunity))
+    : [];
+  const pageCount = Math.ceil(regularOpportunities.length / pageSize);
   const currentPage = Math.min(page, Math.max(1, pageCount));
-  const pageOpportunities = visibleOpportunities.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const pageOpportunities = regularOpportunities.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const interestPageCount = Math.ceil(interestOpportunities.length / pageSize);
+  const currentInterestPage = Math.min(interestPage, Math.max(1, interestPageCount));
+  const pageInterests = interestOpportunities.slice((currentInterestPage - 1) * pageSize, currentInterestPage * pageSize);
   return (
     <div className="w-full px-4 py-6 sm:px-8 lg:py-8">
       <header>
@@ -101,8 +112,8 @@ export function OpportunityCatalogue(): React.JSX.Element {
           {([
             ['ALL', 'All'],
             ['OPEN', 'Open'],
-            ['COMPLETED', 'Completed'],
             ['CLOSED', 'Fully funded & closed'],
+            ['COMPLETED', 'Completed'],
           ] as const).map(([value, label]) => (
             <button
               key={value}
@@ -165,10 +176,10 @@ export function OpportunityCatalogue(): React.JSX.Element {
 
       <div className="mt-6 flex items-center justify-between gap-3">
           <h2 className="font-sans text-sm font-semibold leading-6 sm:text-base">
-            {availability === 'OPEN' ? 'Open opportunities' : availability === 'CLOSED' ? 'Fully funded & closed' : availability === 'COMPLETED' ? 'Completed opportunities' : 'All opportunities'}
+            {availability === 'OPEN' ? 'Open opportunities' : availability === 'CLOSED' ? 'Closed opportunities' : availability === 'COMPLETED' ? 'Completed opportunities' : 'All opportunities'}
           </h2>
         <p className="shrink-0 text-[12px] font-semibold text-muted-foreground">
-          {visibleOpportunities.length} {visibleOpportunities.length === 1 ? 'result' : 'results'}
+          {regularOpportunities.length} {regularOpportunities.length === 1 ? 'result' : 'results'}
         </p>
       </div>
 
@@ -187,31 +198,47 @@ export function OpportunityCatalogue(): React.JSX.Element {
         </section>
       ) : error ? (
         <p className="text-destructive mt-8 text-sm">{error}</p>
-      ) : visibleOpportunities.length > 0 ? (
+      ) : regularOpportunities.length > 0 ? (
         <div className="mt-4 grid grid-cols-2 items-stretch gap-2 sm:gap-3 lg:grid-cols-3">
           {pageOpportunities.map((opportunity) => (
             <OpportunityCard key={opportunity.slug} opportunity={opportunity} variant="catalogue" />
           ))}
         </div>
       ) : (
-        <section className="mt-5 rounded-2xl border border-dashed p-10 text-center">
-          <h2 className="font-sans text-xl font-semibold">
-            {availability === 'OPEN' ? 'No open opportunities' : availability === 'COMPLETED' ? 'No completed opportunities' : availability === 'CLOSED' ? 'No closed opportunities' : 'No opportunities found'}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Try another search or select a different sector or industry.
+        <section className="mt-4 rounded-2xl border border-dashed border-border bg-surface/50 px-5 py-8 text-center">
+          <h3 className="font-sans text-sm font-semibold">
+            {query.trim() || activeFilterCount > 0 ? 'No matching opportunities' : 'No opportunities for now'}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {query.trim() || activeFilterCount > 0 ? 'Try a different search or filter.' : 'More is coming your way.'}
           </p>
         </section>
       )}
-      {!loading && !error && pageCount > 1 ? (
-        <nav className="mt-5 flex items-center justify-center gap-2" aria-label="Opportunity pages">
-          <button type="button" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page" className="grid size-8 place-items-center rounded-lg border border-border text-foreground disabled:opacity-40"><IconChevronLeft className="size-4" stroke={1.8} /></button>
-          {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
-            <button key={number} type="button" onClick={() => setPage(number)} aria-label={`Page ${number}`} aria-current={number === currentPage ? 'page' : undefined} className={cn('grid size-8 place-items-center rounded-lg text-xs font-semibold', number === currentPage ? 'bg-brand text-brand-foreground' : 'border border-border text-foreground hover:border-brand/40')}>{number}</button>
-          ))}
-          <button type="button" onClick={() => setPage(currentPage + 1)} disabled={currentPage === pageCount} aria-label="Next page" className="grid size-8 place-items-center rounded-lg border border-border text-foreground disabled:opacity-40"><IconChevronRight className="size-4" stroke={1.8} /></button>
-        </nav>
+      {!loading && !error ? <OpportunityPagination label="Opportunity pages" page={currentPage} pageCount={pageCount} onChange={setPage} /> : null}
+      {!loading && !error && interestOpportunities.length > 0 ? (
+        <section className="mt-7" aria-labelledby="interest-opportunities-heading">
+          <h2 id="interest-opportunities-heading" className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><IconBookmark className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Interests</h2>
+          <div className="mt-3 grid grid-cols-2 items-stretch gap-2 sm:gap-3 lg:grid-cols-3">
+            {pageInterests.map((opportunity) => (
+              <OpportunityCard key={opportunity.slug} opportunity={opportunity} variant="catalogue" />
+            ))}
+          </div>
+          <OpportunityPagination label="Interest pages" page={currentInterestPage} pageCount={interestPageCount} onChange={setInterestPage} />
+        </section>
       ) : null}
     </div>
+  );
+}
+
+function OpportunityPagination({ label, page, pageCount, onChange }: { label: string; page: number; pageCount: number; onChange: (page: number) => void }): React.JSX.Element | null {
+  if (pageCount <= 1) return null;
+  return (
+    <nav className="mt-5 flex items-center justify-center gap-2" aria-label={label}>
+      <button type="button" onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page" className="grid size-8 place-items-center rounded-lg border border-border text-foreground disabled:opacity-40"><IconChevronLeft className="size-4" stroke={1.8} /></button>
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => (
+        <button key={number} type="button" onClick={() => onChange(number)} aria-label={`Page ${number}`} aria-current={number === page ? 'page' : undefined} className={cn('grid size-8 place-items-center rounded-lg text-xs font-semibold', number === page ? 'bg-brand text-brand-foreground' : 'border border-border text-foreground hover:border-brand/40')}>{number}</button>
+      ))}
+      <button type="button" onClick={() => onChange(page + 1)} disabled={page === pageCount} aria-label="Next page" className="grid size-8 place-items-center rounded-lg border border-border text-foreground disabled:opacity-40"><IconChevronRight className="size-4" stroke={1.8} /></button>
+    </nav>
   );
 }

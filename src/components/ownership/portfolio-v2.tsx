@@ -8,6 +8,7 @@ import { trackEvent } from '@/lib/product-analytics';
 import { getPortfolio, type PortfolioPosition } from '@/lib/services/portfolio-service';
 import { getWealthGoal } from '@/lib/services/wealth-goal-service';
 import { formatCompactNairaMinorUnits, formatNaira } from './formatters';
+import { PortfolioBreakdown } from './portfolio-breakdown';
 
 const money = (value: number): string => formatNaira(value / 100);
 const compactMoney = formatCompactNairaMinorUnits;
@@ -213,6 +214,9 @@ export function PortfolioV2(): React.JSX.Element {
               tone="wallet"
             />
           </section>
+          <div className="flex justify-end">
+            <PortfolioBreakdown portfolio={data} />
+          </div>
           {data.availableWalletMinorUnits > 0 && data.positions.length > 0 ? (
             <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3">
               <div>
