@@ -26,6 +26,20 @@ const returns: Record<PortfolioPosition['returnType'], string> = {
   COMPOUNDED: 'Compounded return',
   NO_CURRENT_INCOME: 'No current income',
 };
+const scoreComponentNames: Record<'active' | 'repeat' | 'consistency' | 'longevity' | 'goal', string> = {
+  active: 'Active positions',
+  repeat: 'Repeat participation',
+  consistency: 'Six-month consistency',
+  longevity: 'Time since first participation',
+  goal: 'Wealth Goal',
+};
+const scoreComponentDescriptions: Record<keyof typeof scoreComponentNames, string> = {
+  active: 'Up to two active positions earn 150 points each.',
+  repeat: 'Up to three qualifying participations earn points.',
+  consistency: 'Earn points for months with participation in the last six months.',
+  longevity: 'Points grow for up to 180 days after your first participation.',
+  goal: 'Setting a Wealth Goal earns 150 points.',
+};
 type Tab = 'ACTIVE' | 'PENDING' | 'COMPLETED' | 'ALL';
 
 export function PortfolioV2(): React.JSX.Element {
@@ -37,6 +51,7 @@ export function PortfolioV2(): React.JSX.Element {
   const [positionPage, setPositionPage] = useState(1);
   const [exactGoalOpen, setExactGoalOpen] = useState(false);
   const [scoreDetailsOpen, setScoreDetailsOpen] = useState(false);
+  const [scoreInfoOpen, setScoreInfoOpen] = useState<keyof typeof scoreComponentNames | null>(null);
   const data = portfolio.data;
   const scoreCard = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -271,20 +286,26 @@ export function PortfolioV2(): React.JSX.Element {
           </section>
           {scoreDetailsOpen ? (
             <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setScoreDetailsOpen(false); }}>
-              <section role="dialog" aria-modal="true" aria-labelledby="score-details-title" className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-background p-5 shadow-2xl sm:p-6">
+              <section role="dialog" aria-modal="true" aria-labelledby="score-details-title" className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-background p-5 shadow-2xl sm:p-8">
                 <div className="flex items-center justify-between gap-3">
                   <h2 id="score-details-title" className="text-base font-semibold">How your score is calculated</h2>
                   <button type="button" aria-label="Close score details" onClick={() => setScoreDetailsOpen(false)} className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground hover:text-foreground"><IconX className="size-4" /></button>
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground">{data.wealthBuilderScore.explanation}</p>
+                <p className="mt-3 text-xs text-muted-foreground">Your score reflects participation and goal setting. Investment amounts do not affect it.</p>
                 <ul className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
                   {Object.entries(data.wealthBuilderScore.components).map(([label, component]) => (
-                    <li key={label} className="flex justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
-                      <span className="capitalize">{label}</span><span className="font-semibold tabular-nums">{component.points} / {component.maximum}</span>
+                    <li key={label} className="rounded-lg border bg-muted/30 px-3 py-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          {scoreComponentNames[label as keyof typeof scoreComponentNames]}
+                          <button type="button" aria-label={`About ${scoreComponentNames[label as keyof typeof scoreComponentNames]}`} aria-expanded={scoreInfoOpen === label} onClick={() => setScoreInfoOpen(scoreInfoOpen === label ? null : label as keyof typeof scoreComponentNames)} className="shrink-0 rounded-full text-muted-foreground hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"><IconInfoCircle className="size-4" stroke={1.8} aria-hidden="true" /></button>
+                        </span>
+                        <span className="shrink-0 font-semibold tabular-nums">{component.points} / {component.maximum}</span>
+                      </div>
+                      {scoreInfoOpen === label ? <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{scoreComponentDescriptions[label as keyof typeof scoreComponentDescriptions]}</p> : null}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-xs text-muted-foreground">This is a progress indicator, not a credit score, risk rating, or forecast of returns.</p>
               </section>
             </div>
           ) : null}
