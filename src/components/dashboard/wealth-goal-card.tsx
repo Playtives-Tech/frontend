@@ -140,7 +140,7 @@ export function WealthGoalCard({
               </p>
             </div>
             {rawProgress !== null ? (
-              <div className="mt-6">
+              <div className="mt-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs font-medium text-muted-foreground">Portfolio progress</p>
                   <span className="shrink-0 text-sm font-bold text-brand tabular-nums">{progressLabel}</span>

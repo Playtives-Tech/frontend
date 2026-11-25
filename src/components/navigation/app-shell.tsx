@@ -216,7 +216,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
         </div>
       </aside>
 
-      <main className="w-full min-w-0 pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(20rem+5vw)] lg:w-auto lg:pb-8 lg:pt-0">
+      <main className="w-full min-w-0 pb-24 pt-3 sm:pt-8 lg:ml-[calc(15rem+5vw)] lg:mr-[calc(18rem+2vw)] lg:w-auto lg:pb-8 lg:pt-0">
         {children}
       </main>
 
@@ -294,17 +294,17 @@ function RecentActivityRail({ userKey }: { userKey: string | null }): React.JSX.
   const signedIn = Boolean(userKey);
 
   return (
-    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-6 py-6 font-sans lg:block lg:w-[calc(20rem+5vw)]">
+    <aside className="app-surface fixed inset-y-0 right-0 z-20 hidden w-80 border-l px-4 py-6 font-sans lg:block lg:w-[calc(18rem+2vw)]">
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold tracking-tight">Recent Activities</h2>
+          <h2 className="text-sm font-bold tracking-tight">Recent Activities</h2>
           <Link
             href="/wallet/activity"
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-muted px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+            className="inline-flex h-8 items-center gap-1 rounded-full bg-muted px-2.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
             aria-label="View all activity"
           >
             View all
-            <ArrowRight className="size-4" />
+            <ArrowRight className="size-3.5" />
           </Link>
         </div>
 
@@ -338,13 +338,13 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
       : null;
 
   return (
-    <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-3 py-4">
-      <FinancialActivityIcon action={item.action} className={`size-5 shrink-0 ${presentation.iconClass}`} />
+    <Link href={`/wallet/activity/${item._id}`} className="flex items-center gap-2.5 py-3">
+      <FinancialActivityIcon action={item.action} className={`size-4 shrink-0 ${presentation.iconClass}`} />
       <span className="min-w-0 flex-1">
-        <strong className="block truncate font-sans text-[.8rem] font-semibold tracking-tight">
+        <strong className="block truncate font-sans text-xs font-semibold tracking-tight">
           {presentation.label}
         </strong>
-        <small className="block text-[.7rem] text-muted-foreground">
+        <small className="block text-[10px] text-muted-foreground">
           {new Date(item.createdAt).toLocaleDateString('en-NG', {
             day: 'numeric',
             month: 'short',
@@ -354,13 +354,13 @@ function ActivityRow({ item }: { item: ActivityLog }): React.JSX.Element {
       </span>
       <span className="shrink-0 text-right">
         {amount !== null ? (
-          <strong className={`block text-xs ${presentation.amountClass}`}>
+          <strong className={`block text-[11px] ${presentation.amountClass}`}>
             {presentation.prefix}
             {formatAmount(amount)}
           </strong>
         ) : null}
         {balanceAfter !== null ? (
-          <small className="block text-[11px] text-muted-foreground">
+          <small className="block text-[10px] text-muted-foreground">
             {formatAmount(balanceAfter)}
           </small>
         ) : null}
