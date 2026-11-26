@@ -17,3 +17,7 @@ export function saveWealthGoal(monthlyTargetMinorUnits: number): Promise<WealthG
     body: JSON.stringify({ monthlyTargetMinorUnits }),
   });
 }
+
+export function clearWealthGoal(): Promise<WealthGoal> {
+  return api<WealthGoal>('/v1/member/wealth-goal', { method: 'DELETE' });
+}

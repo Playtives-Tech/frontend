@@ -505,6 +505,25 @@ function InterestForm({
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries((existing?.answers ?? []).map((item) => [item.questionId, item.answer])),
   );
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>(() =>
+    Object.fromEntries((existing?.answers ?? []).filter((item) =>
+      (opportunity.interestQuestions ?? []).some((question) =>
+        question.id === item.questionId &&
+        question.answerType === 'options_with_text' &&
+        !question.options.includes(item.answer),
+      ),
+    ).map((item) => [item.questionId, item.answer])),
+  );
+  const [customSelected, setCustomSelected] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries((existing?.answers ?? []).filter((item) =>
+      (opportunity.interestQuestions ?? []).some((question) =>
+        question.id === item.questionId &&
+        question.answerType === 'options_with_text' &&
+        Boolean(item.answer) &&
+        !question.options.includes(item.answer),
+      ),
+    ).map((item) => [item.questionId, true])),
+  );
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       (existing?.answers ?? []).map((item) => [
@@ -579,7 +598,16 @@ function InterestForm({
                 {question.label}
                 {question.required ? <span className="text-red-600"> *</span> : null}
               </legend>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {(question.answerType ?? 'options') === 'text' ? (
+                <textarea
+                  className="mt-3 min-h-24 w-full rounded-xl border bg-background p-3 text-sm outline-none focus:border-brand"
+                  value={answers[question.id] ?? ''}
+                  maxLength={240}
+                  required={question.required}
+                  placeholder="Write your answer"
+                  onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))}
+                />
+              ) : <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {question.options.map((option) => (
                   <label
                     key={option}
@@ -589,14 +617,23 @@ function InterestForm({
                       type="radio"
                       name={question.id}
                       checked={answers[question.id] === option}
-                      onChange={() =>
-                        setAnswers((current) => ({ ...current, [question.id]: option }))
-                      }
+                      onChange={() => { setCustomSelected((current) => ({ ...current, [question.id]: false })); setAnswers((current) => ({ ...current, [question.id]: option })); }}
                     />
                     {option}
                   </label>
                 ))}
-              </div>
+                {question.answerType === 'options_with_text' ? (
+                  <div className={`rounded-xl border p-3 text-sm sm:col-span-2 ${customSelected[question.id] ? 'border-brand bg-brand/5' : ''}`}>
+                    <label className="flex cursor-pointer items-center gap-3">
+                      <input type="radio" name={question.id} checked={Boolean(customSelected[question.id])} onChange={() => { setCustomSelected((current) => ({ ...current, [question.id]: true })); setAnswers((current) => ({ ...current, [question.id]: customAnswers[question.id] ?? '' })); }} />
+                      Write my own answer
+                    </label>
+                    {customSelected[question.id] ? (
+                      <input type="text" className="mt-3 w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-brand" value={customAnswers[question.id] ?? ''} maxLength={240} required={question.required} placeholder="Enter your answer" onChange={(event) => { const value = event.target.value; setCustomAnswers((current) => ({ ...current, [question.id]: value })); setAnswers((current) => ({ ...current, [question.id]: value })); }} />
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>}
               {question.purpose === 'participation_amount' &&
               question.amountOptions?.[question.options.indexOf(answers[question.id])]?.amount ===
                 null ? (

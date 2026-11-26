@@ -108,7 +108,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
 
       <section className="mt-5 rounded-2xl border border-border/80 bg-background p-4 shadow-sm" aria-label="Find opportunities">
         <div className="w-full overflow-x-auto rounded-xl bg-surface p-1.5" role="tablist" aria-label="Opportunity availability">
-          <div className="flex w-max gap-1.5 sm:grid sm:w-full sm:grid-cols-4">
+          <div className="flex w-max min-w-full gap-1.5">
           {([
             ['ALL', 'All'],
             ['OPEN', 'Open'],
@@ -122,7 +122,7 @@ export function OpportunityCatalogue(): React.JSX.Element {
               aria-selected={availability === value}
               onClick={() => setAvailability(value)}
               className={cn(
-                'min-h-9 shrink-0 whitespace-nowrap rounded-lg px-5 py-1.5 text-[11px] font-semibold leading-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:min-w-0 sm:px-4 sm:text-xs',
+                'min-h-9 flex-1 shrink-0 whitespace-nowrap rounded-lg px-5 py-1.5 text-center text-[11px] font-semibold leading-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:px-4 sm:text-xs',
                 availability === value
                   ? 'bg-brand text-brand-foreground'
                   : 'text-muted-foreground hover:bg-background hover:text-foreground',

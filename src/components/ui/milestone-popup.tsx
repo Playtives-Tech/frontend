@@ -7,11 +7,16 @@ import { notificationService, type MemberNotification } from '@/lib/services/not
 import { useAuthStore } from '@/stores/use-auth-store';
 import { getActivityLogPage, type ActivityLog } from '@/lib/services/wallet-service';
 
-export type Milestone = { id: string; title: string; message: string; actionUrl?: string | null; actionLabel?: string };
+export type Milestone = { id: string; title: string; message: string; actionUrl?: string | null; actionLabel?: string; createdAt?: string };
 
 const relevant = /deposit|credited|return|rollover|withdraw|ownership|interest|opportunity|update|payout|milestone|wealth.goal/i;
 const storageKey = (userId: string) => `playtives:milestones:${userId}`;
 const activityKey = (userId: string) => `playtives:milestone-activities:${userId}`;
+const popupMaxAgeMs = 24 * 60 * 60_000;
+const isRecent = (createdAt: string): boolean => {
+  const age = Date.now() - new Date(createdAt).getTime();
+  return Number.isFinite(age) && age >= 0 && age <= popupMaxAgeMs;
+};
 const activityMessages: Record<string, { title: string; message: string }> = {
   DEPOSIT_APPROVED: { title: 'Funds added to your wallet', message: 'Your deposit is now available.' },
   ADMIN_DEPOSIT_CREDITED: { title: 'Funds added to your wallet', message: 'Your wallet has been credited.' },
@@ -39,10 +44,10 @@ export function MilestonePopup(): React.JSX.Element | null {
         if (disposed) return;
         const known = JSON.parse(localStorage.getItem(storageKey(userId)) || '[]') as string[];
         const seen = new Set(known);
-        const fresh = result.items.filter((item: MemberNotification) => !item.readAt && relevant.test(`${item.reason} ${item.title}`) && !seen.has(item._id));
+        const fresh = result.items.filter((item: MemberNotification) => !item.readAt && isRecent(item.createdAt) && relevant.test(`${item.reason} ${item.title}`) && !seen.has(item._id));
         if (fresh.length) {
           localStorage.setItem(storageKey(userId), JSON.stringify([...known, ...fresh.map((item) => item._id)].slice(-200)));
-          setQueue((current) => [...current, ...fresh.reverse().map((item) => ({ id: item._id, title: item.title, message: item.message, actionUrl: item.actionUrl, actionLabel: 'View details' }))]);
+          setQueue((current) => [...current, ...fresh.reverse().map((item) => ({ id: item._id, title: item.title, message: item.message, actionUrl: item.actionUrl, actionLabel: 'View details', createdAt: item.createdAt }))]);
         }
       } catch { /* Notifications remain available on their page. */ }
     };
@@ -55,8 +60,8 @@ export function MilestonePopup(): React.JSX.Element | null {
         const seen = new Set(known);
         const matching = result.items.filter((item: ActivityLog) => activityMessages[item.action]);
         localStorage.setItem(activityKey(userId), JSON.stringify([...known, ...matching.map((item) => item._id)].slice(-200)));
-        const recent = matching.filter((item) => !seen.has(item._id) && (item.action === 'ADMIN_DEPOSIT_CREDITED' ? Date.now() - new Date(item.createdAt).getTime() < 24 * 60 * 60_000 : prior !== null || Date.now() - new Date(item.createdAt).getTime() < 5 * 60_000));
-        if (recent.length) setQueue((current) => [...current, ...recent.reverse().map((item) => ({ id: item._id, ...activityMessages[item.action], actionUrl: `/wallet/activity/${item._id}`, actionLabel: 'View receipt' }))]);
+        const recent = matching.filter((item) => !seen.has(item._id) && isRecent(item.createdAt) && (item.action === 'ADMIN_DEPOSIT_CREDITED' || prior !== null || Date.now() - new Date(item.createdAt).getTime() < 5 * 60_000));
+        if (recent.length) setQueue((current) => [...current, ...recent.reverse().map((item) => ({ id: item._id, ...activityMessages[item.action], actionUrl: `/wallet/activity/${item._id}`, actionLabel: 'View receipt', createdAt: item.createdAt }))]);
       } catch { /* Activity history remains available from the wallet. */ }
     };
     void check();
@@ -75,8 +80,9 @@ export function MilestonePopup(): React.JSX.Element | null {
 
   useEffect(() => {
     if (!active && queue.length) {
-      setActive(queue[0]);
-      setQueue((current) => current.slice(1));
+      const nextIndex = queue.findIndex((item) => !item.createdAt || isRecent(item.createdAt));
+      setActive(nextIndex >= 0 ? queue[nextIndex] : null);
+      setQueue((current) => nextIndex >= 0 ? current.slice(nextIndex + 1) : []);
     }
   }, [active, queue]);
 

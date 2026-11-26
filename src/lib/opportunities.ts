@@ -137,6 +137,7 @@ export type Opportunity = Readonly<{
     label: string;
     options: string[];
     required: boolean;
+    answerType?: 'options' | 'options_with_text' | 'text';
     purpose?: 'participation_amount' | null;
     amountOptions?: ReadonlyArray<{ amount: number | null; minimum: boolean }>;
   }>;

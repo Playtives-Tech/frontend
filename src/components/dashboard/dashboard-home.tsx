@@ -171,7 +171,7 @@ export function DashboardHome(): React.JSX.Element {
         />
       ) : null}
 
-      {!isGuest && verification ? (
+      {/* {!isGuest && verification ? (
         <section className="mt-5 flex flex-col gap-4 rounded-2xl border border-brand/20 bg-background p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
             <h2 className="font-semibold">
@@ -206,7 +206,7 @@ export function DashboardHome(): React.JSX.Element {
                   : 'Fund your wallet'}
           </Link>
         </section>
-      ) : null}
+      ) : null} */}
 
       {/* <section className="mt-5 flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/[0.045] px-4 py-3.5 text-sm sm:mt-6">
         <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">

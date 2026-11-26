@@ -177,7 +177,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+    <div className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
         <h1 className="mt-2 font-sans text-2xl font-semibold tracking-tight">My Account</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -185,14 +185,14 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </p>
       </header>
 
-      <section className="playtives-gold-card mt-6 overflow-hidden rounded-3xl text-white shadow-sm">
-        <div className="grid gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_15rem] md:items-center">
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+      <section className="playtives-gold-card mt-6 min-w-0 overflow-hidden rounded-3xl text-white shadow-sm">
+        <div className="grid min-w-0 gap-5 p-4 sm:p-6">
+          <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
             <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 shadow-inner backdrop-blur-sm sm:size-14">
               <UserRound className="size-6 sm:size-7" />
             </span>
-            <div className="min-w-0">
-              <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/80 sm:text-[10px]">
+            <div className="min-w-0 w-full">
+              <span className="inline-flex max-w-full rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/80 sm:text-[10px]">
                 {user.memberStatus === 'pending'
                   ? 'Playtives pending member'
                   : user.memberStatus === 'community'
@@ -202,7 +202,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               <h2 className="mt-2 break-words font-sans text-xl font-semibold leading-tight sm:text-2xl">
                 {user.name}
               </h2>
-              <p className="mt-1 break-all text-xs text-white/70 sm:text-sm">{user.email}</p>
+              <p className="mt-1 text-xs text-white/70 [overflow-wrap:anywhere] sm:text-sm">{user.email}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {user.phone ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-black/10 px-3 py-1.5 text-xs text-white/80">
@@ -221,12 +221,12 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             </div>
           </div>
           {user.memberCode ? (
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-sm">
+            <div className="min-w-0 w-full max-w-sm rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-sm">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
                 Your member code
               </p>
               <div className="mt-2 flex items-center justify-between gap-4">
-                <p className="font-mono text-lg font-bold tracking-wider text-white">
+                <p className="min-w-0 break-all font-mono text-base font-bold tracking-wider text-white sm:text-lg">
                   {user.memberCode}
                 </p>
                 <button
@@ -491,7 +491,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </section>
       ) : null}
 
-      <section className="mt-5 divide-y rounded-xl border bg-background px-4">
+      <section className="mt-5 divide-y rounded-2xl border border-brand/15 bg-brand/[0.025] px-4 transition hover:border-brand/30">
         <ProfileLink
           href="/wallet"
           icon={Landmark}
@@ -511,9 +511,10 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         /> */}
       </section>
 
+      <div className={`mt-4 grid gap-4 ${isRestricted ? '' : 'lg:grid-cols-2'}`}>
       {!isRestricted ? (
-        <section className="mt-6 rounded-xl border bg-background p-4">
-          <h2 className="font-sans text-[15.5px] font-semibold">Security</h2>
+        <section className="rounded-2xl border bg-background p-4 sm:p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold"><KeyRound className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Security</h2>
           <div className="mt-2 divide-y">
             <Link
               href="/profile/change-password"
@@ -543,8 +544,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </section>
       ) : null}
 
-      <section className="mt-6 rounded-xl border bg-background p-4">
-        <h2 className="font-sans text-[15.5px] font-semibold">Support and community</h2>
+      <section className="rounded-2xl border bg-background p-4 sm:p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><Mail className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Support and community</h2>
         <div className="mt-2 divide-y">
           <div className="flex items-center gap-3 py-3">
             <Mail className="size-4 shrink-0 text-brand" />
@@ -587,9 +588,11 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
           </a>
         </div>
       </section>
+      </div>
 
-      <section className="mt-6 rounded-xl border bg-background p-4">
-        <h2 className="font-sans text-[15.5px] font-semibold">Appearance</h2>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <section className="rounded-2xl border bg-background p-4 sm:p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><Moon className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Appearance</h2>
         <div className="mt-2 flex items-center gap-3 py-3">
           <Moon className="size-4 text-brand" />
           <span className="min-w-0 flex-1">
@@ -602,8 +605,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </div>
       </section>
 
-      <section className="mt-6 rounded-xl border bg-background p-4">
-        <h2 className="font-sans text-[15.5px] font-semibold">Account access</h2>
+      <section className="rounded-2xl border bg-background p-4 sm:p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold"><LogOut className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Account access</h2>
         <div className="mt-2 divide-y">
           <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-start gap-3">
@@ -644,6 +647,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
           </div>
         </div>
       </section>
+      </div>
 
       <ConfirmModal
         open={dialog === 'signout-first'}
