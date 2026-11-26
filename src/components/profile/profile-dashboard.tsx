@@ -7,13 +7,13 @@ import {
   IconKey as KeyRound,
   IconBuildingBank as Landmark,
   IconLogout2 as LogOut,
-  IconMail as Mail,
   IconMoon as Moon,
   IconTrash as Trash2,
   IconPhone as Phone,
   IconFingerprint as IdentityIcon,
   IconUserCircle as UserRound,
   IconFilePencil as FilePenLine,
+  IconX as X,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -27,7 +27,6 @@ import {
   whatsappTribeCommunityUrl,
 } from '@/lib/community';
 import { notify } from '@/lib/notify';
-import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import {
   closeAccount,
   getAccountClosureEligibility,
@@ -60,7 +59,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [isSubmittingNameRequest, setIsSubmittingNameRequest] = useState(false);
   const [nextOfKin, setNextOfKin] = useState<NextOfKin | null>(null);
-  const [showNextOfKinForm, setShowNextOfKinForm] = useState(false);
+  const [nextOfKinDialog, setNextOfKinDialog] = useState<'view' | 'edit' | null>(null);
   const [savingNextOfKin, setSavingNextOfKin] = useState(false);
   const [accountClosureEligibility, setAccountClosureEligibility] =
     useState<AccountClosureEligibility | null>(null);
@@ -78,6 +77,14 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         .catch(() => undefined);
     }
   }, [isRestricted]);
+  useEffect(() => {
+    if (!nextOfKinDialog) return;
+    const onEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setNextOfKinDialog(null);
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [nextOfKinDialog]);
   const close = (): void => setDialog(null);
   const openDeleteAccountDialog = async (): Promise<void> => {
     try {
@@ -101,7 +108,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
     setSavingNextOfKin(true);
     try {
       setNextOfKin(await updateNextOfKin(input));
-      setShowNextOfKinForm(false);
+      setNextOfKinDialog('view');
       notify.success('Next of Kin details saved');
     } catch (error) {
       notify.error(error instanceof Error ? error.message : 'Could not save Next of Kin details');
@@ -179,7 +186,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
   return (
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
       <header>
-        <h1 className="mt-2 font-sans text-2xl font-semibold tracking-tight">My Account</h1>
+        <h1 className="mt-2 font-sans text-xl font-semibold tracking-tight">My Account</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Manage your personal details and account preferences.
         </p>
@@ -203,11 +210,30 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
                 {user.name}
               </h2>
               <p className="mt-1 text-xs text-white/70 [overflow-wrap:anywhere] sm:text-sm">{user.email}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
                 {user.phone ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/10 px-3 py-1.5 text-xs text-white/80">
-                    <Phone className="size-3.5" />
+                  <span className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-black/10 px-3 py-1.5 text-xs text-white/80">
+                    <Phone className="size-3.5 shrink-0" />
                     {user.phone}
+                  </span>
+                ) : null}
+                {user.memberCode ? (
+                  <span className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 py-1 pl-3 pr-1 text-xs text-white/85">
+                    <span className="shrink-0 text-white/60">Member code</span>
+                    <span className="min-w-0 break-all font-mono font-semibold">{user.memberCode}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void navigator.clipboard
+                          .writeText(user.memberCode ?? '')
+                          .then(() => notify.success('Member code copied'))
+                          .catch(() => notify.error('Could not copy member code'))
+                      }
+                      className="grid size-7 shrink-0 place-items-center rounded-full text-white/75 transition hover:bg-white/15 hover:text-white"
+                      aria-label="Copy member code"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
                   </span>
                 ) : null}
                 {user.gender ? (
@@ -220,40 +246,14 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
               </div>
             </div>
           </div>
-          {user.memberCode ? (
-            <div className="min-w-0 w-full max-w-sm rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-sm">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                Your member code
-              </p>
-              <div className="mt-2 flex items-center justify-between gap-4">
-                <p className="min-w-0 break-all font-mono text-base font-bold tracking-wider text-white sm:text-lg">
-                  {user.memberCode}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    void navigator.clipboard
-                      .writeText(user.memberCode ?? '')
-                      .then(() => notify.success('Member code copied'))
-                      .catch(() => notify.error('Could not copy member code'))
-                  }
-                  className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white/75 transition hover:bg-white/20 hover:text-white"
-                  aria-label="Copy member code"
-                >
-                  <Copy className="size-4" />
-                </button>
-              </div>
-              <p className="mt-2 text-[11px] leading-4 text-white/55">
-                Your unique Playtives membership identifier.
-              </p>
-            </div>
-          ) : null}
         </div>
       </section>
 
+      <section className="mt-5 overflow-hidden rounded-2xl border bg-background px-4 sm:px-5">
+        <h2 className="pt-4 text-sm font-semibold">Personal details</h2>
       <Link
         href="/profile/verification"
-        className="mt-5 flex items-center gap-3 rounded-xl border bg-background p-4 transition hover:border-brand/35 hover:bg-brand/[0.03]"
+        className="flex items-center gap-3 border-b py-4 transition hover:text-brand"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
           <IdentityIcon className="size-5" />
@@ -268,7 +268,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       </Link>
 
       {isRestricted ? (
-        <section className="mt-5 rounded-xl border border-brand/20 bg-brand/[0.035] p-4">
+        <section className="border-b py-4">
           <h2 className="font-sans text-sm font-semibold">Full account tools are locked</h2>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
             Some account tools unlock after your first confirmed opportunity or Collective contribution. You can explore opportunities, verify your identity, and fund your wallet now.
@@ -283,7 +283,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       ) : null}
 
       {!isRestricted ? (
-        <section className="mt-5 rounded-xl border bg-background p-4">
+        <section className="border-b py-4">
           <div className="flex flex-wrap items-start gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
               <FilePenLine className="size-4" />
@@ -402,96 +402,26 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
       ) : null}
 
       {!isRestricted ? (
-        <section className="mt-5 rounded-xl border bg-background p-4">
-          <div className="flex items-start justify-between gap-3">
+        <section className="py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-sans text-[14px] font-semibold">Next of Kin</h2>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                A trusted contact for important account matters.
-              </p>
+              <h2 className="font-sans text-sm font-semibold">Next of kin</h2>
+              {nextOfKin ? <p className="mt-0.5 text-xs text-muted-foreground">{nextOfKin.fullName} · {nextOfKin.relationship}</p> : null}
             </div>
             <button
               type="button"
-              onClick={() => setShowNextOfKinForm((visible) => !visible)}
+              onClick={() => setNextOfKinDialog(nextOfKin ? 'view' : 'edit')}
               className="h-8 shrink-0 rounded-lg border px-2.5 text-xs font-semibold hover:bg-muted"
             >
-              {nextOfKin ? 'Edit' : 'Add details'}
+              {nextOfKin ? 'View details' : 'Add details'}
             </button>
           </div>
-          {nextOfKin && !showNextOfKinForm ? (
-            <div className="mt-4 rounded-lg bg-surface p-3 text-sm">
-              <p className="font-semibold">
-                {nextOfKin.fullName}{' '}
-                <span className="font-normal text-muted-foreground">
-                  · {nextOfKin.relationship}
-                </span>
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                {nextOfKin.phone}
-                {nextOfKin.email ? ` · ${nextOfKin.email}` : ''}
-              </p>
-            </div>
-          ) : null}
-          {showNextOfKinForm ? (
-            <form
-              onSubmit={(event) => void saveNextOfKin(event)}
-              className="mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2"
-            >
-              <input
-                required
-                name="fullName"
-                defaultValue={nextOfKin?.fullName}
-                placeholder="Full name"
-                className="h-10 rounded-lg border bg-background px-3 text-sm"
-              />
-              <input
-                required
-                name="relationship"
-                defaultValue={nextOfKin?.relationship}
-                placeholder="Relationship (e.g. Sister)"
-                className="h-10 rounded-lg border bg-background px-3 text-sm"
-              />
-              <input
-                required
-                name="phone"
-                defaultValue={nextOfKin?.phone}
-                placeholder="Phone number"
-                className="h-10 rounded-lg border bg-background px-3 text-sm"
-              />
-              <input
-                name="email"
-                type="email"
-                defaultValue={nextOfKin?.email ?? ''}
-                placeholder="Email address (optional)"
-                className="h-10 rounded-lg border bg-background px-3 text-sm"
-              />
-              <input
-                name="address"
-                defaultValue={nextOfKin?.address ?? ''}
-                placeholder="Address (optional)"
-                className="h-10 rounded-lg border bg-background px-3 text-sm sm:col-span-2"
-              />
-              <div className="flex justify-end gap-2 sm:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNextOfKinForm(false)}
-                  className="h-8 px-2.5 text-xs font-semibold text-muted-foreground"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={savingNextOfKin}
-                  className="h-8 rounded-lg bg-brand px-3 text-xs font-semibold text-white disabled:opacity-60"
-                >
-                  {savingNextOfKin ? 'Saving…' : 'Save details'}
-                </button>
-              </div>
-            </form>
-          ) : null}
         </section>
       ) : null}
+      </section>
 
-      <section className="mt-5 divide-y rounded-2xl border border-brand/15 bg-brand/[0.025] px-4 transition hover:border-brand/30">
+      <section className="mt-5 divide-y overflow-hidden rounded-2xl border bg-background px-4 sm:px-5">
+        <h2 className="pt-4 text-sm font-semibold">Finance &amp; support</h2>
         <ProfileLink
           href="/wallet"
           icon={Landmark}
@@ -509,12 +439,10 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
           title="Identity and verification"
           description="Submit and track your identity verification"
         /> */}
-      </section>
-
-      <div className={`mt-4 grid gap-4 ${isRestricted ? '' : 'lg:grid-cols-2'}`}>
+      <div className={`grid gap-0 border-t ${isRestricted ? '' : 'lg:grid-cols-2 lg:gap-6'}`}>
       {!isRestricted ? (
-        <section className="rounded-2xl border bg-background p-4 sm:p-5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold"><KeyRound className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Security</h2>
+        <section className="border-b py-4 lg:border-b-0">
+          <h2 className="text-sm font-semibold">Security</h2>
           <div className="mt-2 divide-y">
             <Link
               href="/profile/change-password"
@@ -522,8 +450,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             >
               <KeyRound className="size-4 text-brand" />
               <span className="min-w-0 flex-1">
-                <strong className="block text-sm">Change password</strong>
-                <small className="text-xs text-muted-foreground">Keep your account protected</small>
+                <span className="block text-[13px]">Change password</span>
+                <small className="text-[11px] text-muted-foreground">Keep your account protected</small>
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
@@ -533,8 +461,8 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             >
               <CreditCard className="size-4 text-brand" />
               <span className="min-w-0 flex-1">
-                <strong className="block text-sm">Linked bank accounts</strong>
-                <small className="text-xs text-muted-foreground">
+                <span className="block text-[13px]">Linked bank accounts</span>
+                <small className="text-[11px] text-muted-foreground">
                   Manage withdrawal destinations
                 </small>
               </span>
@@ -544,16 +472,15 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </section>
       ) : null}
 
-      <section className="rounded-2xl border bg-background p-4 sm:p-5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><Mail className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Support and community</h2>
+      <section className="py-4">
+        <h2 className="text-sm font-semibold">Support and community</h2>
         <div className="mt-2 divide-y">
           <div className="flex items-center gap-3 py-3">
-            <Mail className="size-4 shrink-0 text-brand" />
             <span className="min-w-0 flex-1">
-              <strong className="block text-sm">Contact us</strong>
+              <span className="block text-[13px]">Contact us</span>
               <a
                 href={`mailto:${supportEmail}`}
-                className="mt-0.5 block truncate text-xs text-muted-foreground hover:text-brand"
+                className="mt-0.5 block truncate text-[11px] text-muted-foreground hover:text-brand"
               >
                 {supportEmail}
               </a>
@@ -577,10 +504,9 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             rel="noreferrer"
             className="flex items-center gap-3 py-3 transition hover:text-brand"
           >
-            <WhatsAppIcon className="size-4 shrink-0 text-[#22a85d]" />
             <span className="min-w-0 flex-1">
-              <strong className="block text-sm">Join our community on WhatsApp</strong>
-              <small className="mt-0.5 block text-xs text-muted-foreground">
+              <span className="block text-[13px]">Join our community on WhatsApp</span>
+              <small className="mt-0.5 block text-[11px] text-muted-foreground">
                 Connect with other Playtives members
               </small>
             </span>
@@ -589,15 +515,18 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </div>
       </section>
       </div>
+      </section>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-      <section className="rounded-2xl border bg-background p-4 sm:p-5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><Moon className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Appearance</h2>
+      <section className="mt-5 overflow-hidden rounded-2xl border bg-background px-4 sm:px-5">
+        <h2 className="pt-4 text-sm font-semibold">Preferences &amp; access</h2>
+      <div className="grid gap-0 lg:grid-cols-2 lg:gap-6">
+      <section className="border-b py-4 lg:border-b-0">
+        <h2 className="text-sm font-semibold">Appearance</h2>
         <div className="mt-2 flex items-center gap-3 py-3">
           <Moon className="size-4 text-brand" />
           <span className="min-w-0 flex-1">
-            <strong className="block text-sm">Dark mode</strong>
-            <small className="mt-0.5 block text-xs text-muted-foreground">
+            <span className="block text-[13px]">Dark mode</span>
+            <small className="mt-0.5 block text-[11px] text-muted-foreground">
               Choose the theme that feels right for you
             </small>
           </span>
@@ -605,15 +534,15 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </div>
       </section>
 
-      <section className="rounded-2xl border bg-background p-4 sm:p-5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold"><LogOut className="size-4 text-brand" stroke={1.8} aria-hidden="true" />Account access</h2>
+      <section className="py-4">
+        <h2 className="text-sm font-semibold">Account access</h2>
         <div className="mt-2 divide-y">
           <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-start gap-3">
               <LogOut className="mt-0.5 size-4 shrink-0 text-brand" />
               <span>
-                <strong className="block text-sm">Sign out</strong>
-                <small className="mt-0.5 block text-xs text-muted-foreground">
+                <span className="block text-[13px]">Sign out</span>
+                <small className="mt-0.5 block text-[11px] text-muted-foreground">
                   End this session on this device
                 </small>
               </span>
@@ -627,12 +556,12 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             </button>
           </div>
 
-          <div className="flex flex-col gap-3 py-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="flex items-start gap-3">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-3 pt-4">
+            <span className="flex min-w-0 items-start gap-3">
               <Trash2 className="mt-0.5 size-4 shrink-0 text-red-600" />
-              <span>
-                <strong className="block text-sm text-red-600">Delete account</strong>
-                <small className="mt-0.5 block text-xs text-muted-foreground">
+              <span className="min-w-0">
+                <span className="block text-[13px] text-red-600">Delete account</span>
+                <small className="mt-0.5 block text-[11px] text-muted-foreground">
                   Permanently close your Playtives account
                 </small>
               </span>
@@ -640,7 +569,7 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
             <button
               type="button"
               onClick={() => void openDeleteAccountDialog()}
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/20"
+              className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/20"
             >
               Delete account
             </button>
@@ -648,6 +577,47 @@ export function ProfileDashboard({ user, onSignOut }: ProfileDashboardProps): Re
         </div>
       </section>
       </div>
+      </section>
+
+      {nextOfKinDialog ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setNextOfKinDialog(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="next-of-kin-title" className="w-full max-w-md rounded-2xl bg-background p-5 shadow-xl sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="next-of-kin-title" className="text-lg font-semibold">Next of kin</h2>
+              <button type="button" onClick={() => setNextOfKinDialog(null)} aria-label="Close next of kin" className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"><X className="size-5" /></button>
+            </div>
+            {nextOfKinDialog === 'view' && nextOfKin ? (
+              <div className="mt-4 space-y-3 text-sm">
+                {[
+                  ['Full name', nextOfKin.fullName],
+                  ['Relationship', nextOfKin.relationship],
+                  ['Phone', nextOfKin.phone],
+                  ['Email', nextOfKin.email],
+                  ['Address', nextOfKin.address],
+                ].filter(([, value]) => value).map(([label, value]) => (
+                  <div key={label} className="min-w-0 border-b pb-2 last:border-0">
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="mt-0.5 break-words">{value}</p>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setNextOfKinDialog('edit')} className="w-full rounded-lg bg-brand px-3 py-2.5 text-sm font-semibold text-white">Edit details</button>
+              </div>
+            ) : (
+              <form onSubmit={(event) => void saveNextOfKin(event)} className="mt-4 grid gap-3 sm:grid-cols-2">
+                <input required name="fullName" defaultValue={nextOfKin?.fullName} placeholder="Full name" aria-label="Full name" className="h-10 min-w-0 rounded-lg border bg-background px-3 text-sm" />
+                <input required name="relationship" defaultValue={nextOfKin?.relationship} placeholder="Relationship" aria-label="Relationship" className="h-10 min-w-0 rounded-lg border bg-background px-3 text-sm" />
+                <input required name="phone" defaultValue={nextOfKin?.phone} placeholder="Phone number" aria-label="Phone number" className="h-10 min-w-0 rounded-lg border bg-background px-3 text-sm" />
+                <input name="email" type="email" defaultValue={nextOfKin?.email ?? ''} placeholder="Email address (optional)" aria-label="Email address" className="h-10 min-w-0 rounded-lg border bg-background px-3 text-sm" />
+                <input name="address" defaultValue={nextOfKin?.address ?? ''} placeholder="Address (optional)" aria-label="Address" className="h-10 min-w-0 rounded-lg border bg-background px-3 text-sm sm:col-span-2" />
+                <div className="flex justify-end gap-2 sm:col-span-2">
+                  <button type="button" onClick={() => setNextOfKinDialog(nextOfKin ? 'view' : null)} className="rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground">Cancel</button>
+                  <button disabled={savingNextOfKin} className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{savingNextOfKin ? 'Saving…' : 'Save details'}</button>
+                </div>
+              </form>
+            )}
+          </section>
+        </div>
+      ) : null}
 
       <ConfirmModal
         open={dialog === 'signout-first'}
