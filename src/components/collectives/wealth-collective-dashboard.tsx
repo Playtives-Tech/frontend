@@ -71,6 +71,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
   const [leaderboardNickname, setLeaderboardNickname] = useState('');
   const [leaderboardSaving, setLeaderboardSaving] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [joinUnavailableReason, setJoinUnavailableReason] = useState<string | null>(null);
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [agreementChecked, setAgreementChecked] = useState(false);
   const [signingAgreement, setSigningAgreement] = useState(false);
@@ -208,16 +209,28 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
       : (Math.pow(1 + projectedMonthlyPercent / 100, 12) - 1) * 100;
   const participatingMemberCount = data.socialProof?.memberCount ?? 0;
   const openContributionFlow = (): void => {
+    if (data.earlyExit) {
+      setJoinUnavailableReason('This Collective position has been exited, so new contributions are unavailable.');
+      return;
+    }
+    if (data.maturity) {
+      setJoinUnavailableReason('This Collective has matured and is no longer accepting contributions.');
+      return;
+    }
+    if (!data.programme) {
+      setJoinUnavailableReason('There is no active Wealth Collective programme to join right now.');
+      return;
+    }
+    if (!data.nextDeployment) {
+      setJoinUnavailableReason('There is no upcoming funding window for new contributions right now.');
+      return;
+    }
     if (!data.agreement) {
-      notify.info('There is no active Wealth Collective programme yet.');
+      setJoinUnavailableReason('The Collective agreement is not available yet. Please check back later.');
       return;
     }
     if (!data.agreement.accepted) {
       setAgreementOpen(true);
-      return;
-    }
-    if (!data.nextDeployment) {
-      notify.info('There is no upcoming funding window to schedule into.');
       return;
     }
     setScheduleOpen(true);
@@ -242,8 +255,8 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <button
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-brand hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!data.nextDeployment || !data.programme}
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-brand hover:bg-white/90 ${!data.nextDeployment || !data.programme ? 'opacity-60' : ''}`}
+                  aria-disabled={!data.nextDeployment || !data.programme}
                   onClick={openContributionFlow}
                   type="button"
                 >
@@ -347,8 +360,8 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                 </p>
               </div>
               <button
-                className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!data.nextDeployment || !data.programme}
+                className={`mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand/90 ${!data.nextDeployment || !data.programme ? 'opacity-60' : ''}`}
+                aria-disabled={!data.nextDeployment || !data.programme}
                 onClick={openContributionFlow}
                 type="button"
               >
@@ -975,9 +988,7 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
                     </p>
                     <button
                       className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand/90 sm:w-auto"
-                      disabled={
-                        !data.nextDeployment || Boolean(data.earlyExit) || Boolean(data.maturity)
-                      }
+                      aria-disabled={!data.nextDeployment || Boolean(data.earlyExit) || Boolean(data.maturity)}
                       onClick={openContributionFlow}
                       type="button"
                     >
@@ -1470,6 +1481,18 @@ export function WealthCollectiveDashboard(): React.JSX.Element {
           onSubmit={submitSchedule}
         />
       )}
+      {joinUnavailableReason ? (
+        <div role="presentation" className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setJoinUnavailableReason(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="join-unavailable-title" className="w-full max-w-sm rounded-2xl bg-background p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <h2 id="join-unavailable-title" className="text-lg font-semibold">Unable to join right now</h2>
+              <button type="button" aria-label="Close" onClick={() => setJoinUnavailableReason(null)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{joinUnavailableReason}</p>
+            <button type="button" onClick={() => setJoinUnavailableReason(null)} className="mt-5 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white">Got it</button>
+          </section>
+        </div>
+      ) : null}
       {aboutOpen && (
         <div
           aria-modal="true"

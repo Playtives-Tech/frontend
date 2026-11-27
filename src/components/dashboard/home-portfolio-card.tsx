@@ -24,6 +24,12 @@ export function HomePortfolioCard({
               ? formatCompactNairaMinorUnits(portfolio.productivePortfolioMinorUnits)
               : '—'}
           </p>
+          <p className="mt-1 mb-2 text-sm text-muted-foreground">
+            Available wallet balance:{' '}
+            <span className="font-semibold text-foreground" title={portfolio ? formatNaira(portfolio.availableWalletMinorUnits / 100) : undefined}>
+              {portfolio ? formatCompactNairaMinorUnits(portfolio.availableWalletMinorUnits) : '—'}
+            </span>
+          </p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
             Track your working capital, returns, and position progress.
           </p>

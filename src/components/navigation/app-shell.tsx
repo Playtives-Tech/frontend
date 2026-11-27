@@ -44,7 +44,7 @@ function NavigationLink({
       className={cn(
         'group flex items-center gap-3 rounded-[.5rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
         compact
-          ? 'min-w-0 flex-1 flex-col gap-1 px-1 py-2 text-[9px]'
+          ? 'min-w-0 flex-1 flex-col gap-1 px-0.5 py-2 text-[8px] sm:text-[9px]'
           : 'h-12 px-3.5 text-[.85rem]',
         inverse
           ? active
@@ -58,7 +58,7 @@ function NavigationLink({
       )}
       aria-current={active ? 'page' : undefined}
     >
-      <Icon className={compact ? 'size-5' : 'size-5 shrink-0'} stroke={active ? 2.2 : 1.8} />
+      <Icon className={compact ? 'size-6 shrink-0' : 'size-5 shrink-0'} stroke={active ? 2.2 : 1.8} />
       <span className={compact ? 'max-w-full truncate' : undefined}>{label}</span>
     </Link>
   );
